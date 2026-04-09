@@ -1,0 +1,60 @@
+name: Extract Snippets
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Aggregate manifests
+        working-directory: scripts
+        run: yarn aggregate
+
+      - name: Extract snippets
+        working-directory: scripts
+        run: yarn extract
+
+      - name: Validate structure
+        working-directory: scripts
+        run: yarn validate
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --quiet snippets.json snippet-manifest.yaml || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit updated artifacts
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add snippets.json snippet-manifest.yaml
+          git commit -m "chore: update extracted snippets and manifest"
+          git push
+
+      # - name: Notify ciam-core of snippet changes
+      #   if: steps.diff.outputs.changed == 'true'
+      #   run: |
+      #     gh api repos/SecureAuthCorp/ciam-core/dispatches \
+      #       -f event_type=quickstart-snippets-updated \
+      #       -f 'client_payload[sha]=${{ github.sha }}'
+      #   env:
+      #     GH_TOKEN: ${{ secrets.CIAM_CORE_DISPATCH_TOKEN }}

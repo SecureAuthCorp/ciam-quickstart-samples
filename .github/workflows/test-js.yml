@@ -1,0 +1,58 @@
+name: Test JS Frameworks
+
+on:
+  push:
+    paths:
+      - "samples/react/**"
+  pull_request:
+    paths:
+      - "samples/react/**"
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  find-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.find.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        run: |
+          DIRS=$(find samples -name "package.json" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: find-projects
+    if: ${{ needs.find-projects.outputs.matrix != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Build
+        working-directory: ${{ matrix.project }}
+        run: yarn build
+      - name: Test
+        working-directory: ${{ matrix.project }}
+        run: yarn test
+        if: ${{ hashFiles(format('{0}/vitest.config.ts', matrix.project)) != '' }}
+      - name: Check formatting
+        working-directory: ${{ matrix.project }}
+        run: |
+          if grep -q '"format:check"' package.json; then
+            yarn format:check
+          fi
