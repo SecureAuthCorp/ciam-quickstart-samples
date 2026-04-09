@@ -51,10 +51,10 @@ test("renders welcome message when authenticated", () => {
     isLoading: false,
     isAuthenticated: true,
     error: null,
-    user: { profile: { name: "Test User" } },
-    removeUser: vi.fn(),
+    user: { profile: { given_name: "Test", family_name: "User", email: "test@example.com" } },
+    signoutRedirect: vi.fn(),
   });
   render(<App />);
-  expect(screen.getByText("Welcome, Test User")).toBeDefined();
+  expect(screen.getByText("Welcome, Test User (test@example.com)")).toBeDefined();
   expect(screen.getByRole("button", { name: "Sign out" })).toBeDefined();
 });
