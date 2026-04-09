@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { glob } from "glob";
 import yaml from "js-yaml";
 import path from "path";
+import { fileURLToPath } from "url";
 
 interface PlaceholderMapping {
   pattern: string;
@@ -39,7 +40,7 @@ interface FrameworkManifest {
   scenarios: Record<string, unknown>;
 }
 
-const ROOT = path.resolve(import.meta.dirname, "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SAMPLES = path.join(ROOT, "samples");
 const TAG_START = /\/\/\s*@snippet:step(\d+):start/;
 const TAG_END = /\/\/\s*@snippet:step(\d+):end/;
@@ -113,6 +114,12 @@ function extractStepsFromFile(
 
     const endMatch = line.match(TAG_END);
     if (endMatch && currentStep !== null) {
+      const endStep = parseInt(endMatch[1], 10);
+      if (endStep !== currentStep) {
+        throw new Error(
+          `Mismatched snippet end tag in ${filePath}:${i + 1}. Expected @snippet:step${currentStep}:end but found @snippet:step${endStep}:end.`
+        );
+      }
       const code = applyPlaceholders(currentLines.join("\n"), lang, placeholderMap);
       steps.push({
         step: currentStep,

@@ -5,8 +5,8 @@ Minimal React app demonstrating OIDC login using Authorization Code + PKCE via `
 ## Setup
 
 1. Copy `.env.example` to `.env` and fill in your SecureAuth values
-2. `npm install`
-3. `npm run dev`
+2. `yarn install`
+3. `yarn dev`
 4. Open http://localhost:3000
 
 ## What this demonstrates

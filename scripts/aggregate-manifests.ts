@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { glob } from "glob";
 import yaml from "js-yaml";
 import path from "path";
+import { fileURLToPath } from "url";
 
 interface ConfigRow {
   label: string;
@@ -31,7 +32,7 @@ interface AggregatedScenario extends ScenarioManifest {
   frameworks: string[];
 }
 
-const ROOT = path.resolve(import.meta.dirname, "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SAMPLES = path.join(ROOT, "samples");
 
 async function main() {

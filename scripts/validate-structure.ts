@@ -2,15 +2,17 @@ import { existsSync, readFileSync } from "fs";
 import { glob } from "glob";
 import yaml from "js-yaml";
 import path from "path";
+import { fileURLToPath } from "url";
 
 interface FrameworkManifest {
   framework: string;
   scenarios: Record<string, unknown>;
 }
 
-const ROOT = path.resolve(import.meta.dirname, "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SAMPLES = path.join(ROOT, "samples");
-const TAG_PATTERN = /@snippet:step\d+:start/;
+const TAG_START = /@snippet:step(\d+):start/g;
+const TAG_END = /@snippet:step(\d+):end/g;
 
 let errors = 0;
 
@@ -51,9 +53,20 @@ async function main() {
       let hasSnippetTag = false;
       for (const file of sourceFiles) {
         const fileContent = readFileSync(path.join(scenarioDir, file), "utf-8");
-        if (TAG_PATTERN.test(fileContent)) {
-          hasSnippetTag = true;
-          break;
+        const starts = [...fileContent.matchAll(TAG_START)].map((m) => parseInt(m[1], 10));
+        const ends = [...fileContent.matchAll(TAG_END)].map((m) => parseInt(m[1], 10));
+
+        if (starts.length > 0) hasSnippetTag = true;
+
+        for (const step of starts) {
+          if (!ends.includes(step)) {
+            error(`Missing @snippet:step${step}:end in samples/${manifest.framework}/${dirName}/${file}`);
+          }
+        }
+        for (const step of ends) {
+          if (!starts.includes(step)) {
+            error(`Missing @snippet:step${step}:start in samples/${manifest.framework}/${dirName}/${file}`);
+          }
         }
       }
 

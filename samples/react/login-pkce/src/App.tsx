@@ -30,7 +30,7 @@ function AuthButtons() {
     return (
       <div>
         <p>Welcome, {auth.user?.profile.name}</p>
-        <button onClick={() => auth.removeUser()}>Sign out</button>
+        <button onClick={() => auth.signoutRedirect()}>Sign out</button>
       </div>
     );
   }

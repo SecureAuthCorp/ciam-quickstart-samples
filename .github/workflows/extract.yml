@@ -3,6 +3,11 @@ name: Extract Snippets
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - "samples/**"
+      - "scripts/**"
+      - "placeholder-map.yaml"
   workflow_dispatch:
 
 permissions:
@@ -36,13 +41,20 @@ jobs:
         working-directory: scripts
         run: yarn validate
 
+      - name: Verify no drift (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff --exit-code snippets.json snippet-manifest.yaml || \
+            (echo "::error::Extracted artifacts are out of date. Run 'cd scripts && yarn all' and commit the results." && exit 1)
+
       - name: Check for changes
         id: diff
+        if: github.event_name == 'push'
         run: |
           git diff --quiet snippets.json snippet-manifest.yaml || echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit updated artifacts
-        if: steps.diff.outputs.changed == 'true'
+        if: github.event_name == 'push' && steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
