@@ -9,6 +9,7 @@ const oidcConfig = {
   authority: import.meta.env.VITE_ISSUER_URL,
   client_id: import.meta.env.VITE_CLIENT_ID,
   redirect_uri: import.meta.env.VITE_REDIRECT_URI,
+  post_logout_redirect_uri: import.meta.env.VITE_POST_LOGOUT_URI,
   scope: import.meta.env.VITE_SCOPES,
 };
 // @snippet:step2:end
@@ -29,7 +30,10 @@ function AuthButtons() {
   if (auth.isAuthenticated) {
     return (
       <div>
-        <p>Welcome, {auth.user?.profile.name}</p>
+        <p>
+          Welcome, {auth.user?.profile.given_name}{" "}
+          {auth.user?.profile.family_name} ({auth.user?.profile.email})
+        </p>
         <button onClick={() => auth.signoutRedirect()}>Sign out</button>
       </div>
     );

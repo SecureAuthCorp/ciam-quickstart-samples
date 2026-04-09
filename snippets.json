@@ -13,18 +13,18 @@
         {
           "step": 2,
           "description": "Configure the OIDC client with your SecureAuth app settings",
-          "code": "const oidcConfig = {\n  authority: \"{{ISSUER_URL}}\",\n  client_id: \"{{CLIENT_ID}}\",\n  redirect_uri: \"{{REDIRECT_URI}}\",\n  scope: \"{{SCOPES}}\",\n};",
+          "code": "const oidcConfig = {\n  authority: \"{{ISSUER_URL}}\",\n  client_id: \"{{CLIENT_ID}}\",\n  redirect_uri: \"{{REDIRECT_URI}}\",\n  post_logout_redirect_uri: \"{{POST_LOGOUT_URI}}\",\n  scope: \"{{SCOPES}}\",\n};",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "7-13"
+          "lines": "7-14"
         },
         {
           "step": 3,
           "description": "Add login and logout buttons that redirect to SecureAuth",
-          "code": "function AuthButtons() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <div>Loading...</div>;\n  }\n\n  if (auth.error) {\n    return <div>Error: {auth.error.message}</div>;\n  }\n\n  if (auth.isAuthenticated) {\n    return (\n      <div>\n        <p>Welcome, {auth.user?.profile.name}</p>\n        <button onClick={() => auth.removeUser()}>Sign out</button>\n      </div>\n    );\n  }\n\n  return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n}",
+          "code": "function AuthButtons() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <div>Loading...</div>;\n  }\n\n  if (auth.error) {\n    return <div>Error: {auth.error.message}</div>;\n  }\n\n  if (auth.isAuthenticated) {\n    return (\n      <div>\n        <p>\n          Welcome, {auth.user?.profile.given_name}{\" \"}\n          {auth.user?.profile.family_name} ({auth.user?.profile.email})\n        </p>\n        <button onClick={() => auth.signoutRedirect()}>Sign out</button>\n      </div>\n    );\n  }\n\n  return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "17-39"
+          "lines": "18-43"
         },
         {
           "step": 4,
@@ -32,7 +32,7 @@
           "code": "export default function App() {\n  return (\n    <AuthProvider {...oidcConfig}>\n      <h1>SecureAuth React PKCE Demo</h1>\n      <AuthButtons />\n    </AuthProvider>\n  );\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "43-51"
+          "lines": "47-55"
         }
       ],
       "framework": "react",

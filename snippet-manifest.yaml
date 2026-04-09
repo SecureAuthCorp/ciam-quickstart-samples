@@ -19,8 +19,10 @@ scenarios:
         value: '{{ISSUER_URL}}'
       - label: Redirect URI
         value: '{{REDIRECT_URI}}'
+      - label: Post-Logout Redirect URI
+        value: '{{POST_LOGOUT_URI}}'
       - label: Scopes
-        value: openid profile email
+        value: '{{SCOPES}}'
       - label: Grant
         value: Authorization Code + PKCE
     frameworks:
