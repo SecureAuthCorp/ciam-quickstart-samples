@@ -74,7 +74,7 @@ async function main() {
   }
 
   const output = { frameworks, scenarios };
-  const yamlStr = yaml.dump(output, { lineWidth: 120, noRefs: true });
+  const yamlStr = yaml.dump(output, { lineWidth: 120, noRefs: true, quotingType: '"' });
   const outputPath = path.join(ROOT, "snippet-manifest.yaml");
   writeFileSync(
     outputPath,

@@ -14,15 +14,15 @@ scenarios:
     callout: Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair.
     config_rows:
       - label: Client ID
-        value: '{{CLIENT_ID}}'
+        value: "{{CLIENT_ID}}"
       - label: Issuer URL
-        value: '{{ISSUER_URL}}'
+        value: "{{ISSUER_URL}}"
       - label: Redirect URI
-        value: '{{REDIRECT_URI}}'
+        value: "{{REDIRECT_URI}}"
       - label: Post-Logout Redirect URI
-        value: '{{POST_LOGOUT_URI}}'
+        value: "{{POST_LOGOUT_URI}}"
       - label: Scopes
-        value: '{{SCOPES}}'
+        value: "{{SCOPES}}"
       - label: Grant
         value: Authorization Code + PKCE
     frameworks:
