@@ -127,7 +127,7 @@ function extractStepsFromFile(
         code,
         file: path.relative(scenarioDir, filePath),
         lang,
-        lines: `${startLine + 1}-${i}`,
+        lines: `${startLine}-${i}`,
       });
       currentStep = null;
       continue;

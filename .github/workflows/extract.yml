@@ -11,10 +11,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  extract:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,14 +47,40 @@ jobs:
           git diff --exit-code snippets.json snippet-manifest.yaml || \
             (echo "::error::Extracted artifacts are out of date. Run 'cd scripts && yarn all' and commit the results." && exit 1)
 
+  commit:
+    needs: validate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Aggregate manifests
+        working-directory: scripts
+        run: yarn aggregate
+
+      - name: Extract snippets
+        working-directory: scripts
+        run: yarn extract
+
       - name: Check for changes
         id: diff
-        if: github.event_name == 'push'
         run: |
           git diff --quiet snippets.json snippet-manifest.yaml || echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit updated artifacts
-        if: github.event_name == 'push' && steps.diff.outputs.changed == 'true'
+        if: steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

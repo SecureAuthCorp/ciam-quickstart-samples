@@ -1,5 +1,7 @@
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
+import App from "./App";
 
 const mockUseAuth = vi.fn();
 
@@ -9,8 +11,6 @@ vi.mock("react-oidc-context", () => ({
   ),
   useAuth: () => mockUseAuth(),
 }));
-
-import App from "./App";
 
 test("renders sign in button when not authenticated", () => {
   mockUseAuth.mockReturnValue({
