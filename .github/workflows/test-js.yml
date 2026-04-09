@@ -43,6 +43,12 @@ jobs:
         run: corepack enable
       - name: Install dependencies
         run: yarn install --immutable
+      - name: Check formatting
+        working-directory: ${{ matrix.project }}
+        run: |
+          if grep -q '"format:check"' package.json; then
+            yarn format:check
+          fi
       - name: Build
         working-directory: ${{ matrix.project }}
         run: yarn build
@@ -50,9 +56,3 @@ jobs:
         working-directory: ${{ matrix.project }}
         run: yarn test
         if: ${{ hashFiles(format('{0}/vitest.config.ts', matrix.project)) != '' }}
-      - name: Check formatting
-        working-directory: ${{ matrix.project }}
-        run: |
-          if grep -q '"format:check"' package.json; then
-            yarn format:check
-          fi
