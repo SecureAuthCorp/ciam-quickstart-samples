@@ -1,6 +1,7 @@
 {
   "name": "@ciam-quickstart/react-login-pkce",
   "private": true,
+  "packageManager": "yarn@4.13.0",
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",

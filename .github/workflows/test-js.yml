@@ -42,6 +42,7 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
       - name: Install dependencies
+        working-directory: ${{ matrix.project }}
         run: yarn install --immutable
       - name: Check formatting
         working-directory: ${{ matrix.project }}
