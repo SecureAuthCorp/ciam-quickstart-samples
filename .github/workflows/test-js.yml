@@ -20,7 +20,7 @@ jobs:
     outputs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: find
         run: |
           DIRS=$(find samples -name "package.json" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
@@ -35,7 +35,7 @@ jobs:
       matrix:
         project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
