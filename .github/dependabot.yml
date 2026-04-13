@@ -7,8 +7,6 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
-    reviewers:
-      - "ksroda-sa"
     commit-message:
       prefix: "deps"
 
@@ -19,8 +17,6 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
-    reviewers:
-      - "ksroda-sa"
     commit-message:
       prefix: "deps"
 
@@ -30,5 +26,3 @@ updates:
       interval: "weekly"
     labels:
       - "dependencies"
-    reviewers:
-      - "ksroda-sa"
