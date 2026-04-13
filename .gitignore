@@ -4,7 +4,7 @@ dist/
 !.env.example
 *.local
 .angular/
-.yarn/*
-!.yarn/releases
+**/.yarn/*
+!**/.yarn/releases
 docs/
 
