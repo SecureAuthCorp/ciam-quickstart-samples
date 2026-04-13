@@ -1,0 +1,26 @@
+framework: react
+label: React
+lang: tsx
+lib: react-oidc-context
+docs_url: https://github.com/authts/react-oidc-context
+
+scenarios:
+  spa_login_pkce:
+    app_type: single_page
+    display_name: "User Login"
+    grant: "Auth Code + PKCE"
+    description: "Redirect users to SecureAuth for login. PKCE protects against code interception."
+    callout: "Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair."
+    config_rows:
+      - label: "Client ID"
+        value: "{{CLIENT_ID}}"
+      - label: "Issuer URL"
+        value: "{{ISSUER_URL}}"
+      - label: "Redirect URI"
+        value: "{{REDIRECT_URI}}"
+      - label: "Post-Logout Redirect URI"
+        value: "{{POST_LOGOUT_URI}}"
+      - label: "Scopes"
+        value: "{{SCOPES}}"
+      - label: "Grant"
+        value: "Authorization Code + PKCE"

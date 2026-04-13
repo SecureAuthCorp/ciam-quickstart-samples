@@ -1,0 +1,5 @@
+# All files require review from the CIAM team
+* @SecureAuthCorp/team-eng-ciam-ui-write
+
+# GitHub Actions and CI config
+.github/ @SecureAuthCorp/devops
