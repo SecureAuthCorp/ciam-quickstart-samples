@@ -11,6 +11,12 @@ const exposedEnvVars = [
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  const missing = exposedEnvVars.filter((key) => !env[key]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required env vars: ${missing.join(", ")}. Copy .env.example to .env and fill in the values.`,
+    );
+  }
   return {
     plugins: [react()],
     define: Object.fromEntries(

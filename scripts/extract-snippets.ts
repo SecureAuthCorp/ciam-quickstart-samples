@@ -206,6 +206,7 @@ async function main() {
         snippets[scenarioId] = {};
       }
 
+      const runCommand = manifest.scenarios[scenarioId]?.run_command;
       snippets[scenarioId][fw] = {
         steps: allSteps,
         framework: fw,
@@ -213,9 +214,7 @@ async function main() {
         lib_version: getLibVersion(scenarioDir, frameworkDir),
         install: getInstallCommand(scenarioDir),
         repo_path: `samples/${path.relative(SAMPLES, scenarioDir)}`,
-        ...(manifest.scenarios[scenarioId]?.run_command && {
-          run_command: manifest.scenarios[scenarioId].run_command,
-        }),
+        ...(runCommand ? { run_command: runCommand } : {}),
       };
     }
   }
