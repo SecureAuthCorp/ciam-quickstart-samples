@@ -11,6 +11,7 @@ scenarios:
     grant: "Auth Code + PKCE"
     description: "Redirect users to SecureAuth for login. PKCE protects against code interception."
     callout: "Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair."
+    run_command: "yarn install && yarn dev"
     config_rows:
       - label: "Client ID"
         value: "{{CLIENT_ID}}"

@@ -29,6 +29,12 @@ interface FrameworkSnippet {
   lib_version: string;
   install: string;
   repo_path: string;
+  run_command?: string;
+}
+
+interface ScenarioMeta {
+  run_command?: string;
+  [key: string]: unknown;
 }
 
 interface FrameworkManifest {
@@ -37,7 +43,7 @@ interface FrameworkManifest {
   lang: string;
   lib: string;
   docs_url: string;
-  scenarios: Record<string, unknown>;
+  scenarios: Record<string, ScenarioMeta>;
 }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -200,6 +206,7 @@ async function main() {
         snippets[scenarioId] = {};
       }
 
+      const runCommand = manifest.scenarios[scenarioId]?.run_command;
       snippets[scenarioId][fw] = {
         steps: allSteps,
         framework: fw,
@@ -207,6 +214,7 @@ async function main() {
         lib_version: getLibVersion(scenarioDir, frameworkDir),
         install: getInstallCommand(scenarioDir),
         repo_path: `samples/${path.relative(SAMPLES, scenarioDir)}`,
+        ...(runCommand ? { run_command: runCommand } : {}),
       };
     }
   }

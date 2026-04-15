@@ -16,6 +16,7 @@ interface ScenarioManifest {
   description: string;
   callout?: string;
   extends?: string;
+  run_command?: string;
   config_rows: ConfigRow[];
 }
 

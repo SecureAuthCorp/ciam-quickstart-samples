@@ -39,7 +39,8 @@
       "lib": "react-oidc-context",
       "lib_version": "3.3.1",
       "install": "oidc-client-ts react-oidc-context",
-      "repo_path": "samples/react/login-pkce"
+      "repo_path": "samples/react/login-pkce",
+      "run_command": "yarn install && yarn dev"
     }
   }
 }
