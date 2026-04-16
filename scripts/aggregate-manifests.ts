@@ -17,6 +17,7 @@ interface ScenarioManifest {
   callout?: string;
   extends?: string;
   run_command?: string;
+  required_scopes?: string[];
   config_rows: ConfigRow[];
 }
 
