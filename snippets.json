@@ -21,10 +21,10 @@
         {
           "step": 3,
           "description": "Add login and logout buttons that redirect to SecureAuth",
-          "code": "function AuthButtons() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <div>Loading...</div>;\n  }\n\n  if (auth.error) {\n    return <div>Error: {auth.error.message}</div>;\n  }\n\n  if (auth.isAuthenticated) {\n    return (\n      <div>\n        <p>\n          Welcome, {auth.user?.profile.given_name}{\" \"}\n          {auth.user?.profile.family_name} ({auth.user?.profile.email})\n        </p>\n        <button onClick={() => auth.signoutRedirect()}>Sign out</button>\n      </div>\n    );\n  }\n\n  return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n}",
+          "code": "function AuthButtons() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <div>Loading...</div>;\n  }\n\n  if (auth.error) {\n    const hint = new URLSearchParams(window.location.search).get(\"error_hint\");\n    return (\n      <div style={{ color: \"red\" }}>\n        <p>Error: {auth.error.message}</p>\n        {hint && <p>{hint}</p>}\n        <button onClick={() => auth.signinRedirect()}>Try again</button>\n      </div>\n    );\n  }\n\n  if (auth.isAuthenticated) {\n    return (\n      <div>\n        <p>\n          Welcome, {auth.user?.profile.given_name}{\" \"}\n          {auth.user?.profile.family_name} ({auth.user?.profile.email})\n        </p>\n        <button onClick={() => auth.signoutRedirect()}>Sign out</button>\n      </div>\n    );\n  }\n\n  return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "17-43"
+          "lines": "17-50"
         },
         {
           "step": 4,
@@ -32,7 +32,7 @@
           "code": "export default function App() {\n  return (\n    <AuthProvider {...oidcConfig}>\n      <h1>SecureAuth React PKCE Demo</h1>\n      <AuthButtons />\n    </AuthProvider>\n  );\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "46-55"
+          "lines": "53-62"
         }
       ],
       "framework": "react",
@@ -40,6 +40,50 @@
       "lib_version": "3.3.1",
       "install": "oidc-client-ts react-oidc-context",
       "repo_path": "samples/react/login-pkce",
+      "run_command": "yarn install && yarn dev"
+    }
+  },
+  "spa_token_refresh": {
+    "react": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import the OIDC library",
+          "code": "import { AuthProvider, useAuth } from \"react-oidc-context\";",
+          "file": "src/App.tsx",
+          "lang": "tsx",
+          "lines": "1-3"
+        },
+        {
+          "step": 2,
+          "description": "Request offline_access scope to receive a refresh token",
+          "code": "const oidcConfig = {\n  authority: \"{{ISSUER_URL}}\",\n  client_id: \"{{CLIENT_ID}}\",\n  redirect_uri: \"{{REDIRECT_URI}}\",\n  scope: \"{{SCOPES}}\",\n};",
+          "file": "src/App.tsx",
+          "lang": "tsx",
+          "lines": "6-13"
+        },
+        {
+          "step": 3,
+          "description": "Display token status and trigger manual refresh",
+          "code": "function TokenStatus() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <p>Loading...</p>;\n  }\n\n  if (auth.error) {\n    const hint = new URLSearchParams(window.location.search).get(\"error_hint\");\n    return (\n      <div style={{ color: \"red\" }}>\n        <p>Error: {auth.error.message}</p>\n        {hint && <p>{hint}</p>}\n        <button onClick={() => auth.signinRedirect()}>Try again</button>\n      </div>\n    );\n  }\n\n  if (!auth.isAuthenticated) {\n    return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n  }\n\n  const expiresAt = auth.user?.expires_at\n    ? new Date(auth.user.expires_at * 1000).toLocaleTimeString()\n    : \"unknown\";\n\n  const handleRefresh = async () => {\n    try {\n      await auth.signinSilent();\n    } catch (error) {\n      console.error(\"Token refresh failed:\", error);\n    }\n  };\n\n  return (\n    <div>\n      <p>Welcome, {auth.user?.profile.given_name}</p>\n      <p>Token expires at: {expiresAt}</p>\n      <button onClick={handleRefresh}>Refresh token now</button>\n    </div>\n  );\n}",
+          "file": "src/App.tsx",
+          "lang": "tsx",
+          "lines": "16-59"
+        },
+        {
+          "step": 4,
+          "description": "Wrap your app with AuthProvider",
+          "code": "export default function App() {\n  return (\n    <AuthProvider {...oidcConfig}>\n      <h1>SecureAuth Token Refresh Demo</h1>\n      <TokenStatus />\n    </AuthProvider>\n  );\n}",
+          "file": "src/App.tsx",
+          "lang": "tsx",
+          "lines": "62-71"
+        }
+      ],
+      "framework": "react",
+      "lib": "react-oidc-context",
+      "lib_version": "3.3.1",
+      "install": "oidc-client-ts react-oidc-context",
+      "repo_path": "samples/react/token-refresh",
       "run_command": "yarn install && yarn dev"
     }
   }

@@ -24,7 +24,14 @@ function AuthButtons() {
   }
 
   if (auth.error) {
-    return <div>Error: {auth.error.message}</div>;
+    const hint = new URLSearchParams(window.location.search).get("error_hint");
+    return (
+      <div style={{ color: "red" }}>
+        <p>Error: {auth.error.message}</p>
+        {hint && <p>{hint}</p>}
+        <button onClick={() => auth.signinRedirect()}>Try again</button>
+      </div>
+    );
   }
 
   if (auth.isAuthenticated) {
