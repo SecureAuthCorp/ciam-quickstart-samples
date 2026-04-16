@@ -1,6 +1,11 @@
 # React SPA — Token Refresh
 
-Minimal React app demonstrating token refresh using `react-oidc-context` with the `offline_access` scope. The library automatically exchanges refresh tokens for new access tokens before they expire.
+Minimal React app demonstrating token refresh using `react-oidc-context` with the `offline_access` scope. Tokens are refreshed automatically before they expire, and can also be refreshed manually via a button.
+
+## Prerequisites
+
+- `offline_access` scope enabled on the client
+- `refresh_token` grant type enabled in workspace OAuth settings and in the application's Grant Types
 
 ## Setup
 
@@ -13,4 +18,6 @@ Minimal React app demonstrating token refresh using `react-oidc-context` with th
 
 - OIDC configuration with `offline_access` scope for refresh tokens
 - Automatic token refresh via refresh tokens (no iframe needed)
-- Displaying token expiry and refresh status
+- Manual token refresh via `signinSilent()` button
+- Displaying token expiry information
+- Error handling with OAuth error hints

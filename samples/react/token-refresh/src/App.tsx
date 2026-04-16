@@ -18,6 +18,10 @@ const oidcConfig = {
 function TokenStatus() {
   const auth = useAuth();
 
+  if (auth.isLoading) {
+    return <p>Loading...</p>;
+  }
+
   if (auth.error) {
     const hint = new URLSearchParams(window.location.search).get("error_hint");
     return (

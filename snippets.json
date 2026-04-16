@@ -65,10 +65,10 @@
         {
           "step": 3,
           "description": "Display token status and trigger manual refresh",
-          "code": "function TokenStatus() {\n  const auth = useAuth();\n\n  if (auth.error) {\n    const hint = new URLSearchParams(window.location.search).get(\"error_hint\");\n    return (\n      <div style={{ color: \"red\" }}>\n        <p>Error: {auth.error.message}</p>\n        {hint && <p>{hint}</p>}\n        <button onClick={() => auth.signinRedirect()}>Try again</button>\n      </div>\n    );\n  }\n\n  if (!auth.isAuthenticated) {\n    return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n  }\n\n  const expiresAt = auth.user?.expires_at\n    ? new Date(auth.user.expires_at * 1000).toLocaleTimeString()\n    : \"unknown\";\n\n  const handleRefresh = async () => {\n    try {\n      await auth.signinSilent();\n    } catch (error) {\n      console.error(\"Token refresh failed:\", error);\n    }\n  };\n\n  return (\n    <div>\n      <p>Welcome, {auth.user?.profile.given_name}</p>\n      <p>Token expires at: {expiresAt}</p>\n      <button onClick={handleRefresh}>Refresh token now</button>\n    </div>\n  );\n}",
+          "code": "function TokenStatus() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <p>Loading...</p>;\n  }\n\n  if (auth.error) {\n    const hint = new URLSearchParams(window.location.search).get(\"error_hint\");\n    return (\n      <div style={{ color: \"red\" }}>\n        <p>Error: {auth.error.message}</p>\n        {hint && <p>{hint}</p>}\n        <button onClick={() => auth.signinRedirect()}>Try again</button>\n      </div>\n    );\n  }\n\n  if (!auth.isAuthenticated) {\n    return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n  }\n\n  const expiresAt = auth.user?.expires_at\n    ? new Date(auth.user.expires_at * 1000).toLocaleTimeString()\n    : \"unknown\";\n\n  const handleRefresh = async () => {\n    try {\n      await auth.signinSilent();\n    } catch (error) {\n      console.error(\"Token refresh failed:\", error);\n    }\n  };\n\n  return (\n    <div>\n      <p>Welcome, {auth.user?.profile.given_name}</p>\n      <p>Token expires at: {expiresAt}</p>\n      <button onClick={handleRefresh}>Refresh token now</button>\n    </div>\n  );\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "16-55"
+          "lines": "16-59"
         },
         {
           "step": 4,
@@ -76,7 +76,7 @@
           "code": "export default function App() {\n  return (\n    <AuthProvider {...oidcConfig}>\n      <h1>SecureAuth Token Refresh Demo</h1>\n      <TokenStatus />\n    </AuthProvider>\n  );\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "58-67"
+          "lines": "62-71"
         }
       ],
       "framework": "react",
