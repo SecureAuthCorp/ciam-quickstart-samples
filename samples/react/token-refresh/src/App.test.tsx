@@ -5,7 +5,9 @@ const mockUseAuth = vi.fn();
 const mockSigninSilent = vi.fn();
 
 vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   useAuth: () => mockUseAuth(),
 }));
 
