@@ -46,6 +46,7 @@ __metadata:
     "@testing-library/react": "npm:16.3.2"
     "@types/react": "npm:19.2.14"
     "@types/react-dom": "npm:19.2.3"
+    "@vitejs/plugin-basic-ssl": "npm:2.3.0"
     "@vitejs/plugin-react": "npm:6.0.1"
     happy-dom: "npm:20.8.9"
     oidc-client-ts: "npm:3.5.0"
@@ -418,6 +419,15 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10c0/61aff1129143fcc4312f083bc9e9e168aa3026b7dd6e70796276dcfb2c8211c4292603f9c4864fae702f2ed86e4abd4d38aa421831c2fd7f856c931a481afbab
+  languageName: node
+  linkType: hard
+
+"@vitejs/plugin-basic-ssl@npm:2.3.0":
+  version: 2.3.0
+  resolution: "@vitejs/plugin-basic-ssl@npm:2.3.0"
+  peerDependencies:
+    vite: ^6.0.0 || ^7.0.0 || ^8.0.0
+  checksum: 10c0/754ebe29a61ac694e665477187f425b7c3b41e30af8d392613250bf65f9b2741e7f5a6ec00a3f88f1a14bfda96e93c6b5e0f75e86357737bc4e92c8dc455c1c0
   languageName: node
   linkType: hard
 

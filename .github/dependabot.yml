@@ -21,6 +21,26 @@ updates:
       prefix: "deps"
 
   - package-ecosystem: "npm"
+    directory: "/samples/angular/login-pkce"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/angular/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
     directory: "/scripts"
     schedule:
       interval: "weekly"

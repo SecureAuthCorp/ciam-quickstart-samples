@@ -3,10 +3,10 @@ name: Test JS Frameworks
 on:
   push:
     paths:
-      - "samples/react/**"
+      - "samples/**"
   pull_request:
     paths:
-      - "samples/react/**"
+      - "samples/**"
   schedule:
     - cron: "0 8 * * 1"
   workflow_dispatch:
@@ -55,5 +55,7 @@ jobs:
         run: yarn build
       - name: Test
         working-directory: ${{ matrix.project }}
-        run: yarn test
-        if: ${{ hashFiles(format('{0}/vitest.config.ts', matrix.project)) != '' }}
+        run: |
+          if grep -q '"test"' package.json; then
+            yarn test
+          fi

@@ -13,3 +13,15 @@ js:
     placeholder: "{{SCOPES}}"
   - pattern: "import.meta.env.POST_LOGOUT_URI"
     placeholder: "{{POST_LOGOUT_URI}}"
+
+ts:
+  - pattern: "environment.issuerUrl"
+    placeholder: "{{ISSUER_URL}}"
+  - pattern: "environment.clientId"
+    placeholder: "{{CLIENT_ID}}"
+  - pattern: "environment.redirectUri"
+    placeholder: "{{REDIRECT_URI}}"
+  - pattern: "environment.scopes"
+    placeholder: "{{SCOPES}}"
+  - pattern: "environment.postLogoutUri"
+    placeholder: "{{POST_LOGOUT_URI}}"

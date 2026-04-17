@@ -9,6 +9,7 @@ const oidcConfig = {
   authority: import.meta.env.ISSUER_URL,
   client_id: import.meta.env.CLIENT_ID,
   redirect_uri: import.meta.env.REDIRECT_URI,
+  post_logout_redirect_uri: import.meta.env.POST_LOGOUT_URI,
   scope: import.meta.env.SCOPES,
 };
 // @snippet:step2:end
@@ -54,6 +55,9 @@ function TokenStatus() {
       <p>Welcome, {auth.user?.profile.given_name}</p>
       <p>Token expires at: {expiresAt}</p>
       <button onClick={handleRefresh}>Refresh token now</button>
+      <br />
+      <br />
+      <button onClick={() => auth.signoutRedirect()}>Sign out</button>
     </div>
   );
 }

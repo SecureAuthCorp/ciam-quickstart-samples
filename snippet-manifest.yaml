@@ -5,6 +5,13 @@ frameworks:
     lang: tsx
     lib: react-oidc-context
     docs_url: https://github.com/authts/react-oidc-context
+    env_file: .env
+  angular:
+    label: Angular
+    lang: ts
+    lib: angular-auth-oidc-client
+    docs_url: https://github.com/damienbod/angular-auth-oidc-client
+    env_file: src/environments/environment.ts
 scenarios:
   spa_login_pkce:
     app_type: single_page
@@ -12,7 +19,6 @@ scenarios:
     grant: Auth Code + PKCE
     description: Redirect users to SecureAuth for login. PKCE protects against code interception.
     callout: Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair.
-    run_command: yarn install && yarn dev
     config_rows:
       - label: Client ID
         value: "{{CLIENT_ID}}"
@@ -28,15 +34,15 @@ scenarios:
         value: Authorization Code + PKCE
     frameworks:
       - react
+      - angular
   spa_token_refresh:
     app_type: single_page
     display_name: Token Refresh
     grant: Refresh Token
     description: Use refresh tokens to get new access tokens without re-prompting the user. Requires offline_access scope.
     callout: >-
-      Requires refresh_token grant type enabled in workspace OAuth settings and in the application's Grant Types. Also
-      requires the offline_access scope.
-    run_command: yarn install && yarn dev
+      Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the
+      application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope.
     required_scopes:
       - offline_access
     config_rows:
@@ -46,7 +52,10 @@ scenarios:
         value: "{{ISSUER_URL}}"
       - label: Redirect URI
         value: "{{REDIRECT_URI}}"
+      - label: Post-Logout Redirect URI
+        value: "{{POST_LOGOUT_URI}}"
       - label: Scopes
         value: "{{SCOPES}}"
     frameworks:
       - react
+      - angular

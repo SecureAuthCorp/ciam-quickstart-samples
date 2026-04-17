@@ -1,5 +1,39 @@
 {
   "spa_login_pkce": {
+    "angular": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Install and configure the OIDC module",
+          "code": "import { ApplicationConfig } from \"@angular/core\";\nimport { provideAuth } from \"angular-auth-oidc-client\";\nimport { environment } from \"../environments/environment\";",
+          "file": "src/app/app.config.ts",
+          "lang": "ts",
+          "lines": "1-5"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client with your SecureAuth app settings",
+          "code": "export const appConfig: ApplicationConfig = {\n  providers: [\n    provideAuth({\n      config: {\n        authority: \"{{ISSUER_URL}}\",\n        clientId: \"{{CLIENT_ID}}\",\n        redirectUrl: \"{{REDIRECT_URI}}\",\n        postLogoutRedirectUri: \"{{POST_LOGOUT_URI}}\",\n        scope: \"{{SCOPES}}\",\n        responseType: \"code\",\n      },\n    }),\n  ],\n};",
+          "file": "src/app/app.config.ts",
+          "lang": "ts",
+          "lines": "8-23"
+        },
+        {
+          "step": 3,
+          "description": "Add login and logout buttons that redirect to SecureAuth",
+          "code": "import { Component, inject, OnInit, signal } from \"@angular/core\";\nimport { OidcSecurityService } from \"angular-auth-oidc-client\";\n\n@Component({\n  selector: \"app-root\",\n  standalone: true,\n  template: `\n    <h1>SecureAuth Angular PKCE Demo</h1>\n    @if (isLoading()) {\n      <p>Loading...</p>\n    } @else if (errorMessage()) {\n      <div style=\"color: red\">\n        <p>Error: {{ errorMessage() }}</p>\n        @if (errorHint()) {\n          <p>{{ errorHint() }}</p>\n        }\n        <button (click)=\"login()\">Try again</button>\n      </div>\n    } @else if (isAuthenticated()) {\n      <p>Welcome, {{ userData()?.given_name }} {{ userData()?.family_name }} ({{ userData()?.email }})</p>\n      <button (click)=\"logout()\">Sign out</button>\n    } @else {\n      <button (click)=\"login()\">Sign in</button>\n    }\n  `,\n})\nexport class App implements OnInit {\n  private auth = inject(OidcSecurityService);\n\n  isLoading = signal(true);\n  isAuthenticated = signal(false);\n  userData = signal<any>(null);\n  errorMessage = signal(\"\");\n  errorHint = signal(\"\");\n\n  ngOnInit() {\n    const params = new URLSearchParams(window.location.search);\n    const error = params.get(\"error\");\n    if (error) {\n      this.isLoading.set(false);\n      this.errorMessage.set(params.get(\"error_description\") || error);\n      this.errorHint.set(params.get(\"error_hint\") || \"\");\n      return;\n    }\n\n    this.auth.checkAuth().subscribe({\n      next: (response) => {\n        this.isAuthenticated.set(response.isAuthenticated);\n        this.userData.set(response.userData);\n        this.isLoading.set(false);\n      },\n      error: (err) => {\n        console.error(\"checkAuth error:\", err);\n        this.errorMessage.set(err?.message || \"Authentication failed\");\n        this.isLoading.set(false);\n      },\n    });\n  }\n\n  login() {\n    this.auth.authorize();\n  }\n\n  logout() {\n    this.auth.logoff().subscribe({\n      error: (err) => console.error(\"logoff error:\", err),\n    });\n  }\n}",
+          "file": "src/app/app.ts",
+          "lang": "ts",
+          "lines": "1-71"
+        }
+      ],
+      "framework": "angular",
+      "lib": "angular-auth-oidc-client",
+      "lib_version": "21.0.1",
+      "install": "angular-auth-oidc-client",
+      "repo_path": "samples/angular/login-pkce",
+      "run_command": "yarn install && yarn start"
+    },
     "react": {
       "steps": [
         {
@@ -40,10 +74,44 @@
       "lib_version": "3.3.1",
       "install": "oidc-client-ts react-oidc-context",
       "repo_path": "samples/react/login-pkce",
-      "run_command": "yarn install && yarn dev"
+      "run_command": "yarn install && yarn start"
     }
   },
   "spa_token_refresh": {
+    "angular": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Install and configure the OIDC module",
+          "code": "import { ApplicationConfig } from \"@angular/core\";\nimport { provideAuth } from \"angular-auth-oidc-client\";\nimport { environment } from \"../environments/environment\";",
+          "file": "src/app/app.config.ts",
+          "lang": "ts",
+          "lines": "1-5"
+        },
+        {
+          "step": 2,
+          "description": "Request offline_access scope to receive a refresh token",
+          "code": "export const appConfig: ApplicationConfig = {\n  providers: [\n    provideAuth({\n      config: {\n        authority: \"{{ISSUER_URL}}\",\n        clientId: \"{{CLIENT_ID}}\",\n        redirectUrl: \"{{REDIRECT_URI}}\",\n        postLogoutRedirectUri: \"{{POST_LOGOUT_URI}}\",\n        scope: \"{{SCOPES}}\",\n        responseType: \"code\",\n        useRefreshToken: true,\n      },\n    }),\n  ],\n};",
+          "file": "src/app/app.config.ts",
+          "lang": "ts",
+          "lines": "8-24"
+        },
+        {
+          "step": 3,
+          "description": "Display token status and trigger manual refresh",
+          "code": "import { Component, inject, OnInit, signal } from '@angular/core';\nimport { OidcSecurityService } from 'angular-auth-oidc-client';\n\n@Component({\n  selector: 'app-root',\n  standalone: true,\n  template: `\n    <h1>SecureAuth Token Refresh Demo</h1>\n    @if (isLoading()) {\n      <p>Loading...</p>\n    } @else if (errorMessage()) {\n      <div style=\"color: red\">\n        <p>Error: {{ errorMessage() }}</p>\n        @if (errorHint()) {\n          <p>{{ errorHint() }}</p>\n        }\n        <button (click)=\"login()\">Try again</button>\n      </div>\n    } @else if (isAuthenticated()) {\n      <p>Welcome, {{ userData()?.given_name }}</p>\n      <p>Token expires at: {{ tokenExpiry() }}</p>\n      <button (click)=\"refresh()\">Refresh token now</button>\n      <br />\n      <br />\n      <button (click)=\"logout()\">Sign out</button>\n    } @else {\n      <button (click)=\"login()\">Sign in</button>\n    }\n  `,\n})\nexport class App implements OnInit {\n  private auth = inject(OidcSecurityService);\n\n  isLoading = signal(true);\n  isAuthenticated = signal(false);\n  userData = signal<any>(null);\n  tokenExpiry = signal('unknown');\n  errorMessage = signal('');\n  errorHint = signal('');\n\n  ngOnInit() {\n    const params = new URLSearchParams(window.location.search);\n    const error = params.get('error');\n    if (error) {\n      this.isLoading.set(false);\n      this.errorMessage.set(params.get('error_description') || error);\n      this.errorHint.set(params.get('error_hint') || '');\n      return;\n    }\n\n    this.auth.checkAuth().subscribe({\n      next: (response) => {\n        this.updateFromResponse(response);\n        this.isLoading.set(false);\n      },\n      error: (err) => {\n        console.error('checkAuth error:', err);\n        this.errorMessage.set(err?.message || 'Authentication failed');\n        this.isLoading.set(false);\n      },\n    });\n  }\n\n  login() {\n    this.auth.authorize();\n  }\n\n  refresh() {\n    this.auth.forceRefreshSession().subscribe({\n      next: (response) => this.updateFromResponse(response),\n      error: (err) => console.error('refresh error:', err),\n    });\n  }\n\n  logout() {\n    this.auth.logoff().subscribe({\n      error: (err) => console.error('logoff error:', err),\n    });\n  }\n\n  private updateFromResponse(response: {\n    isAuthenticated: boolean;\n    userData: any;\n    accessToken?: string;\n  }) {\n    this.isAuthenticated.set(response.isAuthenticated);\n    this.userData.set(response.userData);\n    if (response.isAuthenticated && response.accessToken) {\n      try {\n        const payload = JSON.parse(atob(response.accessToken.split('.')[1]));\n        if (payload.exp) {\n          this.tokenExpiry.set(new Date(payload.exp * 1000).toLocaleTimeString());\n        }\n      } catch {\n        // ignore parse errors\n      }\n    }\n  }\n}",
+          "file": "src/app/app.ts",
+          "lang": "ts",
+          "lines": "1-101"
+        }
+      ],
+      "framework": "angular",
+      "lib": "angular-auth-oidc-client",
+      "lib_version": "21.0.1",
+      "install": "angular-auth-oidc-client",
+      "repo_path": "samples/angular/token-refresh",
+      "run_command": "yarn install && yarn start"
+    },
     "react": {
       "steps": [
         {
@@ -57,18 +125,18 @@
         {
           "step": 2,
           "description": "Request offline_access scope to receive a refresh token",
-          "code": "const oidcConfig = {\n  authority: \"{{ISSUER_URL}}\",\n  client_id: \"{{CLIENT_ID}}\",\n  redirect_uri: \"{{REDIRECT_URI}}\",\n  scope: \"{{SCOPES}}\",\n};",
+          "code": "const oidcConfig = {\n  authority: \"{{ISSUER_URL}}\",\n  client_id: \"{{CLIENT_ID}}\",\n  redirect_uri: \"{{REDIRECT_URI}}\",\n  post_logout_redirect_uri: \"{{POST_LOGOUT_URI}}\",\n  scope: \"{{SCOPES}}\",\n};",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "6-13"
+          "lines": "6-14"
         },
         {
           "step": 3,
           "description": "Display token status and trigger manual refresh",
-          "code": "function TokenStatus() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <p>Loading...</p>;\n  }\n\n  if (auth.error) {\n    const hint = new URLSearchParams(window.location.search).get(\"error_hint\");\n    return (\n      <div style={{ color: \"red\" }}>\n        <p>Error: {auth.error.message}</p>\n        {hint && <p>{hint}</p>}\n        <button onClick={() => auth.signinRedirect()}>Try again</button>\n      </div>\n    );\n  }\n\n  if (!auth.isAuthenticated) {\n    return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n  }\n\n  const expiresAt = auth.user?.expires_at\n    ? new Date(auth.user.expires_at * 1000).toLocaleTimeString()\n    : \"unknown\";\n\n  const handleRefresh = async () => {\n    try {\n      await auth.signinSilent();\n    } catch (error) {\n      console.error(\"Token refresh failed:\", error);\n    }\n  };\n\n  return (\n    <div>\n      <p>Welcome, {auth.user?.profile.given_name}</p>\n      <p>Token expires at: {expiresAt}</p>\n      <button onClick={handleRefresh}>Refresh token now</button>\n    </div>\n  );\n}",
+          "code": "function TokenStatus() {\n  const auth = useAuth();\n\n  if (auth.isLoading) {\n    return <p>Loading...</p>;\n  }\n\n  if (auth.error) {\n    const hint = new URLSearchParams(window.location.search).get(\"error_hint\");\n    return (\n      <div style={{ color: \"red\" }}>\n        <p>Error: {auth.error.message}</p>\n        {hint && <p>{hint}</p>}\n        <button onClick={() => auth.signinRedirect()}>Try again</button>\n      </div>\n    );\n  }\n\n  if (!auth.isAuthenticated) {\n    return <button onClick={() => auth.signinRedirect()}>Sign in</button>;\n  }\n\n  const expiresAt = auth.user?.expires_at\n    ? new Date(auth.user.expires_at * 1000).toLocaleTimeString()\n    : \"unknown\";\n\n  const handleRefresh = async () => {\n    try {\n      await auth.signinSilent();\n    } catch (error) {\n      console.error(\"Token refresh failed:\", error);\n    }\n  };\n\n  return (\n    <div>\n      <p>Welcome, {auth.user?.profile.given_name}</p>\n      <p>Token expires at: {expiresAt}</p>\n      <button onClick={handleRefresh}>Refresh token now</button>\n      <br />\n      <br />\n      <button onClick={() => auth.signoutRedirect()}>Sign out</button>\n    </div>\n  );\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "16-59"
+          "lines": "17-63"
         },
         {
           "step": 4,
@@ -76,7 +144,7 @@
           "code": "export default function App() {\n  return (\n    <AuthProvider {...oidcConfig}>\n      <h1>SecureAuth Token Refresh Demo</h1>\n      <TokenStatus />\n    </AuthProvider>\n  );\n}",
           "file": "src/App.tsx",
           "lang": "tsx",
-          "lines": "62-71"
+          "lines": "66-75"
         }
       ],
       "framework": "react",
@@ -84,7 +152,7 @@
       "lib_version": "3.3.1",
       "install": "oidc-client-ts react-oidc-context",
       "repo_path": "samples/react/token-refresh",
-      "run_command": "yarn install && yarn dev"
+      "run_command": "yarn install && yarn start"
     }
   }
 }
