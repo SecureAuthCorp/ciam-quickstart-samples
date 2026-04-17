@@ -1,10 +1,10 @@
 // @snippet:step3:start
 // @description Display token status and trigger manual refresh
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { Component, inject, OnInit, signal } from "@angular/core";
+import { OidcSecurityService } from "angular-auth-oidc-client";
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
   standalone: true,
   template: `
     <h1>SecureAuth Token Refresh Demo</h1>
@@ -36,17 +36,17 @@ export class App implements OnInit {
   isLoading = signal(true);
   isAuthenticated = signal(false);
   userData = signal<any>(null);
-  tokenExpiry = signal('unknown');
-  errorMessage = signal('');
-  errorHint = signal('');
+  tokenExpiry = signal("unknown");
+  errorMessage = signal("");
+  errorHint = signal("");
 
   ngOnInit() {
     const params = new URLSearchParams(window.location.search);
-    const error = params.get('error');
+    const error = params.get("error");
     if (error) {
       this.isLoading.set(false);
-      this.errorMessage.set(params.get('error_description') || error);
-      this.errorHint.set(params.get('error_hint') || '');
+      this.errorMessage.set(params.get("error_description") || error);
+      this.errorHint.set(params.get("error_hint") || "");
       return;
     }
 
@@ -56,8 +56,8 @@ export class App implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('checkAuth error:', err);
-        this.errorMessage.set(err?.message || 'Authentication failed');
+        console.error("checkAuth error:", err);
+        this.errorMessage.set(err?.message || "Authentication failed");
         this.isLoading.set(false);
       },
     });
@@ -70,13 +70,13 @@ export class App implements OnInit {
   refresh() {
     this.auth.forceRefreshSession().subscribe({
       next: (response) => this.updateFromResponse(response),
-      error: (err) => console.error('refresh error:', err),
+      error: (err) => console.error("refresh error:", err),
     });
   }
 
   logout() {
     this.auth.logoff().subscribe({
-      error: (err) => console.error('logoff error:', err),
+      error: (err) => console.error("logoff error:", err),
     });
   }
 
@@ -89,7 +89,7 @@ export class App implements OnInit {
     this.userData.set(response.userData);
     if (response.isAuthenticated && response.accessToken) {
       try {
-        const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
+        const payload = JSON.parse(atob(response.accessToken.split(".")[1]));
         if (payload.exp) {
           this.tokenExpiry.set(new Date(payload.exp * 1000).toLocaleTimeString());
         }

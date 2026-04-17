@@ -2,7 +2,13 @@ import basicSsl from "@vitejs/plugin-basic-ssl";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 
-const exposedEnvVars = ["ISSUER_URL", "CLIENT_ID", "REDIRECT_URI", "POST_LOGOUT_URI", "SCOPES"];
+const exposedEnvVars = [
+  "ISSUER_URL",
+  "CLIENT_ID",
+  "REDIRECT_URI",
+  "POST_LOGOUT_URI",
+  "SCOPES",
+];
 
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), "");

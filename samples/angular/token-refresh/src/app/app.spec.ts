@@ -66,7 +66,9 @@ describe("App", () => {
   });
 
   it("should call forceRefreshSession on refresh button click", async () => {
-    const forceRefreshSpy = vi.fn(() => of(makeLoginResponse({ isAuthenticated: true, userData: { given_name: "Jane" } })));
+    const forceRefreshSpy = vi.fn(() =>
+      of(makeLoginResponse({ isAuthenticated: true, userData: { given_name: "Jane" } })),
+    );
     forceRefreshSessionFn = forceRefreshSpy;
     checkAuthFn = () =>
       of(

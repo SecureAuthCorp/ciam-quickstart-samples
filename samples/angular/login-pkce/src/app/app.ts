@@ -19,7 +19,11 @@ import { OidcSecurityService } from "angular-auth-oidc-client";
         <button (click)="login()">Try again</button>
       </div>
     } @else if (isAuthenticated()) {
-      <p>Welcome, {{ userData()?.given_name }} {{ userData()?.family_name }} ({{ userData()?.email }})</p>
+      <p>
+        Welcome, {{ userData()?.given_name }} {{ userData()?.family_name }} ({{
+          userData()?.email
+        }})
+      </p>
       <button (click)="logout()">Sign out</button>
     } @else {
       <button (click)="login()">Sign in</button>
