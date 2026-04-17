@@ -5,13 +5,11 @@
   "version": "0.0.1",
   "scripts": {
     "ensure-env": "test -f src/environments/environment.ts || cp src/environments/environment.example.ts src/environments/environment.ts",
-    "check-env": "test -f src/environments/environment.ts || (echo 'ERROR: src/environments/environment.ts not found. Copy src/environments/environment.example.ts to src/environments/environment.ts and fill in the values.' && exit 1)",
-    "prestart": "yarn check-env",
-    "prebuild": "yarn ensure-env",
-    "pretest": "yarn ensure-env",
     "start": "ng serve --ssl --port 4250",
     "build": "ng build",
+    "build:ci": "yarn ensure-env && yarn build",
     "test": "ng test",
+    "test:ci": "yarn ensure-env && yarn test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

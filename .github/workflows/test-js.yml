@@ -52,10 +52,17 @@ jobs:
           fi
       - name: Build
         working-directory: ${{ matrix.project }}
-        run: yarn build
+        run: |
+          if grep -q '"build:ci"' package.json; then
+            yarn build:ci
+          else
+            yarn build
+          fi
       - name: Test
         working-directory: ${{ matrix.project }}
         run: |
-          if grep -q '"test"' package.json; then
+          if grep -q '"test:ci"' package.json; then
+            yarn test:ci
+          elif grep -q '"test"' package.json; then
             yarn test
           fi
