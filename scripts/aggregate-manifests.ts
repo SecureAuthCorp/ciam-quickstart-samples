@@ -79,16 +79,16 @@ async function main() {
   }
 
   const frameworkOrder = ["react", "angular"];
+  const rank = (id: string): number => {
+    const i = frameworkOrder.indexOf(id);
+    return i === -1 ? 999 : i;
+  };
   for (const scenario of Object.values(scenarios)) {
-    scenario.frameworks.sort(
-      (a, b) => (frameworkOrder.indexOf(a) ?? 999) - (frameworkOrder.indexOf(b) ?? 999)
-    );
+    scenario.frameworks.sort((a, b) => rank(a) - rank(b));
   }
 
   const orderedFrameworks = Object.fromEntries(
-    Object.entries(frameworks).sort(
-      ([a], [b]) => (frameworkOrder.indexOf(a) ?? 999) - (frameworkOrder.indexOf(b) ?? 999)
-    )
+    Object.entries(frameworks).sort(([a], [b]) => rank(a) - rank(b))
   );
 
   const output = { frameworks: orderedFrameworks, scenarios };

@@ -47,13 +47,13 @@ jobs:
       - name: Check formatting
         working-directory: ${{ matrix.project }}
         run: |
-          if grep -q '"format:check"' package.json; then
+          if node -e "process.exit(require('./package.json').scripts?.['format:check'] ? 0 : 1)"; then
             yarn format:check
           fi
       - name: Build
         working-directory: ${{ matrix.project }}
         run: |
-          if grep -q '"build:ci"' package.json; then
+          if node -e "process.exit(require('./package.json').scripts?.['build:ci'] ? 0 : 1)"; then
             yarn build:ci
           else
             yarn build
@@ -61,8 +61,8 @@ jobs:
       - name: Test
         working-directory: ${{ matrix.project }}
         run: |
-          if grep -q '"test:ci"' package.json; then
+          if node -e "process.exit(require('./package.json').scripts?.['test:ci'] ? 0 : 1)"; then
             yarn test:ci
-          elif grep -q '"test"' package.json; then
+          elif node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
             yarn test
           fi

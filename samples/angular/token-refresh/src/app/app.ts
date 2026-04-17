@@ -89,7 +89,10 @@ export class App implements OnInit {
     this.userData.set(response.userData);
     if (response.isAuthenticated && response.accessToken) {
       try {
-        const payload = JSON.parse(atob(response.accessToken.split(".")[1]));
+        const base64Url = response.accessToken.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+        const payload = JSON.parse(atob(padded));
         if (payload.exp) {
           this.tokenExpiry.set(new Date(payload.exp * 1000).toLocaleTimeString());
         }
