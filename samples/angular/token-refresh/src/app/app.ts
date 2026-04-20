@@ -54,17 +54,20 @@ export class App implements OnInit {
       return;
     }
 
-    this.auth.checkAuth().subscribe({
-      next: (response) => {
-        this.updateFromResponse(response);
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error("checkAuth error:", err);
-        this.errorMessage.set(err?.message || "Authentication failed");
-        this.isLoading.set(false);
-      },
-    });
+    this.auth
+      .checkAuth()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.updateFromResponse(response);
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error("checkAuth error:", err);
+          this.errorMessage.set(err?.message || "Authentication failed");
+          this.isLoading.set(false);
+        },
+      });
 
     // Stay in sync with automatic silent renewal — NewAuthenticationResult fires
     // after each successful renewal regardless of whether userData changed.
