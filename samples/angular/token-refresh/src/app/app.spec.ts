@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { OidcSecurityService, LoginResponse } from "angular-auth-oidc-client";
-import { Observable, of } from "rxjs";
+import { LoginResponse, OidcSecurityService, PublicEventsService } from "angular-auth-oidc-client";
+import { EMPTY, Observable, of } from "rxjs";
 import { App } from "./app";
 
 function makeLoginResponse(overrides: Partial<LoginResponse>): LoginResponse {
@@ -25,8 +25,13 @@ describe("App", () => {
     get forceRefreshSession() {
       return forceRefreshSessionFn;
     },
+    getAccessToken: vi.fn(() => of("")),
     authorize: vi.fn(),
     logoff: vi.fn(() => of(null)),
+  };
+
+  const mockPublicEventsService = {
+    registerForEvents: () => EMPTY,
   };
 
   beforeEach(async () => {
@@ -36,6 +41,7 @@ describe("App", () => {
       imports: [App],
     })
       .overrideProvider(OidcSecurityService, { useValue: mockOidcService })
+      .overrideProvider(PublicEventsService, { useValue: mockPublicEventsService })
       .compileComponents();
   });
 

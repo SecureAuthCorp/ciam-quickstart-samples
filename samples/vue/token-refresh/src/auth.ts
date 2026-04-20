@@ -17,7 +17,7 @@ const userManager = new UserManager({
 // @snippet:step2:end
 
 // @snippet:step3:start
-// @description Build a useAuth composable with a refresh() method using signinSilent()
+// @description Keep reactive state in sync with automatic silent renewal
 const isLoading = ref(true);
 const isAuthenticated = ref(false);
 const user = ref<User | null>(null);
@@ -29,6 +29,20 @@ const expiresAt = computed(() =>
     : "unknown",
 );
 
+// addUserLoaded fires after sign-in AND after each automatic silent renew,
+// so the UI's expiresAt stays current without any polling.
+userManager.events.addUserLoaded((u) => {
+  user.value = u;
+  isAuthenticated.value = true;
+});
+userManager.events.addUserUnloaded(() => {
+  user.value = null;
+  isAuthenticated.value = false;
+});
+userManager.events.addSilentRenewError((err) => {
+  error.value = err instanceof Error ? err : new Error(String(err));
+});
+
 let initialized = false;
 
 async function initialize() {
@@ -37,9 +51,7 @@ async function initialize() {
   try {
     const params = new URLSearchParams(window.location.search);
     if (params.has("code") && params.has("state")) {
-      const signedIn = await userManager.signinRedirectCallback();
-      user.value = signedIn;
-      isAuthenticated.value = true;
+      await userManager.signinRedirectCallback();
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.has("error")) {
       error.value = new Error(
@@ -63,13 +75,9 @@ async function initialize() {
 
 async function refresh() {
   try {
-    const refreshed = await userManager.signinSilent();
-    if (refreshed) {
-      user.value = refreshed;
-      isAuthenticated.value = true;
-    }
+    await userManager.signinSilent();
   } catch (err) {
-    console.error("Token refresh failed:", err);
+    error.value = err instanceof Error ? err : new Error(String(err));
   }
 }
 
