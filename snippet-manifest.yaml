@@ -12,6 +12,12 @@ frameworks:
     lib: angular-auth-oidc-client
     docs_url: https://github.com/damienbod/angular-auth-oidc-client
     env_file: src/environments/environment.ts
+  vue:
+    label: Vue
+    lang: ts
+    lib: oidc-client-ts
+    docs_url: https://github.com/authts/oidc-client-ts
+    env_file: .env
 scenarios:
   spa_login_pkce:
     app_type: single_page
@@ -35,6 +41,7 @@ scenarios:
     frameworks:
       - react
       - angular
+      - vue
   spa_token_refresh:
     app_type: single_page
     display_name: Token Refresh
@@ -59,3 +66,4 @@ scenarios:
     frameworks:
       - react
       - angular
+      - vue
