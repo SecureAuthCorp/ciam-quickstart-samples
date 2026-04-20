@@ -1,8 +1,9 @@
 // @snippet:step3:start
 // @description Display token status and trigger manual refresh
-import { Component, inject, OnInit, signal } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { EventTypes, OidcSecurityService, PublicEventsService } from "angular-auth-oidc-client";
-import { filter } from "rxjs/operators";
+import { filter, switchMap } from "rxjs/operators";
 
 @Component({
   selector: "app-root",
@@ -34,6 +35,7 @@ import { filter } from "rxjs/operators";
 export class App implements OnInit {
   private auth = inject(OidcSecurityService);
   private events = inject(PublicEventsService);
+  private destroyRef = inject(DestroyRef);
 
   isLoading = signal(true);
   isAuthenticated = signal(false);
@@ -68,18 +70,20 @@ export class App implements OnInit {
     // after each successful renewal regardless of whether userData changed.
     this.events
       .registerForEvents()
-      .pipe(filter((e) => e.type === EventTypes.NewAuthenticationResult))
-      .subscribe(() => {
-        this.auth.getAccessToken().subscribe((token) => {
-          const currentUserData = this.userData();
-          if (token && currentUserData) {
-            this.updateFromResponse({
-              isAuthenticated: true,
-              userData: currentUserData,
-              accessToken: token,
-            });
-          }
-        });
+      .pipe(
+        filter((e) => e.type === EventTypes.NewAuthenticationResult),
+        switchMap(() => this.auth.getAccessToken()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((token) => {
+        const currentUserData = this.userData();
+        if (token && currentUserData) {
+          this.updateFromResponse({
+            isAuthenticated: true,
+            userData: currentUserData,
+            accessToken: token,
+          });
+        }
       });
   }
 

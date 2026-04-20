@@ -34,6 +34,7 @@ const expiresAt = computed(() =>
 userManager.events.addUserLoaded((u) => {
   user.value = u;
   isAuthenticated.value = true;
+  error.value = null;
 });
 userManager.events.addUserUnloaded(() => {
   user.value = null;
