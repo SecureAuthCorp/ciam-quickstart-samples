@@ -1,12 +1,53 @@
+# Dependencies
 node_modules/
-dist/
-.env*
-!.env.example
-*.local
-.angular/
 **/.yarn/*
 !**/.yarn/releases
-docs/
-environments/environment.ts
-!environments/environment.example.ts
 
+# Build output
+dist/
+out-tsc/
+tmp/
+bazel-out/
+coverage/
+typings/
+
+# Environment / secrets
+.env*
+!.env.example
+**/environments/environment.ts
+!**/environments/environment.example.ts
+
+# Framework caches
+.angular/
+.sass-cache/
+
+# Logs
+*.log
+
+# Misc build artifacts
+connect.lock
+*.local
+__screenshots__/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Design docs (kept local)
+docs/

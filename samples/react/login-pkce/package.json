@@ -8,8 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "prettier --write --ignore-path=../../../.gitignore .",
+    "format:check": "prettier --check --ignore-path=../../../.gitignore ."
   },
   "dependencies": {
     "oidc-client-ts": "3.5.0",
