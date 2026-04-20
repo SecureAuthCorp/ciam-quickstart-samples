@@ -51,7 +51,7 @@ async function main() {
         error(`Missing README.md in samples/${manifest.framework}/${dirName}/`);
       }
 
-      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx}", {
+      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue}", {
         cwd: scenarioDir,
       });
 
