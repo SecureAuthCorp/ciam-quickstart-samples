@@ -7,4 +7,6 @@ dist/
 **/.yarn/*
 !**/.yarn/releases
 docs/
+environments/environment.ts
+!environments/environment.example.ts
 

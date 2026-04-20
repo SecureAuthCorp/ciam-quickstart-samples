@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 
 interface FrameworkManifest {
   framework: string;
+  env_file?: string;
   scenarios: Record<string, unknown>;
 }
 
@@ -38,8 +39,12 @@ async function main() {
         continue;
       }
 
-      if (!existsSync(path.join(scenarioDir, ".env.example"))) {
-        error(`Missing .env.example in samples/${manifest.framework}/${dirName}/`);
+      const envFile = manifest.env_file || ".env";
+      const exampleFile = envFile.endsWith(".ts")
+        ? envFile.replace(/\.ts$/, ".example.ts")
+        : ".env.example";
+      if (!existsSync(path.join(scenarioDir, exampleFile))) {
+        error(`Missing ${exampleFile} in samples/${manifest.framework}/${dirName}/`);
       }
 
       if (!existsSync(path.join(scenarioDir, "README.md"))) {

@@ -27,6 +27,7 @@ interface FrameworkManifest {
   lang: string;
   lib: string;
   docs_url: string;
+  env_file?: string;
   scenarios: Record<string, ScenarioManifest>;
 }
 
@@ -48,7 +49,7 @@ async function main() {
   const scenarios: Record<string, AggregatedScenario> = {};
   const frameworks: Record<
     string,
-    { label: string; lang: string; lib: string; docs_url: string }
+    { label: string; lang: string; lib: string; docs_url: string; env_file?: string }
   > = {};
 
   for (const file of manifestFiles.sort()) {
@@ -61,12 +62,14 @@ async function main() {
       lang: manifest.lang,
       lib: manifest.lib,
       docs_url: manifest.docs_url,
+      ...(manifest.env_file ? { env_file: manifest.env_file } : {}),
     };
 
     for (const [scenarioId, scenario] of Object.entries(manifest.scenarios)) {
       if (!scenarios[scenarioId]) {
+        const { run_command: _, ...scenarioWithoutRunCommand } = scenario;
         scenarios[scenarioId] = {
-          ...scenario,
+          ...scenarioWithoutRunCommand,
           frameworks: [manifest.framework],
         };
       } else {
@@ -75,7 +78,20 @@ async function main() {
     }
   }
 
-  const output = { frameworks, scenarios };
+  const frameworkOrder = ["react", "angular"];
+  const rank = (id: string): number => {
+    const i = frameworkOrder.indexOf(id);
+    return i === -1 ? 999 : i;
+  };
+  for (const scenario of Object.values(scenarios)) {
+    scenario.frameworks.sort((a, b) => rank(a) - rank(b));
+  }
+
+  const orderedFrameworks = Object.fromEntries(
+    Object.entries(frameworks).sort(([a], [b]) => rank(a) - rank(b))
+  );
+
+  const output = { frameworks: orderedFrameworks, scenarios };
   const yamlStr = yaml.dump(output, { lineWidth: 120, noRefs: true, quotingType: '"' });
   const outputPath = path.join(ROOT, "snippet-manifest.yaml");
   writeFileSync(

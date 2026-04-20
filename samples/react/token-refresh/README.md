@@ -11,8 +11,8 @@ Minimal React app demonstrating token refresh using `react-oidc-context` with th
 
 1. Copy `.env.example` to `.env` and fill in your SecureAuth values
 2. `yarn install`
-3. `yarn dev`
-4. Open http://localhost:3000
+3. `yarn start`
+4. Open https://localhost:4250 (accept the self-signed certificate warning)
 
 ## What this demonstrates
 
