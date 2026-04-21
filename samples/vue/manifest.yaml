@@ -1,0 +1,49 @@
+framework: vue
+label: Vue
+lang: ts
+lib: oidc-client-ts
+docs_url: https://github.com/authts/oidc-client-ts
+env_file: ".env"
+
+scenarios:
+  spa_login_pkce:
+    app_type: single_page
+    display_name: "User Login"
+    grant: "Auth Code + PKCE"
+    description: "Redirect users to SecureAuth for login. PKCE protects against code interception."
+    callout: "Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair."
+    run_command: "yarn install && yarn start"
+    config_rows:
+      - label: "Client ID"
+        value: "{{CLIENT_ID}}"
+      - label: "Issuer URL"
+        value: "{{ISSUER_URL}}"
+      - label: "Redirect URI"
+        value: "{{REDIRECT_URI}}"
+      - label: "Post-Logout Redirect URI"
+        value: "{{POST_LOGOUT_URI}}"
+      - label: "Scopes"
+        value: "{{SCOPES}}"
+      - label: "Grant"
+        value: "Authorization Code + PKCE"
+
+  spa_token_refresh:
+    app_type: single_page
+    display_name: "Token Refresh"
+    grant: "Refresh Token"
+    description: "Use refresh tokens to get new access tokens without re-prompting the user. Requires offline_access scope."
+    callout: "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
+    run_command: "yarn install && yarn start"
+    required_scopes:
+      - offline_access
+    config_rows:
+      - label: "Client ID"
+        value: "{{CLIENT_ID}}"
+      - label: "Issuer URL"
+        value: "{{ISSUER_URL}}"
+      - label: "Redirect URI"
+        value: "{{REDIRECT_URI}}"
+      - label: "Post-Logout Redirect URI"
+        value: "{{POST_LOGOUT_URI}}"
+      - label: "Scopes"
+        value: "{{SCOPES}}"

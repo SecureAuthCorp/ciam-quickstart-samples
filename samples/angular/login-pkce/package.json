@@ -10,8 +10,8 @@
     "build:ci": "yarn ensure-env && yarn build",
     "test": "ng test",
     "test:ci": "yarn ensure-env && yarn test",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "prettier --write --ignore-path=../../../.gitignore .",
+    "format:check": "prettier --check --ignore-path=../../../.gitignore ."
   },
   "dependencies": {
     "@angular/common": "21.2.9",

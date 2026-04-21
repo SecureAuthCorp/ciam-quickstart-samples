@@ -1,7 +1,9 @@
 // @snippet:step3:start
 // @description Display token status and trigger manual refresh
-import { Component, inject, OnInit, signal } from "@angular/core";
-import { OidcSecurityService } from "angular-auth-oidc-client";
+import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { EventTypes, OidcSecurityService, PublicEventsService } from "angular-auth-oidc-client";
+import { filter, switchMap } from "rxjs/operators";
 
 @Component({
   selector: "app-root",
@@ -32,6 +34,8 @@ import { OidcSecurityService } from "angular-auth-oidc-client";
 })
 export class App implements OnInit {
   private auth = inject(OidcSecurityService);
+  private events = inject(PublicEventsService);
+  private destroyRef = inject(DestroyRef);
 
   isLoading = signal(true);
   isAuthenticated = signal(false);
@@ -50,17 +54,40 @@ export class App implements OnInit {
       return;
     }
 
-    this.auth.checkAuth().subscribe({
-      next: (response) => {
-        this.updateFromResponse(response);
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error("checkAuth error:", err);
-        this.errorMessage.set(err?.message || "Authentication failed");
-        this.isLoading.set(false);
-      },
-    });
+    this.auth
+      .checkAuth()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.updateFromResponse(response);
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error("checkAuth error:", err);
+          this.errorMessage.set(err?.message || "Authentication failed");
+          this.isLoading.set(false);
+        },
+      });
+
+    // Stay in sync with automatic silent renewal — NewAuthenticationResult fires
+    // after each successful renewal regardless of whether userData changed.
+    this.events
+      .registerForEvents()
+      .pipe(
+        filter((e) => e.type === EventTypes.NewAuthenticationResult),
+        switchMap(() => this.auth.getAccessToken()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((token) => {
+        const currentUserData = this.userData();
+        if (token && currentUserData) {
+          this.updateFromResponse({
+            isAuthenticated: true,
+            userData: currentUserData,
+            accessToken: token,
+          });
+        }
+      });
   }
 
   login() {

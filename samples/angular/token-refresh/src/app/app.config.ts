@@ -18,6 +18,7 @@ export const appConfig: ApplicationConfig = {
         scope: environment.scopes,
         responseType: "code",
         useRefreshToken: true,
+        silentRenew: true,
       },
     }),
   ],

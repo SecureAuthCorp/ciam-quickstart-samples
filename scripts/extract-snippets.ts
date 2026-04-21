@@ -83,7 +83,7 @@ function getInstallCommand(scenarioDir: string): string {
   try {
     const pkg = JSON.parse(readFileSync(path.join(scenarioDir, "package.json"), "utf-8"));
     const deps = Object.keys(pkg.dependencies || {}).filter(
-      (d) => !["react", "react-dom", "@angular/animations", "@angular/common", "@angular/compiler", "@angular/core", "@angular/forms", "@angular/platform-browser", "@angular/platform-browser-dynamic", "@angular/router", "rxjs", "tslib", "zone.js"].includes(d)
+      (d) => !["react", "react-dom", "vue", "@angular/animations", "@angular/common", "@angular/compiler", "@angular/core", "@angular/forms", "@angular/platform-browser", "@angular/platform-browser-dynamic", "@angular/router", "rxjs", "tslib", "zone.js"].includes(d)
     );
     return deps.join(" ");
   } catch {
@@ -186,7 +186,7 @@ async function main() {
         continue;
       }
 
-      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx}", { cwd: scenarioDir });
+      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue}", { cwd: scenarioDir });
       const allSteps: Step[] = [];
 
       for (const sourceFile of sourceFiles.sort()) {
