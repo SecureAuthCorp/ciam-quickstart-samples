@@ -50,7 +50,13 @@ export async function exchangeCode(params: {
     },
   );
   const claims = tokens.claims() as UserClaims;
-  return { claims, idToken: tokens.id_token! };
+  const idToken = tokens.id_token;
+  if (!idToken) {
+    throw new Error(
+      "Token response did not include an ID token. Ensure the configured scopes include 'openid'.",
+    );
+  }
+  return { claims, idToken };
 }
 // @snippet:step3:end
 

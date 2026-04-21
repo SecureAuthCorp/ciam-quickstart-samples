@@ -7,6 +7,7 @@ import {
   client,
   UserClaims,
 } from "./auth.js";
+import { requireEnv } from "./env.js";
 
 declare module "express-session" {
   interface SessionData {
@@ -54,16 +55,20 @@ export function createApp(): Express {
     }
   });
 
-  app.get("/login", async (req, res) => {
-    const codeVerifier = client.randomPKCECodeVerifier();
-    const state = client.randomState();
-    req.session.codeVerifier = codeVerifier;
-    req.session.state = state;
-    const url = await buildAuthUrl(codeVerifier, state);
-    res.redirect(url.href);
+  app.get("/login", async (req, res, next) => {
+    try {
+      const codeVerifier = client.randomPKCECodeVerifier();
+      const state = client.randomState();
+      req.session.codeVerifier = codeVerifier;
+      req.session.state = state;
+      const url = await buildAuthUrl(codeVerifier, state);
+      res.redirect(url.href);
+    } catch (err) {
+      next(err);
+    }
   });
 
-  app.get("/callback", async (req, res) => {
+  app.get("/callback", async (req, res, next) => {
     const errorParam =
       typeof req.query.error === "string" ? req.query.error : undefined;
     if (errorParam) {
@@ -88,16 +93,21 @@ export function createApp(): Express {
 
     try {
       const { claims, idToken } = await exchangeCode({
-        currentUrl: new URL(req.url, `https://${req.headers.host}`),
+        currentUrl: new URL(req.url, requireEnv("REDIRECT_URI")),
         codeVerifier,
         expectedState,
       });
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => (err ? reject(err) : resolve()));
+      });
       req.session.user = claims;
       req.session.idToken = idToken;
-      delete req.session.codeVerifier;
-      delete req.session.state;
       res.redirect("/");
     } catch (err) {
+      if (res.headersSent) {
+        next(err);
+        return;
+      }
       const message =
         err instanceof Error ? err.message : "Authentication failed";
       res.send(renderErrorPage(message));
@@ -106,7 +116,10 @@ export function createApp(): Express {
 
   app.get("/logout", (req, res) => {
     const idToken = req.session.idToken;
-    req.session.destroy(() => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("session destroy error:", err);
+      }
       if (idToken) {
         res.redirect(buildLogoutUrl(idToken).href);
       } else {

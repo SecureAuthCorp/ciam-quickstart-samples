@@ -27,6 +27,7 @@ vi.mock("./auth.js", () => ({
 
 beforeAll(() => {
   process.env.SESSION_SECRET = "test-secret";
+  process.env.REDIRECT_URI = "https://localhost:4260/callback";
 });
 
 const { createApp } = await import("./app.js");
