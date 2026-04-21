@@ -238,5 +238,49 @@
       "repo_path": "samples/vue/token-refresh",
       "run_command": "yarn install && yarn start"
     }
+  },
+  "server_login_auth_code": {
+    "node": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Discover the OIDC provider and configure the client",
+          "code": "import * as client from \"openid-client\";\nimport { requireEnv } from \"./env.js\";\n\nconst config = await client.discovery(\n  new URL(\"{{ISSUER_URL}}\"),\n  \"{{CLIENT_ID}}\",\n  \"{{CLIENT_SECRET}}\",\n);",
+          "file": "src/auth.ts",
+          "lang": "ts",
+          "lines": "1-10"
+        },
+        {
+          "step": 2,
+          "description": "Build the authorization URL with PKCE and a CSRF state",
+          "code": "export async function buildAuthUrl(\n  codeVerifier: string,\n  state: string,\n): Promise<URL> {\n  const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);\n  return client.buildAuthorizationUrl(config, {\n    redirect_uri: \"{{REDIRECT_URI}}\",\n    scope: \"{{SCOPES}}\",\n    code_challenge: codeChallenge,\n    code_challenge_method: \"S256\",\n    state,\n  });\n}",
+          "file": "src/auth.ts",
+          "lang": "ts",
+          "lines": "20-34"
+        },
+        {
+          "step": 3,
+          "description": "Exchange the authorization code for tokens (PKCE + client_secret)",
+          "code": "export async function exchangeCode(params: {\n  currentUrl: URL;\n  codeVerifier: string;\n  expectedState: string;\n}): Promise<{ claims: UserClaims; idToken: string }> {\n  const tokens = await client.authorizationCodeGrant(\n    config,\n    params.currentUrl,\n    {\n      pkceCodeVerifier: params.codeVerifier,\n      expectedState: params.expectedState,\n    },\n  );\n  const claims = tokens.claims() as UserClaims;\n  const idToken = tokens.id_token;\n  if (!idToken) {\n    throw new Error(\n      \"Token response did not include an ID token. Ensure the configured scopes include 'openid'.\",\n    );\n  }\n  return { claims, idToken };\n}",
+          "file": "src/auth.ts",
+          "lang": "ts",
+          "lines": "37-60"
+        },
+        {
+          "step": 4,
+          "description": "Wire the OIDC helpers into Express routes with a server-managed session",
+          "code": "import crypto from \"node:crypto\";\n\nfunction getSessionSecret(): string {\n  const fromEnv = process.env.SESSION_SECRET;\n  if (fromEnv) return fromEnv;\n  console.warn(\n    \"[warn] SESSION_SECRET not set — generating a random value. Set SESSION_SECRET for production so sessions survive restarts.\",\n  );\n  return crypto.randomBytes(32).toString(\"hex\");\n}\n\nexport function createApp(): Express {\n  const app = express();\n\n  app.use(\n    session({\n      secret: getSessionSecret(),\n      resave: false,\n      saveUninitialized: false,\n      cookie: {\n        secure: process.env.NODE_ENV === \"production\",\n        httpOnly: true,\n        sameSite: \"lax\",\n      },\n    }),\n  );\n\n  app.get(\"/\", (req, res) => {\n    if (req.session.user) {\n      res.send(renderSignedInPage(req.session.user));\n    } else {\n      res.send(renderSignedOutPage());\n    }\n  });\n\n  app.get(\"/login\", async (req, res, next) => {\n    try {\n      const codeVerifier = client.randomPKCECodeVerifier();\n      const state = client.randomState();\n      req.session.codeVerifier = codeVerifier;\n      req.session.state = state;\n      const url = await buildAuthUrl(codeVerifier, state);\n      res.redirect(url.href);\n    } catch (err) {\n      next(err);\n    }\n  });\n\n  app.get(\"/callback\", async (req, res, next) => {\n    const errorParam =\n      typeof req.query.error === \"string\" ? req.query.error : undefined;\n    if (errorParam) {\n      const description =\n        typeof req.query.error_description === \"string\"\n          ? req.query.error_description\n          : errorParam;\n      const hint =\n        typeof req.query.error_hint === \"string\"\n          ? req.query.error_hint\n          : undefined;\n      res.send(renderErrorPage(description, hint));\n      return;\n    }\n\n    const codeVerifier = req.session.codeVerifier;\n    const expectedState = req.session.state;\n    if (!codeVerifier || !expectedState) {\n      res.send(renderErrorPage(\"Session expired. Please try again.\"));\n      return;\n    }\n\n    try {\n      const { claims, idToken } = await exchangeCode({\n        currentUrl: new URL(req.url, \"{{REDIRECT_URI}}\"),\n        codeVerifier,\n        expectedState,\n      });\n      await new Promise<void>((resolve, reject) => {\n        req.session.regenerate((err) => (err ? reject(err) : resolve()));\n      });\n      req.session.user = claims;\n      req.session.idToken = idToken;\n      res.redirect(\"/\");\n    } catch (err) {\n      if (res.headersSent) {\n        next(err);\n        return;\n      }\n      const message =\n        err instanceof Error ? err.message : \"Authentication failed\";\n      res.send(renderErrorPage(message));\n    }\n  });\n\n  app.get(\"/logout\", (req, res) => {\n    const idToken = req.session.idToken;\n    req.session.destroy((err) => {\n      if (err) {\n        console.error(\"session destroy error:\", err);\n      }\n      if (idToken) {\n        res.redirect(buildLogoutUrl(idToken).href);\n      } else {\n        res.redirect(\"/\");\n      }\n    });\n  });\n\n  return app;\n}",
+          "file": "src/app.ts",
+          "lang": "ts",
+          "lines": "21-132"
+        }
+      ],
+      "framework": "node",
+      "lib": "openid-client",
+      "lib_version": "6.8.3",
+      "install": "openid-client",
+      "repo_path": "samples/node/login-auth-code",
+      "run_command": "yarn install && yarn start"
+    }
   }
 }

@@ -1,0 +1,33 @@
+{
+  "name": "@ciam-quickstart/node-login-auth-code",
+  "private": true,
+  "type": "module",
+  "packageManager": "yarn@4.13.0",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc --noEmit",
+    "build:ci": "yarn build",
+    "test": "vitest run",
+    "format": "prettier --write --ignore-path=../../../.gitignore .",
+    "format:check": "prettier --check --ignore-path=../../../.gitignore ."
+  },
+  "dependencies": {
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "express-session": "1.19.0",
+    "openid-client": "6.8.3",
+    "selfsigned": "5.5.0"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/express-session": "1.19.0",
+    "@types/node": "25.6.0",
+    "@types/supertest": "7.2.0",
+    "prettier": "3.8.3",
+    "supertest": "7.2.2",
+    "tsx": "4.21.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.5"
+  }
+}

@@ -12,6 +12,12 @@ frameworks:
     lib: angular-auth-oidc-client
     docs_url: https://github.com/damienbod/angular-auth-oidc-client
     env_file: src/environments/environment.ts
+  node:
+    label: Node.js
+    lang: ts
+    lib: openid-client
+    docs_url: https://github.com/panva/openid-client
+    env_file: .env
   vue:
     label: Vue
     lang: ts
@@ -67,3 +73,30 @@ scenarios:
       - react
       - angular
       - vue
+  server_login_auth_code:
+    app_type: server_web
+    display_name: User Login
+    grant: Auth Code + PKCE
+    description: >-
+      Redirect users to SecureAuth for login. The server holds the client secret and manages the session; PKCE adds
+      defense in depth.
+    callout: >-
+      Server-side flow — the client_secret never reaches the browser. PKCE is still enabled to protect against
+      authorization-code interception during the redirect back to /callback.
+    config_rows:
+      - label: Client ID
+        value: "{{CLIENT_ID}}"
+      - label: Client Secret
+        value: "{{CLIENT_SECRET}}"
+      - label: Issuer URL
+        value: "{{ISSUER_URL}}"
+      - label: Redirect URI
+        value: "{{REDIRECT_URI}}"
+      - label: Post-Logout Redirect URI
+        value: "{{POST_LOGOUT_URI}}"
+      - label: Scopes
+        value: "{{SCOPES}}"
+      - label: Grant
+        value: Authorization Code + PKCE
+    frameworks:
+      - node
