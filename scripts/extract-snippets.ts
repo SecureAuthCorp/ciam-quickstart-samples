@@ -83,7 +83,7 @@ function getInstallCommand(scenarioDir: string): string {
   try {
     const pkg = JSON.parse(readFileSync(path.join(scenarioDir, "package.json"), "utf-8"));
     const deps = Object.keys(pkg.dependencies || {}).filter(
-      (d) => !["react", "react-dom", "vue", "@angular/animations", "@angular/common", "@angular/compiler", "@angular/core", "@angular/forms", "@angular/platform-browser", "@angular/platform-browser-dynamic", "@angular/router", "rxjs", "tslib", "zone.js"].includes(d)
+      (d) => !["react", "react-dom", "vue", "express", "express-session", "dotenv", "selfsigned", "@angular/animations", "@angular/common", "@angular/compiler", "@angular/core", "@angular/forms", "@angular/platform-browser", "@angular/platform-browser-dynamic", "@angular/router", "rxjs", "tslib", "zone.js"].includes(d)
     );
     return deps.join(" ");
   } catch {
