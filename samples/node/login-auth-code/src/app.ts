@@ -19,14 +19,23 @@ declare module "express-session" {
 
 // @snippet:step4:start
 // @description Wire the OIDC helpers into Express routes with a server-managed session
-import { requireEnv } from "./env.js";
+import crypto from "node:crypto";
+
+function getSessionSecret(): string {
+  const fromEnv = process.env.SESSION_SECRET;
+  if (fromEnv) return fromEnv;
+  console.warn(
+    "[warn] SESSION_SECRET not set — generating a random value. Set SESSION_SECRET for production so sessions survive restarts.",
+  );
+  return crypto.randomBytes(32).toString("hex");
+}
 
 export function createApp(): Express {
   const app = express();
 
   app.use(
     session({
-      secret: requireEnv("SESSION_SECRET"),
+      secret: getSessionSecret(),
       resave: false,
       saveUninitialized: false,
       cookie: {

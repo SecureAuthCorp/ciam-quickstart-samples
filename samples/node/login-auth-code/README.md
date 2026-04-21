@@ -23,6 +23,6 @@ Minimal Express app demonstrating server-side OIDC login using Authorization Cod
 
 ## Production notes
 
-- `SESSION_SECRET` must be a strong random value; the value in `.env.example` is a placeholder.
+- The sample auto-generates a random `SESSION_SECRET` on startup when the env var is unset (for zero-setup dev). Set `SESSION_SECRET` via env var in production so sessions survive restarts and are stable across instances.
 - The default in-memory session store is for development only. Swap in Redis (or similar) for production.
 - The sample uses a self-signed certificate generated at boot. For production, use real certificates from your TLS termination layer.
