@@ -1,11 +1,12 @@
 // @snippet:step1:start
 // @description Discover the OIDC provider and configure the client
 import * as client from "openid-client";
+import { requireEnv } from "./env.js";
 
 const config = await client.discovery(
-  new URL(process.env.ISSUER_URL!),
-  process.env.CLIENT_ID!,
-  process.env.CLIENT_SECRET!,
+  new URL(requireEnv("ISSUER_URL")),
+  requireEnv("CLIENT_ID"),
+  requireEnv("CLIENT_SECRET"),
 );
 // @snippet:step1:end
 
@@ -24,8 +25,8 @@ export async function buildAuthUrl(
 ): Promise<URL> {
   const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
   return client.buildAuthorizationUrl(config, {
-    redirect_uri: process.env.REDIRECT_URI!,
-    scope: process.env.SCOPES!,
+    redirect_uri: requireEnv("REDIRECT_URI"),
+    scope: requireEnv("SCOPES"),
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
     state,
@@ -55,7 +56,7 @@ export async function exchangeCode(params: {
 
 export function buildLogoutUrl(idToken: string): URL {
   return client.buildEndSessionUrl(config, {
-    post_logout_redirect_uri: process.env.POST_LOGOUT_URI!,
+    post_logout_redirect_uri: requireEnv("POST_LOGOUT_URI"),
     id_token_hint: idToken,
   });
 }

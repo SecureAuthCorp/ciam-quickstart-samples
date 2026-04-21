@@ -19,12 +19,14 @@ declare module "express-session" {
 
 // @snippet:step4:start
 // @description Wire the OIDC helpers into Express routes with a server-managed session
+import { requireEnv } from "./env.js";
+
 export function createApp(): Express {
   const app = express();
 
   app.use(
     session({
-      secret: process.env.SESSION_SECRET!,
+      secret: requireEnv("SESSION_SECRET"),
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -125,7 +127,7 @@ function renderSignedInPage(user: UserClaims): string {
 <html><head><title>SecureAuth Node.js Auth Code Demo</title></head>
 <body>
   <h1>SecureAuth Node.js Auth Code Demo</h1>
-  <p>Welcome, ${name}${email ? ` (${email})` : ""}</p>
+  <p>Welcome, ${escapeHtml(name)}${email ? ` (${escapeHtml(email)})` : ""}</p>
   <p><a href="/logout">Sign out</a></p>
 </body></html>`;
 }
@@ -136,9 +138,23 @@ function renderErrorPage(message: string, hint?: string): string {
 <body>
   <h1>SecureAuth Node.js Auth Code Demo</h1>
   <div style="color: red">
-    <p>Error: ${message}</p>
-    ${hint ? `<p>${hint}</p>` : ""}
+    <p>Error: ${escapeHtml(message)}</p>
+    ${hint ? `<p>${escapeHtml(hint)}</p>` : ""}
     <p><a href="/login">Try again</a></p>
   </div>
 </body></html>`;
+}
+
+function escapeHtml(s: string): string {
+  return String(s).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[c]!,
+  );
 }

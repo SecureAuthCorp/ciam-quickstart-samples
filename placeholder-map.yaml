@@ -35,6 +35,20 @@ ts:
     placeholder: "{{SCOPES}}"
   - pattern: "import.meta.env.POST_LOGOUT_URI"
     placeholder: "{{POST_LOGOUT_URI}}"
+  - pattern: 'requireEnv("ISSUER_URL")'
+    placeholder: "{{ISSUER_URL}}"
+  - pattern: 'requireEnv("CLIENT_ID")'
+    placeholder: "{{CLIENT_ID}}"
+  - pattern: 'requireEnv("CLIENT_SECRET")'
+    placeholder: "{{CLIENT_SECRET}}"
+  - pattern: 'requireEnv("REDIRECT_URI")'
+    placeholder: "{{REDIRECT_URI}}"
+  - pattern: 'requireEnv("POST_LOGOUT_URI")'
+    placeholder: "{{POST_LOGOUT_URI}}"
+  - pattern: 'requireEnv("SCOPES")'
+    placeholder: "{{SCOPES}}"
+  - pattern: 'requireEnv("SESSION_SECRET")'
+    placeholder: "{{SESSION_SECRET}}"
   - pattern: "process.env.ISSUER_URL"
     placeholder: "{{ISSUER_URL}}"
   - pattern: "process.env.CLIENT_ID"

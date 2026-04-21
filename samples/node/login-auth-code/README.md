@@ -5,7 +5,7 @@ Minimal Express app demonstrating server-side OIDC login using Authorization Cod
 ## Prerequisites
 
 - A SecureAuth application configured as a **confidential server app** (client type `server_web`, with a client secret)
-- Authorization Code grant type enabled, with `offline_access` and PKCE optional
+- Authorization Code grant type enabled. PKCE is used as defense in depth; no refresh-token scope needed.
 
 ## Setup
 
