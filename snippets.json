@@ -277,7 +277,7 @@
       ],
       "framework": "node",
       "lib": "openid-client",
-      "lib_version": "6.7.1",
+      "lib_version": "6.8.3",
       "install": "openid-client",
       "repo_path": "samples/node/login-auth-code",
       "run_command": "yarn install && yarn start"
