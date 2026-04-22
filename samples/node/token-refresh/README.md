@@ -1,0 +1,36 @@
+# Node.js — Server Token Refresh
+
+Minimal Express app demonstrating server-side token refresh using [`openid-client`](https://github.com/panva/openid-client). After login, the session stores the refresh token; middleware auto-refreshes the access token when it's within 60s of expiring, and a "Refresh token now" button posts to `/refresh` for manual refresh.
+
+The refresh token never reaches the browser — the session cookie identifies the user; the refresh token sits server-side.
+
+## Prerequisites
+
+- A SecureAuth application configured as a **confidential server app** (with a client secret)
+- Authorization Code grant type enabled, `refresh_token` grant type enabled
+- `offline_access` scope enabled on the client
+
+## Setup
+
+1. Copy `.env.example` to `.env` and fill in your SecureAuth values (including `CLIENT_SECRET`)
+2. `yarn install`
+3. `yarn start`
+4. Open https://localhost:4260 (accept the self-signed certificate warning)
+
+## What this demonstrates
+
+- OIDC discovery against your SecureAuth workspace
+- Authorization Code + PKCE flow with a confidential server client
+- Server-managed session storing access + refresh tokens and expiry
+- Middleware-driven automatic refresh when the access token is about to expire
+- Manual refresh via `refreshTokenGrant` triggered by a POST form
+- RP-initiated logout using `end_session_endpoint`
+
+## Production notes
+
+- The sample auto-generates a random `SESSION_SECRET` on startup when the env var is unset (for zero-setup dev). Set `SESSION_SECRET` via env var in production so sessions survive restarts and are stable across instances.
+- The in-memory session store is for development only. Swap in Redis (or similar) for production so sessions survive restarts and work across multiple instances.
+- The self-signed TLS cert is generated at boot via `selfsigned`. Use real certificates in production.
+- **Auto-refresh scope:** the middleware runs on every request, including unprotected ones like `/favicon.ico` or health checks. In production, mount it only on routes that actually need a fresh access token.
+- **CSRF protection:** `POST /refresh` is not CSRF-protected in this sample. For production, add CSRF tokens (e.g. `csurf`), switch session cookies to `sameSite: "strict"`, or use the double-submit cookie pattern.
+- **Concurrent refreshes:** two requests hitting `/refresh` with the same stored refresh token will race. With rotation-enforcing IdPs the second request consumes an already-consumed token and fails. Production apps should serialize refresh per session (e.g. an in-process promise cache keyed by session id, or a distributed lock when sessions live in Redis).
