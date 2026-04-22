@@ -7,7 +7,7 @@ const app = createApp();
 const pems = await selfsigned.generate([
   { name: "commonName", value: "localhost" },
 ]);
-const port = Number(process.env.PORT ?? 4261);
+const port = Number(process.env.PORT ?? 4260);
 https
   .createServer({ key: pems.private, cert: pems.cert }, app)
   .listen(port, () => {

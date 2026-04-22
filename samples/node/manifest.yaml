@@ -34,7 +34,7 @@ scenarios:
     display_name: "Token Refresh"
     grant: "Refresh Token"
     description: "Use refresh tokens server-side to renew the user's access token without re-prompting them. Requires the offline_access scope."
-    callout: "Requires refresh_token grant type enabled in workspace OAuth settings and on the application's Grant Types. Requires the offline_access scope."
+    callout: "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     required_scopes:
       - offline_access
     run_command: "yarn install && yarn start"

@@ -15,7 +15,7 @@ The refresh token never reaches the browser — the session cookie identifies th
 1. Copy `.env.example` to `.env` and fill in your SecureAuth values (including `CLIENT_SECRET`)
 2. `yarn install`
 3. `yarn start`
-4. Open https://localhost:4261 (accept the self-signed certificate warning)
+4. Open https://localhost:4260 (accept the self-signed certificate warning)
 
 ## What this demonstrates
 
