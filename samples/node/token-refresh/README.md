@@ -41,9 +41,14 @@ The refresh token never reaches the browser — the session cookie identifies th
     ) {
       try {
         const tokens = await refreshTokens(req.session.refreshToken);
-        Object.assign(req.session, tokens);
-      } catch (err) {
-        /* handle */
+        req.session.user = tokens.claims;
+        req.session.idToken = tokens.idToken;
+        req.session.accessToken = tokens.accessToken;
+        req.session.refreshToken = tokens.refreshToken;
+        req.session.accessTokenExpiresAt = tokens.accessTokenExpiresAt;
+      } catch {
+        // refresh failed — clear session and redirect the caller to /login
+        req.session.destroy(() => {});
       }
     }
     next();
@@ -51,3 +56,4 @@ The refresh token never reaches the browser — the session cookie identifies th
   ```
 
 - **CSRF protection:** `POST /refresh` is not CSRF-protected in this sample. For production, add CSRF tokens (e.g. `csurf`), switch session cookies to `sameSite: "strict"`, or use the double-submit cookie pattern.
+- **Concurrent refreshes:** two requests hitting `/refresh` with the same stored refresh token will race. With rotation-enforcing IdPs the second request consumes an already-consumed token and fails. Production apps should serialize refresh per session (e.g. an in-process promise cache keyed by session id, or a distributed lock when sessions live in Redis).

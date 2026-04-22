@@ -300,7 +300,7 @@
           "code": "export async function buildAuthUrl(\n  codeVerifier: string,\n  state: string,\n): Promise<URL> {\n  const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);\n  return client.buildAuthorizationUrl(config, {\n    redirect_uri: \"{{REDIRECT_URI}}\",\n    scope: \"{{SCOPES}}\",\n    code_challenge: codeChallenge,\n    code_challenge_method: \"S256\",\n    state,\n  });\n}",
           "file": "src/auth.ts",
           "lang": "ts",
-          "lines": "53-67"
+          "lines": "56-70"
         },
         {
           "step": 3,
@@ -308,15 +308,15 @@
           "code": "export async function exchangeCode(params: {\n  currentUrl: URL;\n  codeVerifier: string;\n  expectedState: string;\n}): Promise<Tokens> {\n  const response = await client.authorizationCodeGrant(\n    config,\n    params.currentUrl,\n    {\n      pkceCodeVerifier: params.codeVerifier,\n      expectedState: params.expectedState,\n    },\n  );\n  return toTokens(response);\n}",
           "file": "src/auth.ts",
           "lang": "ts",
-          "lines": "70-86"
+          "lines": "73-89"
         },
         {
           "step": 4,
           "description": "Swap a refresh token for a fresh access token (and possibly a rotated refresh token)",
-          "code": "export async function refreshTokens(refreshToken: string): Promise<Tokens> {\n  const response = await client.refreshTokenGrant(config, refreshToken);\n  return toTokens(response);\n}",
+          "code": "export async function refreshTokens(refreshToken: string): Promise<Tokens> {\n  const response = await client.refreshTokenGrant(config, refreshToken);\n  return toTokens(response, refreshToken);\n}",
           "file": "src/auth.ts",
           "lang": "ts",
-          "lines": "89-94"
+          "lines": "92-97"
         },
         {
           "step": 5,

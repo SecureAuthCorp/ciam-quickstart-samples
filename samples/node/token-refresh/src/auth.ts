@@ -27,6 +27,7 @@ export type Tokens = {
 
 function toTokens(
   response: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
+  fallbackRefreshToken?: string,
 ): Tokens {
   const idToken = response.id_token;
   if (!idToken) {
@@ -34,7 +35,9 @@ function toTokens(
       "Token response did not include an ID token. Ensure the configured scopes include 'openid'.",
     );
   }
-  const refreshToken = response.refresh_token;
+  // IdPs that don't rotate refresh tokens may omit refresh_token on refresh
+  // responses (RFC 6749 §6). Fall back to the caller-supplied token in that case.
+  const refreshToken = response.refresh_token ?? fallbackRefreshToken;
   if (!refreshToken) {
     throw new Error(
       "Token response did not include a refresh token. Ensure the configured scopes include 'offline_access'.",
@@ -90,7 +93,7 @@ export async function exchangeCode(params: {
 // @description Swap a refresh token for a fresh access token (and possibly a rotated refresh token)
 export async function refreshTokens(refreshToken: string): Promise<Tokens> {
   const response = await client.refreshTokenGrant(config, refreshToken);
-  return toTokens(response);
+  return toTokens(response, refreshToken);
 }
 // @snippet:step4:end
 
