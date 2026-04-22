@@ -162,6 +162,7 @@ export function createApp(): Express {
       }
       try {
         const tokens = await refreshTokens(refreshToken);
+        req.session.user = tokens.claims;
         req.session.idToken = tokens.idToken;
         req.session.accessToken = tokens.accessToken;
         req.session.refreshToken = tokens.refreshToken;
