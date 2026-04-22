@@ -12,6 +12,12 @@ frameworks:
     lib: angular-auth-oidc-client
     docs_url: https://github.com/damienbod/angular-auth-oidc-client
     env_file: src/environments/environment.ts
+  dotnet:
+    label: .NET
+    lang: csharp
+    lib: Microsoft.AspNetCore.Authentication.OpenIdConnect
+    docs_url: https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication
+    env_file: .env
   node:
     label: Node.js
     lang: ts
@@ -81,8 +87,8 @@ scenarios:
       Redirect users to SecureAuth for login. The server holds the client secret and manages the session; PKCE adds
       defense in depth.
     callout: >-
-      Server-side flow — the client_secret never reaches the browser. PKCE is still enabled to protect against
-      authorization-code interception during the redirect back to /callback.
+      Server-side flow — the client_secret never reaches the browser. ASP.NET Core's OIDC middleware handles PKCE, state
+      validation, and token storage for you.
     config_rows:
       - label: Client ID
         value: "{{CLIENT_ID}}"
@@ -99,6 +105,7 @@ scenarios:
       - label: Grant
         value: Authorization Code + PKCE
     frameworks:
+      - dotnet
       - node
   server_token_refresh:
     app_type: server_web
