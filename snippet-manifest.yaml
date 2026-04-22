@@ -100,3 +100,32 @@ scenarios:
         value: Authorization Code + PKCE
     frameworks:
       - node
+  server_token_refresh:
+    app_type: server_web
+    display_name: Token Refresh
+    grant: Refresh Token
+    description: >-
+      Use refresh tokens server-side to renew the user's access token without re-prompting them. Requires the
+      offline_access scope.
+    callout: >-
+      Requires refresh_token grant type enabled in workspace OAuth settings and on the application's Grant Types.
+      Requires the offline_access scope.
+    required_scopes:
+      - offline_access
+    config_rows:
+      - label: Client ID
+        value: "{{CLIENT_ID}}"
+      - label: Client Secret
+        value: "{{CLIENT_SECRET}}"
+      - label: Issuer URL
+        value: "{{ISSUER_URL}}"
+      - label: Redirect URI
+        value: "{{REDIRECT_URI}}"
+      - label: Post-Logout Redirect URI
+        value: "{{POST_LOGOUT_URI}}"
+      - label: Scopes
+        value: "{{SCOPES}}"
+      - label: Grant
+        value: Authorization Code + PKCE (+ Refresh Token)
+    frameworks:
+      - node
