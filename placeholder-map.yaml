@@ -59,3 +59,17 @@ ts:
     placeholder: "{{POST_LOGOUT_URI}}"
   - pattern: "process.env.SCOPES"
     placeholder: "{{SCOPES}}"
+
+csharp:
+  - pattern: 'Environment.GetEnvironmentVariable("ISSUER_URL")'
+    placeholder: "{{ISSUER_URL}}"
+  - pattern: 'Environment.GetEnvironmentVariable("CLIENT_ID")'
+    placeholder: "{{CLIENT_ID}}"
+  - pattern: 'Environment.GetEnvironmentVariable("CLIENT_SECRET")'
+    placeholder: "{{CLIENT_SECRET}}"
+  - pattern: 'Environment.GetEnvironmentVariable("REDIRECT_URI")'
+    placeholder: "{{REDIRECT_URI}}"
+  - pattern: 'Environment.GetEnvironmentVariable("POST_LOGOUT_URI")'
+    placeholder: "{{POST_LOGOUT_URI}}"
+  - pattern: 'Environment.GetEnvironmentVariable("SCOPES")'
+    placeholder: "{{SCOPES}}"
