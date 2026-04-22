@@ -1,6 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 
+const mockExchangeCode = vi.fn();
 const mockRefreshTokens = vi.fn();
 
 vi.mock("./auth.js", () => ({
@@ -10,18 +11,7 @@ vi.mock("./auth.js", () => ({
     url.searchParams.set("code_challenge", "mock-challenge");
     return url;
   }),
-  exchangeCode: vi.fn(async () => ({
-    claims: {
-      sub: "user-1",
-      given_name: "Test",
-      family_name: "User",
-      email: "test@example.com",
-    },
-    idToken: "mock-id-token",
-    accessToken: "mock-access-token",
-    refreshToken: "mock-refresh-token-1",
-    accessTokenExpiresAt: 1700000000,
-  })),
+  exchangeCode: mockExchangeCode,
   refreshTokens: mockRefreshTokens,
   buildLogoutUrl: vi.fn(() => new URL("https://idp.example/end_session")),
   client: {
@@ -30,6 +20,13 @@ vi.mock("./auth.js", () => ({
     calculatePKCECodeChallenge: async () => "mock-challenge",
   },
 }));
+
+const USER = {
+  sub: "user-1",
+  given_name: "Test",
+  family_name: "User",
+  email: "test@example.com",
+};
 
 beforeAll(() => {
   process.env.SESSION_SECRET = "test-secret";
@@ -43,18 +40,24 @@ describe("Node.js server_token_refresh", () => {
 
   beforeEach(() => {
     app = createApp();
+    // Default: expiry is 1h in the future, so the auto-refresh middleware
+    // doesn't fire during standard flows. Individual tests override with
+    // mockResolvedValueOnce when they need expired tokens.
+    mockExchangeCode.mockReset();
+    mockExchangeCode.mockResolvedValue({
+      claims: USER,
+      idToken: "mock-id-token",
+      accessToken: "mock-access-token",
+      refreshToken: "mock-refresh-token-1",
+      accessTokenExpiresAt: Math.floor(Date.now() / 1000) + 3600,
+    });
     mockRefreshTokens.mockReset();
     mockRefreshTokens.mockResolvedValue({
-      claims: {
-        sub: "user-1",
-        given_name: "Test",
-        family_name: "User",
-        email: "test@example.com",
-      },
+      claims: USER,
       idToken: "mock-id-token-2",
       accessToken: "mock-access-token-2",
       refreshToken: "mock-refresh-token-2",
-      accessTokenExpiresAt: 1700003600,
+      accessTokenExpiresAt: Math.floor(Date.now() / 1000) + 7200,
     });
   });
 
@@ -117,6 +120,40 @@ describe("Node.js server_token_refresh", () => {
     const res = await agent.post("/refresh");
     expect(res.status).toBe(200);
     expect(res.text).toContain("Refresh token invalid");
+  });
+
+  it("middleware auto-refreshes when the access token is about to expire", async () => {
+    mockExchangeCode.mockResolvedValueOnce({
+      claims: USER,
+      idToken: "mock-id-token",
+      accessToken: "mock-access-token",
+      refreshToken: "mock-refresh-token-1",
+      accessTokenExpiresAt: Math.floor(Date.now() / 1000) - 30, // already expired
+    });
+    const agent = request.agent(app);
+    await agent.get("/login").expect(302);
+    await agent.get("/callback?code=abc&state=test-state").expect(302);
+    const res = await agent.get("/");
+    expect(res.status).toBe(200);
+    expect(mockRefreshTokens).toHaveBeenCalledWith("mock-refresh-token-1");
+    expect(res.text).toContain("Welcome, Test User (test@example.com)");
+  });
+
+  it("middleware clears the session when auto-refresh fails", async () => {
+    mockExchangeCode.mockResolvedValueOnce({
+      claims: USER,
+      idToken: "mock-id-token",
+      accessToken: "mock-access-token",
+      refreshToken: "mock-refresh-token-1",
+      accessTokenExpiresAt: Math.floor(Date.now() / 1000) - 30,
+    });
+    mockRefreshTokens.mockRejectedValueOnce(new Error("refresh failed"));
+    const agent = request.agent(app);
+    await agent.get("/login").expect(302);
+    await agent.get("/callback?code=abc&state=test-state").expect(302);
+    const res = await agent.get("/");
+    expect(res.status).toBe(200);
+    expect(res.text).toContain("Sign in");
   });
 
   it("/logout destroys session and redirects to end_session endpoint", async () => {

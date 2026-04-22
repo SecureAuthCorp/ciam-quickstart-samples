@@ -51,6 +51,33 @@ export function createApp(): Express {
     }),
   );
 
+  // Auto-refresh the access token when it's within 60s of expiring.
+  // Runs on every request that has a session with a refresh token.
+  app.use(async (req, _res, next) => {
+    const now = Math.floor(Date.now() / 1000);
+    if (
+      req.session.refreshToken &&
+      (req.session.accessTokenExpiresAt ?? 0) - now < 60
+    ) {
+      try {
+        const tokens = await refreshTokens(req.session.refreshToken);
+        req.session.user = tokens.claims;
+        req.session.idToken = tokens.idToken;
+        req.session.accessToken = tokens.accessToken;
+        req.session.refreshToken = tokens.refreshToken;
+        req.session.accessTokenExpiresAt = tokens.accessTokenExpiresAt;
+      } catch {
+        // Refresh failed — clear auth fields; next route will render sign-in.
+        delete req.session.user;
+        delete req.session.idToken;
+        delete req.session.accessToken;
+        delete req.session.refreshToken;
+        delete req.session.accessTokenExpiresAt;
+      }
+    }
+    next();
+  });
+
   app.get("/", (req, res) => {
     if (req.session.user && req.session.accessTokenExpiresAt) {
       const expiresAt = new Date(
