@@ -100,16 +100,25 @@ app.MapPost("/refresh", async (HttpContext ctx, IHttpClientFactory httpFactory) 
     var refreshToken = authResult.Properties.GetTokenValue("refresh_token");
     if (refreshToken is null) return Results.Redirect("/");
 
-    var tokens = await RefreshTokensAsync(httpFactory, refreshToken);
-    if (tokens.IsError)
-        return Results.Content(Views.RenderErrorPage(tokens.Error ?? "refresh failed"), "text/html");
+    try
+    {
+        var tokens = await RefreshTokensAsync(httpFactory, refreshToken);
+        if (tokens.IsError)
+            return Results.Content(
+                Views.RenderErrorPage(tokens.Error ?? "refresh failed"),
+                "text/html");
 
-    UpdateAuthProperties(authResult.Properties, tokens);
-    await ctx.SignInAsync(
-        CookieAuthenticationDefaults.AuthenticationScheme,
-        authResult.Principal!,
-        authResult.Properties);
-    return Results.Redirect("/");
+        UpdateAuthProperties(authResult.Properties, tokens);
+        await ctx.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            authResult.Principal!,
+            authResult.Properties);
+        return Results.Redirect("/");
+    }
+    catch (Exception ex)
+    {
+        return Results.Content(Views.RenderErrorPage(ex.Message), "text/html");
+    }
 });
 
 app.MapGet("/logout", () => Results.SignOut(
