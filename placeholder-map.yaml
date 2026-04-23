@@ -61,15 +61,15 @@ ts:
     placeholder: "{{SCOPES}}"
 
 csharp:
-  - pattern: 'Environment.GetEnvironmentVariable("ISSUER_URL")'
+  - pattern: 'RequireEnv("ISSUER_URL")'
     placeholder: "{{ISSUER_URL}}"
-  - pattern: 'Environment.GetEnvironmentVariable("CLIENT_ID")'
+  - pattern: 'RequireEnv("CLIENT_ID")'
     placeholder: "{{CLIENT_ID}}"
-  - pattern: 'Environment.GetEnvironmentVariable("CLIENT_SECRET")'
+  - pattern: 'RequireEnv("CLIENT_SECRET")'
     placeholder: "{{CLIENT_SECRET}}"
-  - pattern: 'Environment.GetEnvironmentVariable("REDIRECT_URI")'
+  - pattern: 'RequireEnv("REDIRECT_URI")'
     placeholder: "{{REDIRECT_URI}}"
-  - pattern: 'Environment.GetEnvironmentVariable("POST_LOGOUT_URI")'
+  - pattern: 'RequireEnv("POST_LOGOUT_URI")'
     placeholder: "{{POST_LOGOUT_URI}}"
-  - pattern: 'Environment.GetEnvironmentVariable("SCOPES")'
+  - pattern: 'RequireEnv("SCOPES")'
     placeholder: "{{SCOPES}}"

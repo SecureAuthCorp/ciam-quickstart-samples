@@ -21,9 +21,9 @@ builder.Services.AddAuthentication(options =>
     .AddCookie()
     .AddOpenIdConnect(options =>
     {
-        options.Authority = Environment.GetEnvironmentVariable("ISSUER_URL");
-        options.ClientId = Environment.GetEnvironmentVariable("CLIENT_ID");
-        options.ClientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET");
+        options.Authority = RequireEnv("ISSUER_URL");
+        options.ClientId = RequireEnv("CLIENT_ID");
+        options.ClientSecret = RequireEnv("CLIENT_SECRET");
         options.ResponseType = "code";
         options.UsePkce = true;
         options.SaveTokens = true;
@@ -34,9 +34,13 @@ builder.Services.AddAuthentication(options =>
         options.MapInboundClaims = false;
         options.CallbackPath = "/callback";
         options.Scope.Clear();
-        foreach (var scope in (Environment.GetEnvironmentVariable("SCOPES") ?? "").Split(' '))
+        foreach (var scope in RequireEnv("SCOPES").Split(' ', StringSplitOptions.RemoveEmptyEntries))
             options.Scope.Add(scope);
     });
+
+static string RequireEnv(string name) =>
+    Environment.GetEnvironmentVariable(name)
+        ?? throw new InvalidOperationException($"Missing required env var: {name}");
 
 builder.Services.AddAuthorization();
 // @snippet:step2:end

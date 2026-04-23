@@ -15,13 +15,11 @@ public class AuthIntegrationTests : IClassFixture<WebApplicationFactory<Program>
 
     public AuthIntegrationTests(WebApplicationFactory<Program> factory)
     {
-        // Env vars needed so the OIDC middleware initializes at app boot time.
+        // Env vars needed by the sample app so the OIDC middleware initializes at app boot time.
         Environment.SetEnvironmentVariable("ISSUER_URL", "https://idp.example");
         Environment.SetEnvironmentVariable("CLIENT_ID", "test-client");
         Environment.SetEnvironmentVariable("CLIENT_SECRET", "test-secret");
         Environment.SetEnvironmentVariable("SCOPES", "openid profile email");
-        Environment.SetEnvironmentVariable("REDIRECT_URI", "https://localhost:4260/callback");
-        Environment.SetEnvironmentVariable("POST_LOGOUT_URI", "https://localhost:4260/");
 
         _factory = factory.WithWebHostBuilder(builder =>
         {

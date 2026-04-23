@@ -11,7 +11,7 @@ scenarios:
     display_name: "User Login"
     grant: "Auth Code + PKCE"
     description: "Redirect users to SecureAuth for login. The server holds the client secret and manages the session; PKCE adds defense in depth."
-    callout: "Server-side flow — the client_secret never reaches the browser. ASP.NET Core's OIDC middleware handles PKCE, state validation, and token storage for you."
+    callout: "Server-side flow — the client_secret never reaches the browser. PKCE is still enabled to protect against authorization-code interception during the redirect back to /callback."
     run_command: "dotnet restore && dotnet run --project src"
     config_rows:
       - label: "Client ID"

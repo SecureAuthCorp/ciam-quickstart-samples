@@ -1,6 +1,6 @@
 # .NET — Server Login with Auth Code + PKCE
 
-Minimal ASP.NET Core 8 Minimal-APIs app demonstrating server-side OIDC login using `Microsoft.AspNetCore.Authentication.OpenIdConnect`. The server holds the client secret and manages the session via an encrypted auth cookie.
+Minimal ASP.NET Core 10 Minimal-APIs app demonstrating server-side OIDC login using `Microsoft.AspNetCore.Authentication.OpenIdConnect`. The server holds the client secret and manages the session via an encrypted auth cookie.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Minimal ASP.NET Core 8 Minimal-APIs app demonstrating server-side OIDC login usi
 
 - OIDC discovery via `AddOpenIdConnect(options => { options.Authority = ... })`
 - Authorization Code + PKCE flow (middleware handles code exchange, state validation, PKCE verifier)
-- Auth cookie with ID token stored server-side (never reaches the browser as a token)
+- Session carried by an encrypted auth cookie (protected by ASP.NET Core data protection). With `SaveTokens = true` the ID token is serialized into that cookie — no opaque tokens appear in the browser UI, but the cookie itself is a client-stored artifact.
 - RP-initiated logout via `Results.SignOut(...)` on Cookie + OIDC schemes
 
 ## Tests
