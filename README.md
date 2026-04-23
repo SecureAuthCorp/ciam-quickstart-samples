@@ -18,7 +18,3 @@ scripts/          # Extraction and validation tools
 3. Add a `manifest.yaml` in `samples/<framework>/`
 4. Run `cd scripts && yarn all` to validate
 5. Open a PR — CI will test the app and validate extraction
-
-## Contributing
-
-This repo is maintained by the SecureAuth CIAM team. External contributions are welcome via pull request — all PRs require team review.
