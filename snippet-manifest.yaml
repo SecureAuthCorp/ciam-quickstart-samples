@@ -135,4 +135,5 @@ scenarios:
       - label: Grant
         value: Authorization Code + PKCE (+ Refresh Token)
     frameworks:
+      - dotnet
       - node
