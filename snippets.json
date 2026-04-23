@@ -270,7 +270,7 @@
       "framework": "dotnet",
       "lib": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
       "lib_version": "10.0.0",
-      "install": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
+      "install": "",
       "repo_path": "samples/dotnet/login-auth-code",
       "run_command": "dotnet restore && dotnet run --project src"
     },
@@ -364,7 +364,7 @@
       "framework": "dotnet",
       "lib": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
       "lib_version": "10.0.0",
-      "install": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
+      "install": "",
       "repo_path": "samples/dotnet/token-refresh",
       "run_command": "dotnet restore && dotnet run --project src"
     },
