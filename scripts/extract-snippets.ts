@@ -95,6 +95,17 @@ function getLibVersion(scenarioDir: string, manifestDir: string): string {
     // no src/ dir or no .csproj — fall through
   }
 
+  try {
+    const pomContent = readFileSync(path.join(scenarioDir, "pom.xml"), "utf-8");
+    // Spring Boot starters inherit their version from the parent POM.
+    const parentMatch = pomContent.match(
+      /<parent>[\s\S]*?<artifactId>spring-boot-starter-parent<\/artifactId>[\s\S]*?<version>([^<]+)<\/version>[\s\S]*?<\/parent>/
+    );
+    if (parentMatch) return parentMatch[1];
+  } catch {
+    // no pom.xml — fall through
+  }
+
   return "unknown";
 }
 
