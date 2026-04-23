@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using DotNetEnv;
 
 // @snippet:step1:start
-// @description Load environment variables from .env so Environment.GetEnvironmentVariable sees them
-Env.Load();
+// @description Load environment variables from .env (searches parent dirs so `dotnet run --project src` finds the .env at the sample root). Existing env vars win.
+Env.TraversePath().NoClobber().Load();
 // @snippet:step1:end
 
 var builder = WebApplication.CreateBuilder(args);

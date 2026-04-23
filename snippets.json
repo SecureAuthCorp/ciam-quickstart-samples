@@ -244,8 +244,8 @@
       "steps": [
         {
           "step": 1,
-          "description": "Load environment variables from .env so Environment.GetEnvironmentVariable sees them",
-          "code": "Env.Load();",
+          "description": "Load environment variables from .env (searches parent dirs so `dotnet run --project src` finds the .env at the sample root). Existing env vars win.",
+          "code": "Env.TraversePath().NoClobber().Load();",
           "file": "src/Program.cs",
           "lang": "csharp",
           "lines": "7-9"
