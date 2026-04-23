@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readdirSync, readFileSync, writeFileSync } from "fs";
 import { glob } from "glob";
 import yaml from "js-yaml";
 import path from "path";
@@ -68,18 +68,37 @@ function applyPlaceholders(code: string, lang: string, placeholderMap: Placehold
 }
 
 function getLibVersion(scenarioDir: string, manifestDir: string): string {
+  const manifest = yaml.load(
+    readFileSync(path.join(manifestDir, "manifest.yaml"), "utf-8")
+  ) as FrameworkManifest;
+
   try {
     const pkg = JSON.parse(readFileSync(path.join(scenarioDir, "package.json"), "utf-8"));
-    const manifest = yaml.load(
-      readFileSync(path.join(manifestDir, "manifest.yaml"), "utf-8")
-    ) as FrameworkManifest;
     return pkg.dependencies?.[manifest.lib] || pkg.devDependencies?.[manifest.lib] || "unknown";
   } catch {
-    return "unknown";
+    // no package.json — try .csproj (C#/.NET)
   }
+
+  try {
+    const srcDir = path.join(scenarioDir, "src");
+    const csprojFiles = readdirSync(srcDir).filter((f) => f.endsWith(".csproj"));
+    if (csprojFiles.length > 0) {
+      const csprojContent = readFileSync(path.join(srcDir, csprojFiles[0]), "utf-8");
+      const libEscaped = manifest.lib.replace(/[.]/g, "\\.");
+      const regex = new RegExp(
+        `<PackageReference\\s+Include="${libEscaped}"\\s+Version="([^"]+)"`
+      );
+      const match = csprojContent.match(regex);
+      if (match) return match[1];
+    }
+  } catch {
+    // no src/ dir or no .csproj — fall through
+  }
+
+  return "unknown";
 }
 
-function getInstallCommand(scenarioDir: string): string {
+function getInstallCommand(scenarioDir: string, manifestLib?: string): string {
   try {
     const pkg = JSON.parse(readFileSync(path.join(scenarioDir, "package.json"), "utf-8"));
     const deps = Object.keys(pkg.dependencies || {}).filter(
@@ -87,7 +106,7 @@ function getInstallCommand(scenarioDir: string): string {
     );
     return deps.join(" ");
   } catch {
-    return "";
+    return manifestLib ?? "";
   }
 }
 
@@ -186,7 +205,9 @@ async function main() {
         continue;
       }
 
-      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue}", { cwd: scenarioDir });
+      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue,cs}", {
+        cwd: scenarioDir,
+      });
       const allSteps: Step[] = [];
 
       for (const sourceFile of sourceFiles.sort()) {
@@ -212,7 +233,7 @@ async function main() {
         framework: fw,
         lib: manifest.lib,
         lib_version: getLibVersion(scenarioDir, frameworkDir),
-        install: getInstallCommand(scenarioDir),
+        install: getInstallCommand(scenarioDir, manifest.lib),
         repo_path: `samples/${path.relative(SAMPLES, scenarioDir)}`,
         ...(runCommand ? { run_command: runCommand } : {}),
       };

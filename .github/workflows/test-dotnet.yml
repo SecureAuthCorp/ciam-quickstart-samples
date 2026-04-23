@@ -1,0 +1,50 @@
+name: Test .NET Frameworks
+
+on:
+  push:
+    paths:
+      - "samples/**"
+  pull_request:
+    paths:
+      - "samples/**"
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  find-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.find.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: find
+        run: |
+          DIRS=$(find samples -name "*.sln" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: find-projects
+    if: ${{ needs.find-projects.outputs.matrix != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Restore
+        working-directory: ${{ matrix.project }}
+        run: dotnet restore
+      - name: Build
+        working-directory: ${{ matrix.project }}
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        working-directory: ${{ matrix.project }}
+        run: dotnet test --no-build --configuration Release
