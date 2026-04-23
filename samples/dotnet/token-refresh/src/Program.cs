@@ -68,6 +68,7 @@ static async Task<TokenResponse> RefreshTokensAsync(
         ClientId = RequireEnv("CLIENT_ID"),
         ClientSecret = RequireEnv("CLIENT_SECRET"),
         RefreshToken = refreshToken,
+        ClientCredentialStyle = ClientCredentialStyle.PostBody,
     });
 }
 // @snippet:step3:end
