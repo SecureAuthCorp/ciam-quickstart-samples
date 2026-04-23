@@ -253,10 +253,10 @@
         {
           "step": 2,
           "description": "Configure cookie auth + OpenID Connect against your SecureAuth workspace",
-          "code": "builder.Services.AddAuthentication(options =>\n    {\n        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;\n        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;\n    })\n    .AddCookie()\n    .AddOpenIdConnect(options =>\n    {\n        options.Authority = \"{{ISSUER_URL}}\";\n        options.ClientId = \"{{CLIENT_ID}}\";\n        options.ClientSecret = \"{{CLIENT_SECRET}}\";\n        options.ResponseType = \"code\";\n        options.UsePkce = true;\n        options.SaveTokens = true;\n        options.GetClaimsFromUserInfoEndpoint = true;\n        options.CallbackPath = \"/callback\";\n        options.Scope.Clear();\n        foreach (var scope in (\"{{SCOPES}}\" ?? \"\").Split(' '))\n            options.Scope.Add(scope);\n    });\n\nbuilder.Services.AddAuthorization();",
+          "code": "builder.Services.AddAuthentication(options =>\n    {\n        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;\n        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;\n    })\n    .AddCookie()\n    .AddOpenIdConnect(options =>\n    {\n        options.Authority = \"{{ISSUER_URL}}\";\n        options.ClientId = \"{{CLIENT_ID}}\";\n        options.ClientSecret = \"{{CLIENT_SECRET}}\";\n        options.ResponseType = \"code\";\n        options.UsePkce = true;\n        options.SaveTokens = true;\n        options.GetClaimsFromUserInfoEndpoint = true;\n        // Keep OIDC claim names (given_name, family_name, email) as-is — the\n        // default middleware remaps them to long xmlsoap URIs, which makes\n        // FindFirst(\"given_name\") return null in user code.\n        options.MapInboundClaims = false;\n        options.CallbackPath = \"/callback\";\n        options.Scope.Clear();\n        foreach (var scope in (\"{{SCOPES}}\" ?? \"\").Split(' '))\n            options.Scope.Add(scope);\n    });\n\nbuilder.Services.AddAuthorization();",
           "file": "src/Program.cs",
           "lang": "csharp",
-          "lines": "14-37"
+          "lines": "14-41"
         },
         {
           "step": 3,
@@ -264,7 +264,7 @@
           "code": "app.MapGet(\"/\", (HttpContext ctx) =>\n    ctx.User.Identity?.IsAuthenticated == true\n        ? Results.Content(Views.RenderSignedInPage(ctx.User), \"text/html\")\n        : Results.Content(Views.RenderSignedOutPage(), \"text/html\"));\n\napp.MapGet(\"/login\", () => Results.Challenge(\n    new AuthenticationProperties { RedirectUri = \"/\" },\n    [OpenIdConnectDefaults.AuthenticationScheme]));\n\napp.MapGet(\"/logout\", () => Results.SignOut(\n    new AuthenticationProperties { RedirectUri = \"/\" },\n    [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]));",
           "file": "src/Program.cs",
           "lang": "csharp",
-          "lines": "44-57"
+          "lines": "48-61"
         }
       ],
       "framework": "dotnet",

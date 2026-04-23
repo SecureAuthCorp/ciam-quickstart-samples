@@ -28,6 +28,10 @@ builder.Services.AddAuthentication(options =>
         options.UsePkce = true;
         options.SaveTokens = true;
         options.GetClaimsFromUserInfoEndpoint = true;
+        // Keep OIDC claim names (given_name, family_name, email) as-is — the
+        // default middleware remaps them to long xmlsoap URIs, which makes
+        // FindFirst("given_name") return null in user code.
+        options.MapInboundClaims = false;
         options.CallbackPath = "/callback";
         options.Scope.Clear();
         foreach (var scope in (Environment.GetEnvironmentVariable("SCOPES") ?? "").Split(' '))
