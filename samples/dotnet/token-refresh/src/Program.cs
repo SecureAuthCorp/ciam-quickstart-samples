@@ -1,3 +1,5 @@
+// @snippet:step1:start
+// @description Import the ASP.NET Core OIDC/cookie middleware plus Duende.IdentityModel (used later for the refresh-token grant) and DotNetEnv for `.env` loading
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -5,8 +7,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Duende.IdentityModel.Client;
 using DotNetEnv;
 
-// @snippet:step1:start
-// @description Load environment variables from .env (searches parent dirs so `dotnet run --project src` finds the .env at the sample root). Existing env vars win.
+// Searches parent dirs so `dotnet run --project src` finds the .env at the sample root. Existing env vars win.
 Env.TraversePath().NoClobber().Load();
 // @snippet:step1:end
 
