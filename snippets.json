@@ -339,10 +339,10 @@
         {
           "step": 3,
           "description": "Swap a refresh token for a fresh access token via the OIDC token endpoint",
-          "code": "static async Task<TokenResponse> RefreshTokensAsync(\n    IHttpClientFactory httpFactory,\n    string refreshToken)\n{\n    var http = httpFactory.CreateClient();\n    var disco = await http.GetDiscoveryDocumentAsync(\"{{ISSUER_URL}}\");\n    if (disco.IsError)\n        throw new InvalidOperationException($\"Discovery failed: {disco.Error}\");\n\n    return await http.RequestRefreshTokenAsync(new RefreshTokenRequest\n    {\n        Address = disco.TokenEndpoint,\n        ClientId = \"{{CLIENT_ID}}\",\n        ClientSecret = \"{{CLIENT_SECRET}}\",\n        RefreshToken = refreshToken,\n    });\n}",
+          "code": "static async Task<TokenResponse> RefreshTokensAsync(\n    IHttpClientFactory httpFactory,\n    string refreshToken)\n{\n    var http = httpFactory.CreateClient();\n    var disco = await http.GetDiscoveryDocumentAsync(\"{{ISSUER_URL}}\");\n    if (disco.IsError)\n        throw new InvalidOperationException($\"Discovery failed: {disco.Error}\");\n\n    return await http.RequestRefreshTokenAsync(new RefreshTokenRequest\n    {\n        Address = disco.TokenEndpoint,\n        ClientId = \"{{CLIENT_ID}}\",\n        ClientSecret = \"{{CLIENT_SECRET}}\",\n        RefreshToken = refreshToken,\n        ClientCredentialStyle = ClientCredentialStyle.PostBody,\n    });\n}",
           "file": "src/Program.cs",
           "lang": "csharp",
-          "lines": "54-72"
+          "lines": "54-73"
         },
         {
           "step": 4,
@@ -350,7 +350,7 @@
           "code": "app.MapGet(\"/\", async (HttpContext ctx) =>\n{\n    if (ctx.User.Identity?.IsAuthenticated != true)\n        return Results.Content(Views.RenderSignedOutPage(), \"text/html\");\n\n    var expiresAtRaw = await ctx.GetTokenAsync(\"expires_at\");\n    var expiresAtDisplay = DateTimeOffset.TryParse(expiresAtRaw, out var dt)\n        ? dt.ToLocalTime().ToString(\"h:mm:ss tt\")\n        : \"unknown\";\n    return Results.Content(Views.RenderSignedInPage(ctx.User, expiresAtDisplay), \"text/html\");\n});\n\napp.MapGet(\"/login\", () => Results.Challenge(\n    new AuthenticationProperties { RedirectUri = \"/\" },\n    [OpenIdConnectDefaults.AuthenticationScheme]));\n\napp.MapPost(\"/refresh\", async (HttpContext ctx, IHttpClientFactory httpFactory) =>\n{\n    var authResult = await ctx.AuthenticateAsync();\n    if (!authResult.Succeeded || authResult.Properties is null)\n        return Results.Redirect(\"/\");\n\n    var refreshToken = authResult.Properties.GetTokenValue(\"refresh_token\");\n    if (refreshToken is null) return Results.Redirect(\"/\");\n\n    var tokens = await RefreshTokensAsync(httpFactory, refreshToken);\n    if (tokens.IsError)\n        return Results.Content(Views.RenderErrorPage(tokens.Error ?? \"refresh failed\"), \"text/html\");\n\n    UpdateAuthProperties(authResult.Properties, tokens);\n    await ctx.SignInAsync(\n        CookieAuthenticationDefaults.AuthenticationScheme,\n        authResult.Principal!,\n        authResult.Properties);\n    return Results.Redirect(\"/\");\n});\n\napp.MapGet(\"/logout\", () => Results.SignOut(\n    new AuthenticationProperties { RedirectUri = \"/\" },\n    [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]));\n\nstatic void UpdateAuthProperties(AuthenticationProperties props, TokenResponse tokens)\n{\n    if (tokens.AccessToken is not null)\n        props.UpdateTokenValue(\"access_token\", tokens.AccessToken);\n    if (tokens.RefreshToken is not null)\n        props.UpdateTokenValue(\"refresh_token\", tokens.RefreshToken);\n    if (tokens.IdentityToken is not null)\n        props.UpdateTokenValue(\"id_token\", tokens.IdentityToken);\n    if (tokens.ExpiresIn > 0)\n        props.UpdateTokenValue(\n            \"expires_at\",\n            DateTimeOffset.UtcNow.AddSeconds(tokens.ExpiresIn).ToString(\"o\"));\n}",
           "file": "src/Program.cs",
           "lang": "csharp",
-          "lines": "75-130"
+          "lines": "76-131"
         },
         {
           "step": 5,
@@ -358,7 +358,7 @@
           "code": "static async Task ValidatePrincipalWithRefresh(CookieValidatePrincipalContext ctx)\n{\n    var expiresAt = ctx.Properties.GetTokenValue(\"expires_at\");\n    if (expiresAt is null || !DateTimeOffset.TryParse(expiresAt, out var expiry)) return;\n    if (expiry - DateTimeOffset.UtcNow > TimeSpan.FromSeconds(60)) return;\n\n    var refreshToken = ctx.Properties.GetTokenValue(\"refresh_token\");\n    if (refreshToken is null)\n    {\n        ctx.RejectPrincipal();\n        return;\n    }\n\n    var httpFactory = ctx.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>();\n    try\n    {\n        var tokens = await RefreshTokensAsync(httpFactory, refreshToken);\n        if (tokens.IsError)\n        {\n            ctx.RejectPrincipal();\n            return;\n        }\n\n        UpdateAuthProperties(ctx.Properties, tokens);\n        ctx.ShouldRenew = true;\n    }\n    catch\n    {\n        ctx.RejectPrincipal();\n    }\n}",
           "file": "src/Program.cs",
           "lang": "csharp",
-          "lines": "133-165"
+          "lines": "134-166"
         }
       ],
       "framework": "dotnet",
