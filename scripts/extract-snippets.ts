@@ -98,7 +98,7 @@ function getLibVersion(scenarioDir: string, manifestDir: string): string {
   return "unknown";
 }
 
-function getInstallCommand(scenarioDir: string, manifestLib?: string): string {
+function getInstallCommand(scenarioDir: string): string {
   try {
     const pkg = JSON.parse(readFileSync(path.join(scenarioDir, "package.json"), "utf-8"));
     const deps = Object.keys(pkg.dependencies || {}).filter(
@@ -106,7 +106,8 @@ function getInstallCommand(scenarioDir: string, manifestLib?: string): string {
     );
     return deps.join(" ");
   } catch {
-    return manifestLib ?? "";
+    // non-npm projects (e.g. .NET) declare packages elsewhere (.csproj) and install via run_command
+    return "";
   }
 }
 
@@ -233,7 +234,7 @@ async function main() {
         framework: fw,
         lib: manifest.lib,
         lib_version: getLibVersion(scenarioDir, frameworkDir),
-        install: getInstallCommand(scenarioDir, manifest.lib),
+        install: getInstallCommand(scenarioDir),
         repo_path: `samples/${path.relative(SAMPLES, scenarioDir)}`,
         ...(runCommand ? { run_command: runCommand } : {}),
       };
