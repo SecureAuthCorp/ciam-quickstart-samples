@@ -1,0 +1,24 @@
+server:
+  port: 4260
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: classpath:dev-keystore.p12
+    key-store-password: changeit
+    key-alias: localhost
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          secureauth:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope: ${SCOPES}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          secureauth:
+            issuer-uri: ${ISSUER_URL}
+            user-name-attribute: sub

@@ -1,0 +1,23 @@
+server:
+  port: 0
+  ssl:
+    enabled: false
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          secureauth:
+            client-id: test-client
+            client-secret: test-secret
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          secureauth:
+            authorization-uri: https://idp.example/authorize
+            token-uri: https://idp.example/token
+            user-info-uri: https://idp.example/userinfo
+            user-name-attribute: sub
+            jwk-set-uri: https://idp.example/jwks
