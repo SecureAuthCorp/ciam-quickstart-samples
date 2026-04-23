@@ -73,3 +73,31 @@ csharp:
     placeholder: "{{POST_LOGOUT_URI}}"
   - pattern: 'RequireEnv("SCOPES")'
     placeholder: "{{SCOPES}}"
+
+java:
+  - pattern: '@Value("${ISSUER_URL}")'
+    placeholder: "{{ISSUER_URL}}"
+  - pattern: '@Value("${CLIENT_ID}")'
+    placeholder: "{{CLIENT_ID}}"
+  - pattern: '@Value("${CLIENT_SECRET}")'
+    placeholder: "{{CLIENT_SECRET}}"
+  - pattern: '@Value("${REDIRECT_URI}")'
+    placeholder: "{{REDIRECT_URI}}"
+  - pattern: '@Value("${POST_LOGOUT_URI}")'
+    placeholder: "{{POST_LOGOUT_URI}}"
+  - pattern: '@Value("${SCOPES}")'
+    placeholder: "{{SCOPES}}"
+
+yaml:
+  - pattern: "${ISSUER_URL}"
+    placeholder: "{{ISSUER_URL}}"
+  - pattern: "${CLIENT_ID}"
+    placeholder: "{{CLIENT_ID}}"
+  - pattern: "${CLIENT_SECRET}"
+    placeholder: "{{CLIENT_SECRET}}"
+  - pattern: "${REDIRECT_URI}"
+    placeholder: "{{REDIRECT_URI}}"
+  - pattern: "${POST_LOGOUT_URI}"
+    placeholder: "{{POST_LOGOUT_URI}}"
+  - pattern: "${SCOPES}"
+    placeholder: "{{SCOPES}}"
