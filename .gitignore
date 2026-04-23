@@ -56,3 +56,8 @@ docs/
 bin/
 obj/
 *.user
+
+# Java / Maven build artifacts
+target/
+*.iml
+.mvn/
