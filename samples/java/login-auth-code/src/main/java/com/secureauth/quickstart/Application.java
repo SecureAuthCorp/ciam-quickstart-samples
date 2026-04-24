@@ -110,5 +110,5 @@ public class Application {
                     .replace("'", "&#39;");
         }
     }
-    // @snippet:step4:end
 }
+// @snippet:step4:end

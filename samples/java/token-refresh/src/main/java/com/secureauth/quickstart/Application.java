@@ -75,6 +75,12 @@ public class Application {
             resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
             return resolver;
         }
+
+        private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {
+            OidcClientInitiatedLogoutSuccessHandler handler = new OidcClientInitiatedLogoutSuccessHandler(registrations);
+            handler.setPostLogoutRedirectUri("{baseUrl}/");
+            return handler;
+        }
         // @snippet:step3:end
 
         // @snippet:step4:start
@@ -102,14 +108,8 @@ public class Application {
             provider.setClockSkew(Duration.ofDays(36500));
             return provider;
         }
-        // @snippet:step4:end
-
-        private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {
-            OidcClientInitiatedLogoutSuccessHandler handler = new OidcClientInitiatedLogoutSuccessHandler(registrations);
-            handler.setPostLogoutRedirectUri("{baseUrl}/");
-            return handler;
-        }
     }
+    // @snippet:step4:end
 
     // @snippet:step5:start
     // @description Home renders the signed-in page, reading the access-token expiry from the stored OAuth2AuthorizedClient and surfacing a POST /refresh button.
@@ -254,5 +254,5 @@ public class Application {
             return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(body);
         }
     }
-    // @snippet:step6:end
 }
+// @snippet:step6:end

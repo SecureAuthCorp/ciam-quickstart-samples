@@ -17,8 +17,6 @@ spring:
           secureauth:
             client-id: ${CLIENT_ID}
             client-secret: ${CLIENT_SECRET}
-            # Match SecureAuth's default token_endpoint_auth_method. Spring Security's
-            # default is client_secret_basic (HTTP Basic); ACP expects client_secret_post.
             client-authentication-method: client_secret_post
             scope: ${SCOPES}
             authorization-grant-type: authorization_code
