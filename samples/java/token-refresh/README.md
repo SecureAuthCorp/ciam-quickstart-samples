@@ -26,6 +26,7 @@ A self-signed dev keystore is generated into `target/classes/dev-keystore.p12` o
 - Automatic background refresh managed by `OAuth2AuthorizedClientManager`
 - Manual `POST /refresh` that forces refresh + updates the stored client
 - Access-token expiry display reading from `OAuth2AuthorizedClient`
+- `.env` loading via `me.paulschwarz:spring-dotenv` so YAML `${CLIENT_ID}` etc. resolves from the `.env` file (see `.env.example` — `SCOPES` is comma-separated for Spring's binder)
 - RP-initiated logout
 
 ## Tests
