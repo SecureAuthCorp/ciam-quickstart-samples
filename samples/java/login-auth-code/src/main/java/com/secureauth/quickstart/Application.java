@@ -1,5 +1,7 @@
 package com.secureauth.quickstart;
 
+// @snippet:step2:start
+// @description Spring Boot entry point — auto-configures the OAuth2 client, web server, and security filter chain.
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +23,10 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
+    // @snippet:step2:end
 
+    // @snippet:step3:start
+    // @description SecurityFilterChain enables oauth2Login() for Authorization Code + PKCE and wires RP-initiated logout via OidcClientInitiatedLogoutSuccessHandler.
     @Configuration
     static class SecurityConfig {
 
@@ -41,7 +46,10 @@ public class Application {
             return handler;
         }
     }
+    // @snippet:step3:end
 
+    // @snippet:step4:start
+    // @description Home renders the signed-in page using claims from OidcUser. Spring Security already redirects unauthenticated requests to the authorization endpoint, so there's no signed-out branch here.
     @Controller
     static class HomeController {
 
@@ -75,4 +83,5 @@ public class Application {
                     .replace("'", "&#39;");
         }
     }
+    // @snippet:step4:end
 }

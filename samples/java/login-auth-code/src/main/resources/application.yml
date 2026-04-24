@@ -7,6 +7,8 @@ server:
     key-store-password: changeit
     key-alias: localhost
 
+# @snippet:step1:start
+# @description Declarative OIDC client registration. spring-dotenv resolves ${CLIENT_ID}, ${CLIENT_SECRET}, ${ISSUER_URL}, ${SCOPES} from the .env file at the sample root.
 spring:
   security:
     oauth2:
@@ -22,3 +24,4 @@ spring:
           secureauth:
             issuer-uri: ${ISSUER_URL}
             user-name-attribute: sub
+# @snippet:step1:end

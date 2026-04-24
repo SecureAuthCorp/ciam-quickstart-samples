@@ -274,6 +274,48 @@
       "repo_path": "samples/dotnet/login-auth-code",
       "run_command": "dotnet restore && dotnet run --project src"
     },
+    "java": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Declarative OIDC client registration. spring-dotenv resolves ${CLIENT_ID}, ${CLIENT_SECRET}, ${ISSUER_URL}, ${SCOPES} from the .env file at the sample root.",
+          "code": "spring:\n  security:\n    oauth2:\n      client:\n        registration:\n          secureauth:\n            client-id: \"{{CLIENT_ID}}\"\n            client-secret: \"{{CLIENT_SECRET}}\"\n            scope: \"{{SCOPES}}\"\n            authorization-grant-type: authorization_code\n            redirect-uri: \"{baseUrl}/login/oauth2/code/{registrationId}\"\n        provider:\n          secureauth:\n            issuer-uri: \"{{ISSUER_URL}}\"\n            user-name-attribute: sub",
+          "file": "src/main/resources/application.yml",
+          "lang": "yaml",
+          "lines": "10-26"
+        },
+        {
+          "step": 2,
+          "description": "Spring Boot entry point — auto-configures the OAuth2 client, web server, and security filter chain.",
+          "code": "import org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.security.config.Customizer;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\nimport org.springframework.security.core.annotation.AuthenticationPrincipal;\nimport org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;\nimport org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;\nimport org.springframework.security.oauth2.core.oidc.user.OidcUser;\nimport org.springframework.security.web.SecurityFilterChain;\nimport org.springframework.security.web.authentication.logout.LogoutSuccessHandler;\nimport org.springframework.stereotype.Controller;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.ResponseBody;\n\n@SpringBootApplication\npublic class Application {\n    public static void main(String[] args) {\n        SpringApplication.run(Application.class, args);\n    }",
+          "file": "src/main/java/com/secureauth/quickstart/Application.java",
+          "lang": "java",
+          "lines": "3-25"
+        },
+        {
+          "step": 3,
+          "description": "SecurityFilterChain enables oauth2Login() for Authorization Code + PKCE and wires RP-initiated logout via OidcClientInitiatedLogoutSuccessHandler.",
+          "code": "    @Configuration\n    static class SecurityConfig {\n\n        @Bean\n        SecurityFilterChain filterChain(HttpSecurity http, ClientRegistrationRepository registrations) throws Exception {\n            return http\n                    .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())\n                    .oauth2Login(Customizer.withDefaults())\n                    .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler(registrations)))\n                    .build();\n        }\n\n        private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {\n            OidcClientInitiatedLogoutSuccessHandler handler =\n                    new OidcClientInitiatedLogoutSuccessHandler(registrations);\n            handler.setPostLogoutRedirectUri(\"{baseUrl}/\");\n            return handler;\n        }\n    }",
+          "file": "src/main/java/com/secureauth/quickstart/Application.java",
+          "lang": "java",
+          "lines": "28-48"
+        },
+        {
+          "step": 4,
+          "description": "Home renders the signed-in page using claims from OidcUser. Spring Security already redirects unauthenticated requests to the authorization endpoint, so there's no signed-out branch here.",
+          "code": "    @Controller\n    static class HomeController {\n\n        @GetMapping(\"/\")\n        @ResponseBody\n        String home(@AuthenticationPrincipal OidcUser user) {\n            String given = esc(user.getGivenName());\n            String family = esc(user.getFamilyName());\n            String email = esc(user.getEmail());\n            String fullName = (given + \" \" + family).trim();\n            String name = fullName.isBlank() ? \"there\" : fullName;\n            String emailSuffix = email.isEmpty() ? \"\" : \" (\" + email + \")\";\n            return \"\"\"\n                <!doctype html>\n                <html><head><title>SecureAuth Java Auth Code Demo</title></head>\n                <body>\n                  <h1>SecureAuth Java Auth Code Demo</h1>\n                  <p>Welcome, %s%s</p>\n                  <p><a href=\"/logout\">Sign out</a></p>\n                </body></html>\n                \"\"\".formatted(name, emailSuffix);\n        }\n\n        private static String esc(String s) {\n            if (s == null) return \"\";\n            return s\n                    .replace(\"&\", \"&amp;\")\n                    .replace(\"<\", \"&lt;\")\n                    .replace(\">\", \"&gt;\")\n                    .replace(\"\\\"\", \"&quot;\")\n                    .replace(\"'\", \"&#39;\");\n        }\n    }",
+          "file": "src/main/java/com/secureauth/quickstart/Application.java",
+          "lang": "java",
+          "lines": "51-85"
+        }
+      ],
+      "framework": "java",
+      "lib": "spring-boot-starter-oauth2-client",
+      "lib_version": "3.4.1",
+      "install": "",
+      "repo_path": "samples/java/login-auth-code",
+      "run_command": "mvn spring-boot:run"
+    },
     "node": {
       "steps": [
         {
