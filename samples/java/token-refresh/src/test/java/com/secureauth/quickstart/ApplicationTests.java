@@ -37,10 +37,11 @@ class ApplicationTests {
     @MockitoBean OAuth2AuthorizedClientRepository authorizedClientRepository;
 
     @Test
-    void root_unauthenticated_redirects() throws Exception {
+    void root_unauthenticated_rendersSignInPage() throws Exception {
         mockMvc.perform(get("/"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/oauth2/authorization/secureauth"));
+                .andExpect(status().isOk())
+                .andExpect(content().string(Matchers.containsString("Sign in")))
+                .andExpect(content().string(Matchers.containsString("/oauth2/authorization/secureauth")));
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.secureauth.quickstart;
 
 // @snippet:step2:start
 // @description Spring Boot entry point — same shape as the login-auth-code sample; imports Spring Security's OAuth2 client + authorized-client APIs used below for refresh.
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -13,22 +14,26 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizationContext;
+import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.RefreshTokenOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,10 +54,23 @@ public class Application {
         @Bean
         SecurityFilterChain filterChain(HttpSecurity http, ClientRegistrationRepository registrations) throws Exception {
             return http
-                    .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                    .oauth2Login(Customizer.withDefaults())
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers("/").permitAll()
+                            .anyRequest().authenticated())
+                    .oauth2Login(login -> login
+                            .authorizationEndpoint(endpoint -> endpoint
+                                    .authorizationRequestResolver(pkceResolver(registrations)))
+                            .defaultSuccessUrl("/", true))
                     .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler(registrations)))
                     .build();
+        }
+
+        // Spring Security defaults to no PKCE for confidential clients; force it on.
+        private OAuth2AuthorizationRequestResolver pkceResolver(ClientRegistrationRepository registrations) {
+            DefaultOAuth2AuthorizationRequestResolver resolver =
+                    new DefaultOAuth2AuthorizationRequestResolver(registrations, "/oauth2/authorization");
+            resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+            return resolver;
         }
         // @snippet:step3:end
 
@@ -74,7 +92,12 @@ public class Application {
 
         @Bean
         RefreshTokenOAuth2AuthorizedClientProvider refreshTokenProvider() {
-            return new RefreshTokenOAuth2AuthorizedClientProvider();
+            RefreshTokenOAuth2AuthorizedClientProvider provider = new RefreshTokenOAuth2AuthorizedClientProvider();
+            // Default 60s clock skew skips refresh when the access token isn't near expiry.
+            // For the manual "Refresh now" button we want every click to hit the token endpoint,
+            // so force the provider to treat every token as expired.
+            provider.setClockSkew(Duration.ofDays(36500));
+            return provider;
         }
         // @snippet:step4:end
 
@@ -93,15 +116,29 @@ public class Application {
         private static final DateTimeFormatter TIME_FMT =
                 DateTimeFormatter.ofPattern("h:mm:ss a").withZone(ZoneId.systemDefault());
 
-        private final OAuth2AuthorizedClientRepository authorizedClientRepo;
+        private final OAuth2AuthorizedClientManager authorizedClientManager;
 
-        HomeController(OAuth2AuthorizedClientRepository authorizedClientRepo) {
-            this.authorizedClientRepo = authorizedClientRepo;
+        HomeController(OAuth2AuthorizedClientManager authorizedClientManager) {
+            this.authorizedClientManager = authorizedClientManager;
         }
 
         @GetMapping("/")
         @ResponseBody
-        String home(@AuthenticationPrincipal OidcUser user, Authentication auth, HttpServletRequest req) {
+        String home(
+                @AuthenticationPrincipal OidcUser user,
+                Authentication auth,
+                HttpServletRequest req,
+                HttpServletResponse res) {
+            if (user == null) {
+                return """
+                    <!doctype html>
+                    <html><head><title>SecureAuth Java Token Refresh Demo</title></head>
+                    <body>
+                      <h1>SecureAuth Java Token Refresh Demo</h1>
+                      <p><a href="/oauth2/authorization/secureauth">Sign in</a></p>
+                    </body></html>
+                    """;
+            }
             String given = esc(user.getGivenName());
             String family = esc(user.getFamilyName());
             String email = esc(user.getEmail());
@@ -109,12 +146,25 @@ public class Application {
             String name = fullName.isBlank() ? "there" : fullName;
             String emailSuffix = email.isEmpty() ? "" : " (" + email + ")";
 
-            OAuth2AuthorizedClient client = authorizedClientRepo.loadAuthorizedClient("secureauth", auth, req);
+            // Route through the OAuth2AuthorizedClientManager so Spring's refresh-token provider
+            // auto-refreshes once the access token is within clock-skew of expiry.
+            OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest
+                    .withClientRegistrationId("secureauth")
+                    .principal(auth)
+                    .attributes(attrs -> {
+                        attrs.put(HttpServletRequest.class.getName(), req);
+                        attrs.put(HttpServletResponse.class.getName(), res);
+                    })
+                    .build();
+            OAuth2AuthorizedClient client = authorizedClientManager.authorize(authorizeRequest);
             String expiresAtDisplay = "unknown";
             if (client != null && client.getAccessToken().getExpiresAt() != null) {
                 Instant expires = client.getAccessToken().getExpiresAt();
                 expiresAtDisplay = TIME_FMT.format(expires);
             }
+
+            // POST /refresh needs Spring Security's CSRF token; render it as a hidden field.
+            CsrfToken csrf = (CsrfToken) req.getAttribute(CsrfToken.class.getName());
 
             return """
                 <!doctype html>
@@ -124,11 +174,13 @@ public class Application {
                   <p>Welcome, %s%s</p>
                   <p>Access token expires at: %s</p>
                   <form method="POST" action="/refresh">
+                    <input type="hidden" name="%s" value="%s"/>
                     <button type="submit">Refresh token now</button>
                   </form>
                   <p><a href="/logout">Sign out</a></p>
                 </body></html>
-                """.formatted(name, emailSuffix, esc(expiresAtDisplay));
+                """.formatted(name, emailSuffix, esc(expiresAtDisplay),
+                              esc(csrf.getParameterName()), esc(csrf.getToken()));
         }
 
         private static String esc(String s) {

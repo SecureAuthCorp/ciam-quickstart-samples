@@ -26,6 +26,7 @@ A self-signed dev keystore is generated into `target/classes/dev-keystore.p12` o
 - Automatic background refresh managed by `OAuth2AuthorizedClientManager`
 - Manual `POST /refresh` that forces refresh + updates the stored client
 - Access-token expiry display reading from `OAuth2AuthorizedClient`
+- A small `ScopesEnvironmentPostProcessor` normalizes `SCOPES` to comma-separated before property binding, so a `.env` shared with the Node/.NET/React/Vue/Angular samples (space-separated) works here too
 - RP-initiated logout
 
 ## Tests

@@ -2,7 +2,6 @@ package com.secureauth.quickstart;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -26,10 +25,11 @@ class ApplicationTests {
     ClientRegistrationRepository clientRegistrationRepository;
 
     @Test
-    void root_unauthenticated_redirectsToAuthorizationEndpoint() throws Exception {
+    void root_unauthenticated_rendersSignInPage() throws Exception {
         mockMvc.perform(get("/"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/oauth2/authorization/secureauth"));
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Sign in")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/oauth2/authorization/secureauth")));
     }
 
     @Test

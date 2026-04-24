@@ -6,11 +6,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -33,10 +35,25 @@ public class Application {
         @Bean
         SecurityFilterChain filterChain(HttpSecurity http, ClientRegistrationRepository registrations) throws Exception {
             return http
-                    .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                    .oauth2Login(Customizer.withDefaults())
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers("/").permitAll()
+                            .anyRequest().authenticated())
+                    .oauth2Login(login -> login
+                            .authorizationEndpoint(endpoint -> endpoint
+                                    .authorizationRequestResolver(pkceResolver(registrations)))
+                            .defaultSuccessUrl("/", true))
                     .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler(registrations)))
                     .build();
+        }
+
+        // Spring Security defaults to no PKCE for confidential clients (ones with a client-secret).
+        // SecureAuth requires PKCE even for confidential clients, matching defense-in-depth use cases
+        // — so force code_challenge/S256 on every authorization request.
+        private OAuth2AuthorizationRequestResolver pkceResolver(ClientRegistrationRepository registrations) {
+            DefaultOAuth2AuthorizationRequestResolver resolver =
+                    new DefaultOAuth2AuthorizationRequestResolver(registrations, "/oauth2/authorization");
+            resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+            return resolver;
         }
 
         private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {
@@ -56,6 +73,16 @@ public class Application {
         @GetMapping("/")
         @ResponseBody
         String home(@AuthenticationPrincipal OidcUser user) {
+            if (user == null) {
+                return """
+                    <!doctype html>
+                    <html><head><title>SecureAuth Java Auth Code Demo</title></head>
+                    <body>
+                      <h1>SecureAuth Java Auth Code Demo</h1>
+                      <p><a href="/oauth2/authorization/secureauth">Sign in</a></p>
+                    </body></html>
+                    """;
+            }
             String given = esc(user.getGivenName());
             String family = esc(user.getFamilyName());
             String email = esc(user.getEmail());
