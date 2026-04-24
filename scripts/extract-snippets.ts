@@ -48,9 +48,9 @@ interface FrameworkManifest {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SAMPLES = path.join(ROOT, "samples");
-const TAG_START = /\/\/\s*@snippet:step(\d+):start/;
-const TAG_END = /\/\/\s*@snippet:step(\d+):end/;
-const DESCRIPTION = /\/\/\s*@description\s+(.+)/;
+const TAG_START = /(?:\/\/|#)\s*@snippet:step(\d+):start/;
+const TAG_END = /(?:\/\/|#)\s*@snippet:step(\d+):end/;
+const DESCRIPTION = /(?:\/\/|#)\s*@description\s+(.+)/;
 
 function getPlaceholderMap(): PlaceholderMap {
   const content = readFileSync(path.join(ROOT, "placeholder-map.yaml"), "utf-8");
@@ -93,6 +93,17 @@ function getLibVersion(scenarioDir: string, manifestDir: string): string {
     }
   } catch {
     // no src/ dir or no .csproj — fall through
+  }
+
+  try {
+    const pomContent = readFileSync(path.join(scenarioDir, "pom.xml"), "utf-8");
+    // Spring Boot starters inherit their version from the parent POM.
+    const parentMatch = pomContent.match(
+      /<parent>[\s\S]*?<artifactId>spring-boot-starter-parent<\/artifactId>[\s\S]*?<version>([^<]+)<\/version>[\s\S]*?<\/parent>/
+    );
+    if (parentMatch) return parentMatch[1];
+  } catch {
+    // no pom.xml — fall through
   }
 
   return "unknown";
@@ -172,6 +183,17 @@ function extractStepsFromFile(
   return steps;
 }
 
+const EXT_LANG_OVERRIDES: Record<string, string> = {
+  ".java": "java",
+  ".yml": "yaml",
+  ".yaml": "yaml",
+};
+
+function langFor(file: string, manifestLang: string): string {
+  const ext = path.extname(file).toLowerCase();
+  return EXT_LANG_OVERRIDES[ext] ?? manifestLang;
+}
+
 async function main() {
   const placeholderMap = getPlaceholderMap();
   const manifestFiles = await glob("*/manifest.yaml", { cwd: SAMPLES });
@@ -206,14 +228,15 @@ async function main() {
         continue;
       }
 
-      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue,cs}", {
+      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue,cs,java,yml,yaml}", {
         cwd: scenarioDir,
       });
       const allSteps: Step[] = [];
 
       for (const sourceFile of sourceFiles.sort()) {
         const fullPath = path.join(scenarioDir, sourceFile);
-        const steps = extractStepsFromFile(fullPath, lang, scenarioDir, placeholderMap);
+        const fileLang = langFor(sourceFile, lang);
+        const steps = extractStepsFromFile(fullPath, fileLang, scenarioDir, placeholderMap);
         allSteps.push(...steps);
       }
 

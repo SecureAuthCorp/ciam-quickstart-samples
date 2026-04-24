@@ -73,3 +73,17 @@ csharp:
     placeholder: "{{POST_LOGOUT_URI}}"
   - pattern: 'RequireEnv("SCOPES")'
     placeholder: "{{SCOPES}}"
+
+yaml:
+  - pattern: "${ISSUER_URL}"
+    placeholder: "{{ISSUER_URL}}"
+  - pattern: "${CLIENT_ID}"
+    placeholder: "{{CLIENT_ID}}"
+  - pattern: "${CLIENT_SECRET}"
+    placeholder: "{{CLIENT_SECRET}}"
+  - pattern: "${REDIRECT_URI}"
+    placeholder: "{{REDIRECT_URI}}"
+  - pattern: "${POST_LOGOUT_URI}"
+    placeholder: "{{POST_LOGOUT_URI}}"
+  - pattern: "${SCOPES}"
+    placeholder: "{{SCOPES}}"

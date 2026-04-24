@@ -56,3 +56,14 @@ docs/
 bin/
 obj/
 *.user
+
+# Java / Maven build artifacts
+target/
+*.iml
+.mvn/
+
+# Local TLS artifacts (e.g. cert extracted for trusting a local IdP)
+*.crt
+*.p12
+*.pem
+*.jks

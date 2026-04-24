@@ -18,6 +18,12 @@ frameworks:
     lib: Microsoft.AspNetCore.Authentication.OpenIdConnect
     docs_url: https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication
     env_file: .env
+  java:
+    label: Java
+    lang: java
+    lib: spring-boot-starter-oauth2-client
+    docs_url: https://docs.spring.io/spring-security/reference/servlet/oauth2/login/index.html
+    env_file: .env
   node:
     label: Node.js
     lang: ts
@@ -106,6 +112,7 @@ scenarios:
         value: Authorization Code + PKCE
     frameworks:
       - dotnet
+      - java
       - node
   server_token_refresh:
     app_type: server_web
@@ -136,4 +143,5 @@ scenarios:
         value: Authorization Code + PKCE (+ Refresh Token)
     frameworks:
       - dotnet
+      - java
       - node
