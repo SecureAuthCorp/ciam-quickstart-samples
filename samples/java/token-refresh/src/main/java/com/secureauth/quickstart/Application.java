@@ -68,7 +68,9 @@ public class Application {
                     .build();
         }
 
-        // Spring Security defaults to no PKCE for confidential clients; force it on.
+        // Spring Security defaults to no PKCE for confidential clients (ones with a client-secret).
+        // SecureAuth requires PKCE even for confidential clients, matching defense-in-depth use cases
+        // — so force code_challenge/S256 on every authorization request.
         private OAuth2AuthorizationRequestResolver pkceResolver(ClientRegistrationRepository registrations) {
             DefaultOAuth2AuthorizationRequestResolver resolver =
                     new DefaultOAuth2AuthorizationRequestResolver(registrations, "/oauth2/authorization");
