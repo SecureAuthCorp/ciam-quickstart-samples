@@ -1,5 +1,7 @@
 package com.secureauth.quickstart;
 
+// @snippet:step2:start
+// @description Spring Boot entry point — same shape as the login-auth-code sample; imports Spring Security's OAuth2 client + authorized-client APIs used below for refresh.
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -37,7 +39,10 @@ import org.springframework.web.servlet.view.RedirectView;
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) { SpringApplication.run(Application.class, args); }
+    // @snippet:step2:end
 
+    // @snippet:step3:start
+    // @description SecurityFilterChain enables oauth2Login() for Authorization Code + PKCE and wires RP-initiated logout via OidcClientInitiatedLogoutSuccessHandler.
     @Configuration
     static class SecurityConfig {
 
@@ -49,7 +54,10 @@ public class Application {
                     .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler(registrations)))
                     .build();
         }
+        // @snippet:step3:end
 
+        // @snippet:step4:start
+        // @description OAuth2AuthorizedClientManager enables Spring's background auto-refresh on any authorized-client use. A separate RefreshTokenOAuth2AuthorizedClientProvider bean is injected into RefreshController for on-demand refresh from POST /refresh.
         @Bean
         OAuth2AuthorizedClientManager authorizedClientManager(
                 ClientRegistrationRepository registrations,
@@ -68,6 +76,7 @@ public class Application {
         RefreshTokenOAuth2AuthorizedClientProvider refreshTokenProvider() {
             return new RefreshTokenOAuth2AuthorizedClientProvider();
         }
+        // @snippet:step4:end
 
         private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {
             OidcClientInitiatedLogoutSuccessHandler handler = new OidcClientInitiatedLogoutSuccessHandler(registrations);
@@ -76,6 +85,8 @@ public class Application {
         }
     }
 
+    // @snippet:step5:start
+    // @description Home renders the signed-in page, reading the access-token expiry from the stored OAuth2AuthorizedClient and surfacing a POST /refresh button.
     @Controller
     static class HomeController {
 
@@ -126,7 +137,10 @@ public class Application {
                     .replace("\"", "&quot;").replace("'", "&#39;");
         }
     }
+    // @snippet:step5:end
 
+    // @snippet:step6:start
+    // @description POST /refresh loads the current OAuth2AuthorizedClient, builds an OAuth2AuthorizationContext, and invokes RefreshTokenOAuth2AuthorizedClientProvider.authorize(...) directly — forcing the refresh grant regardless of token expiry. On failure, renders an inline error page with the IdP's error code.
     @Controller
     static class RefreshController {
 
@@ -181,4 +195,5 @@ public class Application {
                 """.formatted(esc);
         }
     }
+    // @snippet:step6:end
 }

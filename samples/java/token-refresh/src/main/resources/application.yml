@@ -8,7 +8,7 @@ server:
     key-alias: localhost
 
 # @snippet:step1:start
-# @description Declarative OIDC client registration. spring-dotenv resolves ${CLIENT_ID}, ${CLIENT_SECRET}, ${ISSUER_URL}, ${SCOPES} from the .env file at the sample root.
+# @description Declarative OIDC client registration with offline_access scope so SecureAuth issues refresh tokens. spring-dotenv resolves ${CLIENT_ID}, ${CLIENT_SECRET}, ${ISSUER_URL}, ${SCOPES} from the .env file at the sample root.
 spring:
   security:
     oauth2:
