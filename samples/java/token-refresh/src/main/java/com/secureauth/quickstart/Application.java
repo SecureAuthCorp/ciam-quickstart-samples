@@ -36,10 +36,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.view.RedirectView;
 
 @SpringBootApplication
 public class Application {
@@ -207,11 +210,10 @@ public class Application {
         }
 
         @PostMapping("/refresh")
-        @ResponseBody
-        Object refresh(Authentication auth, HttpServletRequest req, HttpServletResponse res) {
+        ResponseEntity<String> refresh(Authentication auth, HttpServletRequest req, HttpServletResponse res) {
             OAuth2AuthorizedClient current = authorizedClientRepo.loadAuthorizedClient("secureauth", auth, req);
             if (current == null) {
-                return new RedirectView("/");
+                return redirectToHome();
             }
             try {
                 OAuth2AuthorizationContext ctx = OAuth2AuthorizationContext
@@ -222,7 +224,7 @@ public class Application {
                 if (refreshed != null) {
                     authorizedClientRepo.saveAuthorizedClient(refreshed, auth, req, res);
                 }
-                return new RedirectView("/");
+                return redirectToHome();
             } catch (OAuth2AuthenticationException e) {
                 String errorCode = e.getError() != null ? e.getError().getErrorCode() : null;
                 return renderError(errorCode != null ? errorCode : (e.getMessage() != null ? e.getMessage() : "refresh failed"));
@@ -231,10 +233,14 @@ public class Application {
             }
         }
 
-        private static String renderError(String message) {
+        private static ResponseEntity<String> redirectToHome() {
+            return ResponseEntity.status(HttpStatus.FOUND).header(HttpHeaders.LOCATION, "/").build();
+        }
+
+        private static ResponseEntity<String> renderError(String message) {
             String esc = message == null ? "" : message.replace("&", "&amp;").replace("<", "&lt;")
                     .replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
-            return """
+            String body = """
                 <!doctype html>
                 <html><head><title>SecureAuth Java Token Refresh Demo</title></head>
                 <body>
@@ -245,6 +251,7 @@ public class Application {
                   </div>
                 </body></html>
                 """.formatted(esc);
+            return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(body);
         }
     }
     // @snippet:step6:end
