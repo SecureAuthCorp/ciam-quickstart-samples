@@ -72,6 +72,22 @@ class ApplicationTests {
     }
 
     @Test
+    void logout_redirectsToEndSession() throws Exception {
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/logout")
+                        .with(SecurityMockMvcRequestPostProcessors.oidcLogin()
+                                .clientRegistration(clientRegistrationRepository.findByRegistrationId("secureauth"))
+                                .idToken(b -> b.subject("user-1")))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(result ->
+                        org.junit.jupiter.api.Assertions.assertTrue(
+                                result.getResponse().getRedirectedUrl()
+                                        .startsWith("https://idp.example/end_session"),
+                                "expected end_session endpoint, got " + result.getResponse().getRedirectedUrl()));
+    }
+
+    @Test
     void refresh_rendersErrorWhenProviderThrows() throws Exception {
         ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("secureauth");
         OAuth2AccessToken accessToken = new OAuth2AccessToken(
