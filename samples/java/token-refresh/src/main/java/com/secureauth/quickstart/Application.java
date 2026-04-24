@@ -24,6 +24,7 @@ import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInit
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -61,6 +62,11 @@ public class Application {
                             .refreshToken()
                             .build());
             return manager;
+        }
+
+        @Bean
+        RefreshTokenOAuth2AuthorizedClientProvider refreshTokenProvider() {
+            return new RefreshTokenOAuth2AuthorizedClientProvider();
         }
 
         private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {
@@ -125,11 +131,13 @@ public class Application {
     static class RefreshController {
 
         private final OAuth2AuthorizedClientRepository authorizedClientRepo;
-        private final RefreshTokenOAuth2AuthorizedClientProvider refreshProvider =
-                new RefreshTokenOAuth2AuthorizedClientProvider();
+        private final RefreshTokenOAuth2AuthorizedClientProvider refreshProvider;
 
-        RefreshController(OAuth2AuthorizedClientRepository authorizedClientRepo) {
+        RefreshController(
+                OAuth2AuthorizedClientRepository authorizedClientRepo,
+                RefreshTokenOAuth2AuthorizedClientProvider refreshProvider) {
             this.authorizedClientRepo = authorizedClientRepo;
+            this.refreshProvider = refreshProvider;
         }
 
         @PostMapping("/refresh")
@@ -149,6 +157,9 @@ public class Application {
                     authorizedClientRepo.saveAuthorizedClient(refreshed, auth, req, res);
                 }
                 return new RedirectView("/");
+            } catch (OAuth2AuthenticationException e) {
+                String errorCode = e.getError() != null ? e.getError().getErrorCode() : null;
+                return renderError(errorCode != null ? errorCode : (e.getMessage() != null ? e.getMessage() : "refresh failed"));
             } catch (Exception e) {
                 return renderError(e.getMessage() == null ? "refresh failed" : e.getMessage());
             }
