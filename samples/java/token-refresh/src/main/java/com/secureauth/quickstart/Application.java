@@ -68,12 +68,20 @@ public class Application {
                     .build();
         }
 
-        // Spring Security defaults to no PKCE for confidential clients; force it on.
+        // Spring Security defaults to no PKCE for confidential clients (ones with a client-secret).
+        // SecureAuth requires PKCE even for confidential clients, matching defense-in-depth use cases
+        // — so force code_challenge/S256 on every authorization request.
         private OAuth2AuthorizationRequestResolver pkceResolver(ClientRegistrationRepository registrations) {
             DefaultOAuth2AuthorizationRequestResolver resolver =
                     new DefaultOAuth2AuthorizationRequestResolver(registrations, "/oauth2/authorization");
             resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
             return resolver;
+        }
+
+        private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {
+            OidcClientInitiatedLogoutSuccessHandler handler = new OidcClientInitiatedLogoutSuccessHandler(registrations);
+            handler.setPostLogoutRedirectUri("{baseUrl}/");
+            return handler;
         }
         // @snippet:step3:end
 
@@ -102,14 +110,8 @@ public class Application {
             provider.setClockSkew(Duration.ofDays(36500));
             return provider;
         }
-        // @snippet:step4:end
-
-        private LogoutSuccessHandler logoutSuccessHandler(ClientRegistrationRepository registrations) {
-            OidcClientInitiatedLogoutSuccessHandler handler = new OidcClientInitiatedLogoutSuccessHandler(registrations);
-            handler.setPostLogoutRedirectUri("{baseUrl}/");
-            return handler;
-        }
     }
+    // @snippet:step4:end
 
     // @snippet:step5:start
     // @description Home renders the signed-in page, reading the access-token expiry from the stored OAuth2AuthorizedClient and surfacing a POST /refresh button.
@@ -254,5 +256,5 @@ public class Application {
             return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(body);
         }
     }
-    // @snippet:step6:end
 }
+// @snippet:step6:end

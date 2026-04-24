@@ -66,7 +66,7 @@ public class Application {
     // @snippet:step3:end
 
     // @snippet:step4:start
-    // @description Home renders the signed-in page using claims from OidcUser. Spring Security already redirects unauthenticated requests to the authorization endpoint, so there's no signed-out branch here.
+    // @description Home renders a signed-out page with a Sign in link when no OidcUser is present, and renders the signed-in page using claims from OidcUser otherwise.
     @Controller
     static class HomeController {
 
@@ -110,5 +110,5 @@ public class Application {
                     .replace("'", "&#39;");
         }
     }
-    // @snippet:step4:end
 }
+// @snippet:step4:end

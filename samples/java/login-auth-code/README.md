@@ -22,8 +22,7 @@ A self-signed dev keystore is generated into `target/classes/dev-keystore.p12` o
 
 - OIDC Authorization Code + PKCE via Spring Security OAuth2 Client
 - Declarative client registration in `application.yml` (`spring.security.oauth2.client.*`)
-- `.env` loading via `me.paulschwarz:spring-dotenv` so YAML `${CLIENT_ID}` etc. resolves from the `.env` file
-- A small `ScopesEnvironmentPostProcessor` normalizes `SCOPES` to comma-separated before property binding, so a `.env` shared with the Node/.NET/React/Vue/Angular samples (space-separated) works here too
+- `.env` loading via `me.paulschwarz:spring-dotenv` so YAML `${CLIENT_ID}` etc. resolves from the `.env` file (see `.env.example` — `SCOPES` is comma-separated for Spring's binder)
 - RP-initiated logout via `OidcClientInitiatedLogoutSuccessHandler`
 
 ## Tests
