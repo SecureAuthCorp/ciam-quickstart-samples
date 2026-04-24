@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,9 +15,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.OAuth2AuthorizationContext;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.RefreshTokenOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
@@ -26,7 +29,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.view.RedirectView;
 
 @SpringBootApplication
 public class Application {
@@ -113,6 +118,56 @@ public class Application {
             if (s == null) return "";
             return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                     .replace("\"", "&quot;").replace("'", "&#39;");
+        }
+    }
+
+    @Controller
+    static class RefreshController {
+
+        private final OAuth2AuthorizedClientRepository authorizedClientRepo;
+        private final RefreshTokenOAuth2AuthorizedClientProvider refreshProvider =
+                new RefreshTokenOAuth2AuthorizedClientProvider();
+
+        RefreshController(OAuth2AuthorizedClientRepository authorizedClientRepo) {
+            this.authorizedClientRepo = authorizedClientRepo;
+        }
+
+        @PostMapping("/refresh")
+        @ResponseBody
+        Object refresh(Authentication auth, HttpServletRequest req, HttpServletResponse res) {
+            OAuth2AuthorizedClient current = authorizedClientRepo.loadAuthorizedClient("secureauth", auth, req);
+            if (current == null) {
+                return new RedirectView("/");
+            }
+            try {
+                OAuth2AuthorizationContext ctx = OAuth2AuthorizationContext
+                        .withAuthorizedClient(current)
+                        .principal(auth)
+                        .build();
+                OAuth2AuthorizedClient refreshed = refreshProvider.authorize(ctx);
+                if (refreshed != null) {
+                    authorizedClientRepo.saveAuthorizedClient(refreshed, auth, req, res);
+                }
+                return new RedirectView("/");
+            } catch (Exception e) {
+                return renderError(e.getMessage() == null ? "refresh failed" : e.getMessage());
+            }
+        }
+
+        private static String renderError(String message) {
+            String esc = message == null ? "" : message.replace("&", "&amp;").replace("<", "&lt;")
+                    .replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
+            return """
+                <!doctype html>
+                <html><head><title>SecureAuth Java Token Refresh Demo</title></head>
+                <body>
+                  <h1>SecureAuth Java Token Refresh Demo</h1>
+                  <div style="color: red">
+                    <p>Error: %s</p>
+                    <p><a href="/">Back</a></p>
+                  </div>
+                </body></html>
+                """.formatted(esc);
         }
     }
 }

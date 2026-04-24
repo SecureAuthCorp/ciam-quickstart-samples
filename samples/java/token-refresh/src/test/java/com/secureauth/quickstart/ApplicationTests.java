@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -44,5 +45,17 @@ class ApplicationTests {
                 .andExpect(content().string(Matchers.containsString("Welcome, Test User")))
                 .andExpect(content().string(Matchers.containsString("Access token expires at:")))
                 .andExpect(content().string(Matchers.containsString("Refresh token now")));
+    }
+
+    @Test
+    void refresh_redirectsToRoot() throws Exception {
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/refresh")
+                        .with(SecurityMockMvcRequestPostProcessors.oidcLogin()
+                                .clientRegistration(clientRegistrationRepository.findByRegistrationId("secureauth"))
+                                .idToken(b -> b.subject("user-1")))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
     }
 }
