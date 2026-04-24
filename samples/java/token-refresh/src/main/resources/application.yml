@@ -1,0 +1,27 @@
+server:
+  port: 4260
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: classpath:dev-keystore.p12
+    key-store-password: changeit
+    key-alias: localhost
+
+# @snippet:step1:start
+# @description Declarative OIDC client registration. spring-dotenv resolves ${CLIENT_ID}, ${CLIENT_SECRET}, ${ISSUER_URL}, ${SCOPES} from the .env file at the sample root.
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          secureauth:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope: ${SCOPES}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          secureauth:
+            issuer-uri: ${ISSUER_URL}
+            user-name-attribute: sub
+# @snippet:step1:end
