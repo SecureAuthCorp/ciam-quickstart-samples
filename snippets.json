@@ -518,5 +518,41 @@
       "repo_path": "samples/node/token-refresh",
       "run_command": "yarn install && yarn start"
     }
+  },
+  "server_saml_sp_login": {
+    "node": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Configure passport-saml with SecureAuth as the SAML IdP",
+          "code": "import fs from \"node:fs\";\nimport path from \"node:path\";\nimport { ValidateInResponseTo } from \"@node-saml/node-saml\";\nimport type { Profile } from \"@node-saml/node-saml\";\nimport { Strategy as SamlStrategy } from \"@node-saml/passport-saml\";\nimport type { VerifiedCallback } from \"@node-saml/passport-saml\";\nimport { requireEnv } from \"./env.js\";\n\nexport type SamlUser = {\n  nameID: string;\n  nameIDFormat?: string;\n  attributes: Record<string, unknown>;\n};\n\nfunction readIdpCert(): string {\n  const certPath = requireEnv(\"SAML_IDP_SIGNING_CERT_PATH\");\n  const resolved = path.isAbsolute(certPath)\n    ? certPath\n    : path.resolve(process.cwd(), certPath);\n  if (!fs.existsSync(resolved)) {\n    throw new Error(\n      `IdP signing cert not found at ${resolved}. Download it from the SecureAuth admin UI (SAML IdP → General → Download certificate) and save it at ${certPath}.`,\n    );\n  }\n  return fs.readFileSync(resolved, \"utf-8\");\n}\n\nexport const samlStrategy = new SamlStrategy(\n  {\n    issuer: requireEnv(\"SAML_SP_ENTITY_ID\"),\n    callbackUrl: requireEnv(\"SAML_SP_ACS_URL\"),\n    entryPoint: requireEnv(\"SAML_IDP_SSO_URL\"),\n    idpIssuer: requireEnv(\"SAML_IDP_ENTITY_ID\"),\n    idpCert: readIdpCert(),\n    // Allow both SP-initiated (with InResponseTo) and IdP-initiated (without).\n    validateInResponseTo: ValidateInResponseTo.ifPresent,\n    wantAssertionsSigned: true,\n    signatureAlgorithm: \"sha256\",\n    digestAlgorithm: \"sha256\",\n    // SAML AuthnRequests are unsigned; CIAM accepts unsigned requests by default.\n  },\n  (profile: Profile | null, done: VerifiedCallback) => {\n    if (!profile) {\n      return done(new Error(\"SAML profile missing\"));\n    }\n    const user: SamlUser = {\n      nameID: profile.nameID,\n      nameIDFormat: profile.nameIDFormat,\n      attributes: (profile.attributes as Record<string, unknown>) ?? {},\n    };\n    done(null, user);\n  },\n  (_profile: Profile | null, done: VerifiedCallback) => {\n    // Logout SAML — not implemented; CIAM does not support SLO. Local logout\n    // is handled in app.ts by destroying the session. This callback exists\n    // because passport-saml's Strategy constructor requires it.\n    done(null);\n  },\n);",
+          "file": "src/saml.ts",
+          "lang": "ts",
+          "lines": "1-61"
+        },
+        {
+          "step": 2,
+          "description": "Initiate SP-initiated SSO — redirect the user to SecureAuth's SAML SSO endpoint",
+          "code": "  app.get(\n    \"/login\",\n    passport.authenticate(\"saml\", {\n      failureRedirect: \"/\",\n      failureFlash: false,\n    }),\n  );",
+          "file": "src/app.ts",
+          "lang": "ts",
+          "lines": "65-73"
+        },
+        {
+          "step": 3,
+          "description": "Validate the SAML response at the ACS endpoint and establish the session — the same handler accepts both SP-initiated and IdP-initiated responses (validateInResponseTo: \"ifPresent\")",
+          "code": "  app.post(\"/saml/acs\", (req, res, next) => {\n    passport.authenticate(\n      \"saml\",\n      (\n        err: Error | null,\n        user: SamlUser | false,\n        info: { message?: string } | string | undefined,\n      ) => {\n        if (err) {\n          return res.send(renderErrorPage(err.message));\n        }\n        if (!user) {\n          const message =\n            typeof info === \"string\"\n              ? info\n              : (info?.message ?? \"SAML authentication failed\");\n          return res.send(renderErrorPage(message));\n        }\n        req.logIn(user, (loginErr) => {\n          if (loginErr) return next(loginErr);\n          res.redirect(\"/\");\n        });\n      },\n    )(req, res, next);\n  });",
+          "file": "src/app.ts",
+          "lang": "ts",
+          "lines": "76-102"
+        }
+      ],
+      "framework": "node",
+      "lib": "@node-saml/passport-saml",
+      "lib_version": "5.1.0",
+      "install": "@node-saml/passport-saml passport",
+      "repo_path": "samples/node/saml-sp-login",
+      "run_command": "yarn install && yarn start"
+    }
   }
 }

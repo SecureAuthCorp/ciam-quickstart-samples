@@ -53,3 +53,26 @@ scenarios:
         value: "{{SCOPES}}"
       - label: "Grant"
         value: "Authorization Code + PKCE (+ Refresh Token)"
+
+  server_saml_sp_login:
+    app_type: saml
+    display_name: "SAML Login"
+    grant: "SAML 2.0"
+    description: "SAML SSO with SecureAuth as the IdP. The same ACS endpoint accepts SP-initiated and IdP-initiated responses."
+    callout: "AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure SP request signing per your library's docs."
+    run_command: "yarn install && yarn start"
+    lib: "@node-saml/passport-saml"
+    config_rows:
+      - label: "SP Entity ID"
+        value: "{{SAML_SP_ENTITY_ID}}"
+      - label: "SP ACS URL"
+        value: "{{SAML_SP_ACS_URL}}"
+      - label: "SAML IdP Entity ID"
+        value: "{{SAML_IDP_ENTITY_ID}}"
+      - label: "SAML IdP Single Sign-On URL"
+        value: "{{SAML_IDP_SSO_URL}}"
+      - label: "SAML IdP Signing Certificate"
+        value: "Download from admin UI → save as ./saml-certificate.pem"
+      - label: "IdP-Initiated SSO URL"
+        value: "{{SAML_IDP_INITIATED_SSO_URL}}"
+        display_only: true
