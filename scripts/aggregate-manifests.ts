@@ -83,6 +83,7 @@ async function main() {
           run_command: _rc,
           lib: _lib,
           docs_url: _docs,
+          callout: _callout,
           ...scenarioForAllFrameworks
         } = scenario;
         scenarios[scenarioId] = {

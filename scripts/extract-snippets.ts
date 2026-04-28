@@ -31,12 +31,14 @@ interface FrameworkSnippet {
   install: string;
   repo_path: string;
   run_command?: string;
+  callout?: string;
 }
 
 interface ScenarioMeta {
   run_command?: string;
   lib?: string;
   docs_url?: string;
+  callout?: string;
   [key: string]: unknown;
 }
 
@@ -315,6 +317,7 @@ async function main() {
       const scenarioLib = manifest.scenarios[scenarioId]?.lib ?? manifest.lib;
       const scenarioDocsUrl =
         manifest.scenarios[scenarioId]?.docs_url ?? manifest.docs_url;
+      const scenarioCallout = manifest.scenarios[scenarioId]?.callout;
       snippets[scenarioId][fw] = {
         steps: allSteps,
         framework: fw,
@@ -324,6 +327,7 @@ async function main() {
         install: getInstallCommand(scenarioDir),
         repo_path: `samples/${path.relative(SAMPLES, scenarioDir)}`,
         ...(runCommand ? { run_command: runCommand } : {}),
+        ...(scenarioCallout ? { callout: scenarioCallout } : {}),
       };
     }
   }

@@ -9,9 +9,19 @@ using Xunit;
 
 namespace SamlSpLogin.Tests;
 
-public class AuthIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthIntegrationTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
+    private static readonly string[] ManagedEnvVars =
+    {
+        "SAML_SP_ENTITY_ID",
+        "SAML_IDP_ENTITY_ID",
+        "SAML_IDP_SSO_URL",
+        "SAML_IDP_SIGNING_CERT_PATH",
+    };
+
     private readonly WebApplicationFactory<Program> _factory;
+    private readonly string _certPath;
+    private readonly Dictionary<string, string?> _previousEnv;
 
     public AuthIntegrationTests(WebApplicationFactory<Program> factory)
     {
@@ -19,14 +29,37 @@ public class AuthIntegrationTests : IClassFixture<WebApplicationFactory<Program>
         // (which loads SAML_IDP_SIGNING_CERT_PATH at boot) finds a valid X.509.
         // The cert is never validated against a real assertion; tests stub auth
         // entirely via TestAuthHandler.
-        var certPath = WriteStubCertPemFile();
+        _certPath = WriteStubCertPemFile();
+
+        // Snapshot prior env-var values so Dispose can restore them, avoiding
+        // process-wide leakage between test classes or runs.
+        _previousEnv = ManagedEnvVars.ToDictionary(
+            name => name,
+            name => Environment.GetEnvironmentVariable(name));
 
         Environment.SetEnvironmentVariable("SAML_SP_ENTITY_ID", "https://localhost:4262/saml/metadata");
         Environment.SetEnvironmentVariable("SAML_IDP_ENTITY_ID", "https://idp.example/test");
         Environment.SetEnvironmentVariable("SAML_IDP_SSO_URL", "https://idp.example/test/sso");
-        Environment.SetEnvironmentVariable("SAML_IDP_SIGNING_CERT_PATH", certPath);
+        Environment.SetEnvironmentVariable("SAML_IDP_SIGNING_CERT_PATH", _certPath);
 
         _factory = factory;
+    }
+
+    public void Dispose()
+    {
+        foreach (var name in ManagedEnvVars)
+        {
+            Environment.SetEnvironmentVariable(name, _previousEnv[name]);
+        }
+        try
+        {
+            if (File.Exists(_certPath)) File.Delete(_certPath);
+        }
+        catch
+        {
+            // Best-effort cleanup; ignore any I/O failures.
+        }
+        GC.SuppressFinalize(this);
     }
 
     [Fact]

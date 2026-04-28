@@ -51,8 +51,8 @@ The next SAML response will include an `<AttributeStatement>` with those attribu
 - Cross-site cookie config (`SameSite=None; Secure`) so the JSESSIONID survives the POST from CIAM back to the ACS endpoint
 - A targeted bearer-confirmation validator that works around CIAM-specific quirks: a malformed `Address` attribute (host:port form instead of IP-only) and the unreliability of session-stored `InResponseTo` state across cross-site POSTs. The response-level signature (verified against the IdP signing cert) still runs and provides the core security guarantee.
 - An ACS endpoint at `/login/saml2/sso/secureauth` that validates IdP-signed SAML responses and accepts both SP- and IdP-initiated flows
-- Customizing `OpenSaml5AuthenticationProvider`'s response validator to accept unsolicited (IdP-initiated) responses
-- Server-managed session via Spring Session carrying the SAML `Saml2AuthenticatedPrincipal`
+- Customizing `OpenSaml4AuthenticationProvider`'s response validator to accept unsolicited (IdP-initiated) responses
+- Server-managed session via the default servlet `HttpSession` / `JSESSIONID` carrying the SAML `Saml2AuthenticatedPrincipal`
 - Local logout (clears the session — CIAM does not implement SAML SLO)
 
 ## Tests

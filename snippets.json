@@ -33,7 +33,8 @@
       "docs_url": "https://github.com/damienbod/angular-auth-oidc-client",
       "install": "angular-auth-oidc-client",
       "repo_path": "samples/angular/login-pkce",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair."
     },
     "react": {
       "steps": [
@@ -76,7 +77,8 @@
       "docs_url": "https://github.com/authts/react-oidc-context",
       "install": "oidc-client-ts react-oidc-context",
       "repo_path": "samples/react/login-pkce",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair."
     },
     "vue": {
       "steps": [
@@ -119,7 +121,8 @@
       "docs_url": "https://github.com/authts/oidc-client-ts",
       "install": "oidc-client-ts",
       "repo_path": "samples/vue/login-pkce",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair."
     }
   },
   "spa_token_refresh": {
@@ -156,7 +159,8 @@
       "docs_url": "https://github.com/damienbod/angular-auth-oidc-client",
       "install": "angular-auth-oidc-client",
       "repo_path": "samples/angular/token-refresh",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     },
     "react": {
       "steps": [
@@ -199,7 +203,8 @@
       "docs_url": "https://github.com/authts/react-oidc-context",
       "install": "oidc-client-ts react-oidc-context",
       "repo_path": "samples/react/token-refresh",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     },
     "vue": {
       "steps": [
@@ -242,7 +247,8 @@
       "docs_url": "https://github.com/authts/oidc-client-ts",
       "install": "oidc-client-ts",
       "repo_path": "samples/vue/token-refresh",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     }
   },
   "server_login_auth_code": {
@@ -279,7 +285,8 @@
       "docs_url": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication",
       "install": "",
       "repo_path": "samples/dotnet/login-auth-code",
-      "run_command": "dotnet restore && dotnet run --project src"
+      "run_command": "dotnet restore && dotnet run --project src",
+      "callout": "Server-side flow — the client_secret never reaches the browser. PKCE is still enabled to protect against authorization-code interception during the redirect back to /callback."
     },
     "java": {
       "steps": [
@@ -322,7 +329,8 @@
       "docs_url": "https://docs.spring.io/spring-security/reference/servlet/oauth2/login/index.html",
       "install": "",
       "repo_path": "samples/java/login-auth-code",
-      "run_command": "mvn spring-boot:run"
+      "run_command": "mvn spring-boot:run",
+      "callout": "Server-side flow — the client_secret never reaches the browser. PKCE is still enabled to protect against authorization-code interception during the redirect back to /login/oauth2/code/secureauth."
     },
     "node": {
       "steps": [
@@ -365,7 +373,8 @@
       "docs_url": "https://github.com/panva/openid-client",
       "install": "openid-client",
       "repo_path": "samples/node/login-auth-code",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Server-side flow — the client_secret never reaches the browser. PKCE is still enabled to protect against authorization-code interception during the redirect back to /callback."
     }
   },
   "server_token_refresh": {
@@ -418,7 +427,8 @@
       "docs_url": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication",
       "install": "",
       "repo_path": "samples/dotnet/token-refresh",
-      "run_command": "dotnet restore && dotnet run --project src"
+      "run_command": "dotnet restore && dotnet run --project src",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     },
     "java": {
       "steps": [
@@ -477,7 +487,8 @@
       "docs_url": "https://docs.spring.io/spring-security/reference/servlet/oauth2/login/index.html",
       "install": "",
       "repo_path": "samples/java/token-refresh",
-      "run_command": "mvn spring-boot:run"
+      "run_command": "mvn spring-boot:run",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     },
     "node": {
       "steps": [
@@ -528,7 +539,8 @@
       "docs_url": "https://github.com/panva/openid-client",
       "install": "openid-client",
       "repo_path": "samples/node/token-refresh",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     }
   },
   "server_saml_sp_login": {
@@ -565,7 +577,8 @@
       "docs_url": "https://github.com/Sustainsys/Saml2",
       "install": "",
       "repo_path": "samples/dotnet/saml-sp-login",
-      "run_command": "dotnet restore && dotnet run --project src"
+      "run_command": "dotnet restore && dotnet run --project src",
+      "callout": "AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure SP request signing per your library's docs."
     },
     "java": {
       "steps": [
@@ -600,7 +613,8 @@
       "docs_url": "https://docs.spring.io/spring-security/reference/servlet/saml2/login/index.html",
       "install": "",
       "repo_path": "samples/java/saml-sp-login",
-      "run_command": "mvn spring-boot:run"
+      "run_command": "mvn spring-boot:run",
+      "callout": "Spring Security 6.4 always signs AuthnRequests; this sample reuses the dev TLS keystore as the SP signing credential. CIAM doesn't validate the signature (no SP cert registered), so the request is accepted as if unsigned. For production, generate a dedicated SP signing key and register its public cert in CIAM's SAML SP form."
     },
     "node": {
       "steps": [
@@ -635,7 +649,8 @@
       "docs_url": "https://github.com/node-saml/passport-saml",
       "install": "@node-saml/passport-saml passport",
       "repo_path": "samples/node/saml-sp-login",
-      "run_command": "yarn install && yarn start"
+      "run_command": "yarn install && yarn start",
+      "callout": "AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure SP request signing per your library's docs."
     }
   }
 }
