@@ -1,0 +1,17 @@
+server:
+  port: 4262
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: classpath:dev-keystore.p12
+    key-store-password: changeit
+    key-alias: localhost
+  servlet:
+    session:
+      cookie:
+        # SAML POST binding sends the response cross-site (CIAM → SP). With the default
+        # SameSite=Lax, browsers block the JSESSIONID cookie on cross-site POSTs, the
+        # SP loses the AuthnRequest state, and the SubjectConfirmation validator fails.
+        # SameSite=None requires Secure.
+        same-site: none
+        secure: true

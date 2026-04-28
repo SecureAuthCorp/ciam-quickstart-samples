@@ -153,7 +153,6 @@ scenarios:
     callout: >-
       AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure
       SP request signing per your library's docs.
-    lib: "@node-saml/passport-saml"
     config_rows:
       - label: SP Entity ID
         value: "{{SAML_SP_ENTITY_ID}}"
@@ -169,4 +168,6 @@ scenarios:
         value: "{{SAML_IDP_INITIATED_SSO_URL}}"
         display_only: true
     frameworks:
+      - dotnet
+      - java
       - node

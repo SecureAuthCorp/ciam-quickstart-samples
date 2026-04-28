@@ -18,6 +18,8 @@ interface ScenarioManifest {
   callout?: string;
   extends?: string;
   run_command?: string;
+  lib?: string;
+  docs_url?: string;
   required_scopes?: string[];
   config_rows: ConfigRow[];
 }
@@ -74,9 +76,17 @@ async function main() {
 
     for (const [scenarioId, scenario] of Object.entries(manifest.scenarios)) {
       if (!scenarios[scenarioId]) {
-        const { run_command: _, ...scenarioWithoutRunCommand } = scenario;
+        // Strip per-framework concerns from the scenario-level entry — these all differ per
+        // framework, and the aggregated scenario merges multiple frameworks. Their values live
+        // in `snippets.json` keyed by framework instead.
+        const {
+          run_command: _rc,
+          lib: _lib,
+          docs_url: _docs,
+          ...scenarioForAllFrameworks
+        } = scenario;
         scenarios[scenarioId] = {
-          ...scenarioWithoutRunCommand,
+          ...scenarioForAllFrameworks,
           frameworks: [manifest.framework],
         };
       } else {

@@ -62,6 +62,7 @@ scenarios:
     callout: "AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure SP request signing per your library's docs."
     run_command: "yarn install && yarn start"
     lib: "@node-saml/passport-saml"
+    docs_url: "https://github.com/node-saml/passport-saml"
     config_rows:
       - label: "SP Entity ID"
         value: "{{SAML_SP_ENTITY_ID}}"

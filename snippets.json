@@ -30,6 +30,7 @@
       "framework": "angular",
       "lib": "angular-auth-oidc-client",
       "lib_version": "21.0.1",
+      "docs_url": "https://github.com/damienbod/angular-auth-oidc-client",
       "install": "angular-auth-oidc-client",
       "repo_path": "samples/angular/login-pkce",
       "run_command": "yarn install && yarn start"
@@ -72,6 +73,7 @@
       "framework": "react",
       "lib": "react-oidc-context",
       "lib_version": "3.3.1",
+      "docs_url": "https://github.com/authts/react-oidc-context",
       "install": "oidc-client-ts react-oidc-context",
       "repo_path": "samples/react/login-pkce",
       "run_command": "yarn install && yarn start"
@@ -114,6 +116,7 @@
       "framework": "vue",
       "lib": "oidc-client-ts",
       "lib_version": "3.5.0",
+      "docs_url": "https://github.com/authts/oidc-client-ts",
       "install": "oidc-client-ts",
       "repo_path": "samples/vue/login-pkce",
       "run_command": "yarn install && yarn start"
@@ -150,6 +153,7 @@
       "framework": "angular",
       "lib": "angular-auth-oidc-client",
       "lib_version": "21.0.1",
+      "docs_url": "https://github.com/damienbod/angular-auth-oidc-client",
       "install": "angular-auth-oidc-client",
       "repo_path": "samples/angular/token-refresh",
       "run_command": "yarn install && yarn start"
@@ -192,6 +196,7 @@
       "framework": "react",
       "lib": "react-oidc-context",
       "lib_version": "3.3.1",
+      "docs_url": "https://github.com/authts/react-oidc-context",
       "install": "oidc-client-ts react-oidc-context",
       "repo_path": "samples/react/token-refresh",
       "run_command": "yarn install && yarn start"
@@ -234,6 +239,7 @@
       "framework": "vue",
       "lib": "oidc-client-ts",
       "lib_version": "3.5.0",
+      "docs_url": "https://github.com/authts/oidc-client-ts",
       "install": "oidc-client-ts",
       "repo_path": "samples/vue/token-refresh",
       "run_command": "yarn install && yarn start"
@@ -270,6 +276,7 @@
       "framework": "dotnet",
       "lib": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
       "lib_version": "10.0.0",
+      "docs_url": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication",
       "install": "",
       "repo_path": "samples/dotnet/login-auth-code",
       "run_command": "dotnet restore && dotnet run --project src"
@@ -312,6 +319,7 @@
       "framework": "java",
       "lib": "spring-boot-starter-oauth2-client",
       "lib_version": "3.4.1",
+      "docs_url": "https://docs.spring.io/spring-security/reference/servlet/oauth2/login/index.html",
       "install": "",
       "repo_path": "samples/java/login-auth-code",
       "run_command": "mvn spring-boot:run"
@@ -354,6 +362,7 @@
       "framework": "node",
       "lib": "openid-client",
       "lib_version": "6.8.3",
+      "docs_url": "https://github.com/panva/openid-client",
       "install": "openid-client",
       "repo_path": "samples/node/login-auth-code",
       "run_command": "yarn install && yarn start"
@@ -406,6 +415,7 @@
       "framework": "dotnet",
       "lib": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
       "lib_version": "10.0.0",
+      "docs_url": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication",
       "install": "",
       "repo_path": "samples/dotnet/token-refresh",
       "run_command": "dotnet restore && dotnet run --project src"
@@ -464,6 +474,7 @@
       "framework": "java",
       "lib": "spring-boot-starter-oauth2-client",
       "lib_version": "3.4.1",
+      "docs_url": "https://docs.spring.io/spring-security/reference/servlet/oauth2/login/index.html",
       "install": "",
       "repo_path": "samples/java/token-refresh",
       "run_command": "mvn spring-boot:run"
@@ -514,12 +525,83 @@
       "framework": "node",
       "lib": "openid-client",
       "lib_version": "6.8.3",
+      "docs_url": "https://github.com/panva/openid-client",
       "install": "openid-client",
       "repo_path": "samples/node/token-refresh",
       "run_command": "yarn install && yarn start"
     }
   },
   "server_saml_sp_login": {
+    "dotnet": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Load environment variables from .env (searches parent dirs so `dotnet run --project src` finds the .env at the sample root). Existing env vars win.",
+          "code": "Env.TraversePath().NoClobber().Load();",
+          "file": "src/Program.cs",
+          "lang": "csharp",
+          "lines": "12-14"
+        },
+        {
+          "step": 2,
+          "description": "Configure cookie auth + SAML2 SP against your SecureAuth workspace.",
+          "code": "// AllowUnsolicitedAuthnResponse enables IdP-initiated SSO alongside SP-initiated.\n// The IdP signing certificate is loaded from disk via the path in SAML_IDP_SIGNING_CERT_PATH.\nbuilder.Services.AddAuthentication(options =>\n    {\n        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;\n        options.DefaultChallengeScheme = Saml2Defaults.Scheme;\n    })\n    .AddCookie()\n    .AddSaml2(options =>\n    {\n        options.SPOptions.EntityId = new EntityId(RequireEnv(\"SAML_SP_ENTITY_ID\"));\n        options.SPOptions.ReturnUrl = new Uri(\"https://localhost:4262/\");\n\n        var idp = new IdentityProvider(new EntityId(RequireEnv(\"SAML_IDP_ENTITY_ID\")), options.SPOptions)\n        {\n            SingleSignOnServiceUrl = new Uri(RequireEnv(\"SAML_IDP_SSO_URL\")),\n            Binding = Saml2BindingType.HttpRedirect,\n            AllowUnsolicitedAuthnResponse = true,\n        };\n        // Signing key must be added BEFORE LoadMetadata = false — the setter triggers\n        // IdentityProvider.Validate() which requires SigningKeys to be non-empty.\n        idp.SigningKeys.AddConfiguredKey(LoadIdpCert(RequireEnv(\"SAML_IDP_SIGNING_CERT_PATH\")));\n        idp.LoadMetadata = false;\n        options.IdentityProviders.Add(idp);\n    });\n\nbuilder.Services.AddAuthorization();\n\nstatic string RequireEnv(string name) =>\n    Environment.GetEnvironmentVariable(name)\n        ?? throw new InvalidOperationException($\"Missing required env var: {name}\");\n\nstatic X509Certificate2 LoadIdpCert(string path)\n{\n    var resolved = ResolveCertPath(path);\n    if (resolved is null)\n    {\n        throw new FileNotFoundException(\n            $\"IdP signing cert not found searching for '{path}' from cwd up to filesystem root. \" +\n            $\"Download it from the SecureAuth admin UI (SAML IdP → General → Download certificate) \" +\n            $\"and save it at the sample root as {path}.\");\n    }\n    return X509Certificate2.CreateFromPem(File.ReadAllText(resolved));\n}\n\n// Walk up from the current directory looking for the cert file (mirrors DotNetEnv's\n// TraversePath behavior for .env). When `dotnet run --project src` runs the app, the\n// working directory is `src/` but the cert lives at the sample root one level up.\nstatic string? ResolveCertPath(string path)\n{\n    if (Path.IsPathRooted(path) && File.Exists(path)) return path;\n    var fileName = Path.GetFileName(path);\n    var dir = new DirectoryInfo(Environment.CurrentDirectory);\n    while (dir is not null)\n    {\n        var candidate = Path.Combine(dir.FullName, fileName);\n        if (File.Exists(candidate)) return candidate;\n        dir = dir.Parent;\n    }\n    return null;\n}",
+          "file": "src/Program.cs",
+          "lang": "csharp",
+          "lines": "19-81"
+        },
+        {
+          "step": 3,
+          "description": "Wire routes for sign-in challenge, signed-in display, and local sign-out.",
+          "code": "// Sustainsys.Saml2 mounts the SP endpoints (ACS, metadata, SLO) under /Saml2 automatically,\n// so /login just issues a Saml2 challenge and the library handles the rest.\napp.MapGet(\"/\", (HttpContext ctx) =>\n    ctx.User.Identity?.IsAuthenticated == true\n        ? Results.Content(Views.RenderSignedInPage(ctx.User), \"text/html\")\n        : Results.Content(Views.RenderSignedOutPage(), \"text/html\"));\n\napp.MapGet(\"/login\", () => Results.Challenge(\n    new AuthenticationProperties { RedirectUri = \"/\" },\n    [Saml2Defaults.Scheme]));\n\n// CIAM does not implement SAML SLO. Logout clears the local cookie and redirects home.\napp.MapGet(\"/logout\", () => Results.SignOut(\n    new AuthenticationProperties { RedirectUri = \"/\" },\n    [CookieAuthenticationDefaults.AuthenticationScheme]));",
+          "file": "src/Program.cs",
+          "lang": "csharp",
+          "lines": "88-104"
+        }
+      ],
+      "framework": "dotnet",
+      "lib": "Sustainsys.Saml2.AspNetCore2",
+      "lib_version": "2.11.0",
+      "docs_url": "https://github.com/Sustainsys/Saml2",
+      "install": "",
+      "repo_path": "samples/dotnet/saml-sp-login",
+      "run_command": "dotnet restore && dotnet run --project src"
+    },
+    "java": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Configure the relying-party registration with CIAM as the SAML IdP",
+          "code": "    @Configuration\n    static class SamlConfig {\n\n        @Bean\n        @ConditionalOnMissingBean\n        RelyingPartyRegistrationRepository relyingPartyRegistrationRepository(\n                @Value(\"${SAML_SP_ENTITY_ID}\") String spEntityId,\n                @Value(\"${SAML_IDP_ENTITY_ID}\") String idpEntityId,\n                @Value(\"${SAML_IDP_SSO_URL}\") String idpSsoUrl,\n                @Value(\"${SAML_IDP_SIGNING_CERT_PATH}\") String idpCertPath) throws Exception {\n            X509Certificate idpCert = loadCert(idpCertPath);\n            // Spring Security 6.4 SAML2 always signs AuthnRequests; if no signing credential is\n            // configured the request resolver throws \"Failed to resolve any signing credential\".\n            // We reuse the dev TLS keystore (generated by keytool-maven-plugin) as the signing\n            // credential. CIAM doesn't validate AuthnRequest signatures (no SP signing cert is\n            // registered), so this is functionally equivalent to \"unsigned\" from the IdP's view.\n            // For production, generate a dedicated SP signing key and register the public cert\n            // in CIAM's SAML SP form so signatures are actually validated.\n            Saml2X509Credential signingCredential = loadDevKeystoreSigningCredential();\n            RelyingPartyRegistration registration = RelyingPartyRegistration\n                    .withRegistrationId(\"secureauth\")\n                    .entityId(spEntityId)\n                    .assertionConsumerServiceLocation(\"{baseUrl}/login/saml2/sso/{registrationId}\")\n                    .signingX509Credentials(c -> c.add(signingCredential))\n                    .assertingPartyMetadata(party -> party\n                            .entityId(idpEntityId)\n                            .singleSignOnServiceLocation(idpSsoUrl)\n                            .singleSignOnServiceBinding(Saml2MessageBinding.POST)\n                            .verificationX509Credentials(c -> c.add(Saml2X509Credential.verification(idpCert))))\n                    .build();\n            return new InMemoryRelyingPartyRegistrationRepository(registration);\n        }\n\n        private static X509Certificate loadCert(String path) throws Exception {\n            try (InputStream in = new FileInputStream(path)) {\n                CertificateFactory cf = CertificateFactory.getInstance(\"X.509\");\n                return (X509Certificate) cf.generateCertificate(in);\n            }\n        }\n\n        private static Saml2X509Credential loadDevKeystoreSigningCredential() throws Exception {\n            KeyStore ks = KeyStore.getInstance(\"PKCS12\");\n            try (InputStream in = new ClassPathResource(\"dev-keystore.p12\").getInputStream()) {\n                ks.load(in, \"changeit\".toCharArray());\n            }\n            PrivateKey key = (PrivateKey) ks.getKey(\"localhost\", \"changeit\".toCharArray());\n            X509Certificate cert = (X509Certificate) ks.getCertificate(\"localhost\");\n            return Saml2X509Credential.signing(key, cert);\n        }\n    }",
+          "file": "src/main/java/com/secureauth/quickstart/Application.java",
+          "lang": "java",
+          "lines": "43-94"
+        },
+        {
+          "step": 2,
+          "description": "Enable saml2Login and accept unsolicited (IdP-initiated) responses",
+          "code": "    @Configuration\n    static class SecurityConfig {\n\n        @Bean\n        SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n            OpenSaml4AuthenticationProvider provider = new OpenSaml4AuthenticationProvider();\n            Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2ResponseValidatorResult> defaultValidator =\n                    OpenSaml4AuthenticationProvider.createDefaultResponseValidator();\n            provider.setResponseValidator(token -> {\n                Saml2ResponseValidatorResult result = defaultValidator.convert(token);\n                List<Saml2Error> filtered = result.getErrors().stream()\n                        .filter(e -> !Saml2ErrorCodes.INVALID_IN_RESPONSE_TO.equals(e.getErrorCode()))\n                        .toList();\n                return filtered.isEmpty()\n                        ? Saml2ResponseValidatorResult.success()\n                        : Saml2ResponseValidatorResult.failure(filtered);\n            });\n            // CIAM's SubjectConfirmation interacts badly with Spring Security's strict bearer\n            // validator in two ways:\n            //   1. The Address attribute is host:port form (e.g. \"[::1]:57370\") rather than\n            //      IP-only. Disabled via SC_CHECK_ADDRESS=false.\n            //   2. The session-stored AuthnRequest used to validate InResponseTo is unreliable\n            //      across the cross-site POST from CIAM (cookie/session loss). Worked around by\n            //      feeding the assertion's own InResponseTo back as the expected value, which\n            //      makes the comparison pass vacuously.\n            // Production-grade SPs should fix the upstream Address format and rely on session\n            // state for InResponseTo. For a CIAM quickstart, this is acceptable: response-level\n            // signature validation (against the IdP signing cert) still runs at the response\n            // validator above, so we still confirm the assertion came from CIAM.\n            provider.setAssertionValidator(assertionToken -> {\n                String assertionInResponseTo = null;\n                var subject = assertionToken.getAssertion().getSubject();\n                if (subject != null) {\n                    for (var sc : subject.getSubjectConfirmations()) {\n                        var data = sc.getSubjectConfirmationData();\n                        if (data != null && data.getInResponseTo() != null) {\n                            assertionInResponseTo = data.getInResponseTo();\n                            break;\n                        }\n                    }\n                }\n                final String expectedInResponseTo = assertionInResponseTo;\n                return OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters(\n                        params -> {\n                            params.put(\n                                    org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters.SC_CHECK_ADDRESS,\n                                    Boolean.FALSE);\n                            if (expectedInResponseTo != null) {\n                                params.put(\n                                        org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters.SC_VALID_IN_RESPONSE_TO,\n                                        expectedInResponseTo);\n                            }\n                        })\n                        .convert(assertionToken);\n            });\n            return http\n                    .authorizeHttpRequests(auth -> auth\n                            .requestMatchers(\"/\").permitAll()\n                            .anyRequest().authenticated())\n                    .saml2Login(saml -> saml\n                            .authenticationManager(new ProviderManager(provider))\n                            .defaultSuccessUrl(\"/\", true))\n                    // Accept GET on /logout (Spring Security 6.4's default confirmation page\n                    // requires POST + CSRF; for a quickstart we let a simple <a href=\"/logout\">\n                    // link work directly).\n                    .logout(l -> l\n                            .logoutRequestMatcher(new org.springframework.security.web.util.matcher.AntPathRequestMatcher(\"/logout\"))\n                            .logoutSuccessUrl(\"/\"))\n                    // Disable CSRF for the demo. SAML2 ACS endpoint is already exempt by the\n                    // framework; this just removes the requirement on /logout. Production apps\n                    // with state-changing endpoints should re-enable CSRF.\n                    .csrf(c -> c.disable())\n                    .build();\n        }\n    }",
+          "file": "src/main/java/com/secureauth/quickstart/Application.java",
+          "lang": "java",
+          "lines": "97-173"
+        },
+        {
+          "step": 3,
+          "description": "Render the home page — signed-in shows the SAML NameID, otherwise a sign-in link",
+          "code": "    @Controller\n    static class HomeController {\n\n        @GetMapping(\"/\")\n        @ResponseBody\n        String home(@AuthenticationPrincipal Saml2AuthenticatedPrincipal user) {\n            if (user == null) {\n                return \"\"\"\n                        <!doctype html>\n                        <html><head><title>SecureAuth Java SAML Demo</title></head>\n                        <body>\n                          <h1>SecureAuth Java SAML Demo</h1>\n                          <p><a href=\"/saml2/authenticate/secureauth\">Sign in</a></p>\n                        </body></html>\n                        \"\"\";\n            }\n            return \"\"\"\n                    <!doctype html>\n                    <html><head><title>SecureAuth Java SAML Demo</title></head>\n                    <body>\n                      <h1>SecureAuth Java SAML Demo</h1>\n                      <p>Welcome, %s</p>\n                      <p><a href=\"/logout\">Sign out</a></p>\n                    </body></html>\n                    \"\"\".formatted(esc(user.getName()));\n        }\n\n        private static String esc(String s) {\n            if (s == null) return \"\";\n            return s\n                    .replace(\"&\", \"&amp;\")\n                    .replace(\"<\", \"&lt;\")\n                    .replace(\">\", \"&gt;\")\n                    .replace(\"\\\"\", \"&quot;\")\n                    .replace(\"'\", \"&#39;\");\n        }\n    }",
+          "file": "src/main/java/com/secureauth/quickstart/Application.java",
+          "lang": "java",
+          "lines": "176-214"
+        }
+      ],
+      "framework": "java",
+      "lib": "spring-security-saml2-service-provider",
+      "lib_version": "3.4.1",
+      "docs_url": "https://docs.spring.io/spring-security/reference/servlet/saml2/login/index.html",
+      "install": "",
+      "repo_path": "samples/java/saml-sp-login",
+      "run_command": "mvn spring-boot:run"
+    },
     "node": {
       "steps": [
         {
@@ -550,6 +632,7 @@
       "framework": "node",
       "lib": "@node-saml/passport-saml",
       "lib_version": "5.1.0",
+      "docs_url": "https://github.com/node-saml/passport-saml",
       "install": "@node-saml/passport-saml passport",
       "repo_path": "samples/node/saml-sp-login",
       "run_command": "yarn install && yarn start"
