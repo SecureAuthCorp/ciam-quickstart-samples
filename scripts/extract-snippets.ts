@@ -27,13 +27,18 @@ interface FrameworkSnippet {
   framework: string;
   lib: string;
   lib_version: string;
+  docs_url: string;
   install: string;
   repo_path: string;
   run_command?: string;
+  callout?: string;
 }
 
 interface ScenarioMeta {
   run_command?: string;
+  lib?: string;
+  docs_url?: string;
+  callout?: string;
   [key: string]: unknown;
 }
 
@@ -53,11 +58,18 @@ const TAG_END = /(?:\/\/|#)\s*@snippet:step(\d+):end/;
 const DESCRIPTION = /(?:\/\/|#)\s*@description\s+(.+)/;
 
 function getPlaceholderMap(): PlaceholderMap {
-  const content = readFileSync(path.join(ROOT, "placeholder-map.yaml"), "utf-8");
+  const content = readFileSync(
+    path.join(ROOT, "placeholder-map.yaml"),
+    "utf-8",
+  );
   return yaml.load(content) as PlaceholderMap;
 }
 
-function applyPlaceholders(code: string, lang: string, placeholderMap: PlaceholderMap): string {
+function applyPlaceholders(
+  code: string,
+  lang: string,
+  placeholderMap: PlaceholderMap,
+): string {
   // Try language-specific mappings first, then fall back to js
   const mappings = placeholderMap[lang] || placeholderMap["js"] || [];
   let result = code;
@@ -67,26 +79,38 @@ function applyPlaceholders(code: string, lang: string, placeholderMap: Placehold
   return result;
 }
 
-function getLibVersion(scenarioDir: string, manifestDir: string): string {
+function getLibVersion(
+  scenarioDir: string,
+  manifestDir: string,
+  libOverride?: string,
+): string {
   const manifest = yaml.load(
-    readFileSync(path.join(manifestDir, "manifest.yaml"), "utf-8")
+    readFileSync(path.join(manifestDir, "manifest.yaml"), "utf-8"),
   ) as FrameworkManifest;
+  const lib = libOverride ?? manifest.lib;
 
   try {
-    const pkg = JSON.parse(readFileSync(path.join(scenarioDir, "package.json"), "utf-8"));
-    return pkg.dependencies?.[manifest.lib] || pkg.devDependencies?.[manifest.lib] || "unknown";
+    const pkg = JSON.parse(
+      readFileSync(path.join(scenarioDir, "package.json"), "utf-8"),
+    );
+    return pkg.dependencies?.[lib] || pkg.devDependencies?.[lib] || "unknown";
   } catch {
     // no package.json — try .csproj (C#/.NET)
   }
 
   try {
     const srcDir = path.join(scenarioDir, "src");
-    const csprojFiles = readdirSync(srcDir).filter((f) => f.endsWith(".csproj"));
+    const csprojFiles = readdirSync(srcDir).filter((f) =>
+      f.endsWith(".csproj"),
+    );
     if (csprojFiles.length > 0) {
-      const csprojContent = readFileSync(path.join(srcDir, csprojFiles[0]), "utf-8");
-      const libEscaped = manifest.lib.replace(/[.]/g, "\\.");
+      const csprojContent = readFileSync(
+        path.join(srcDir, csprojFiles[0]),
+        "utf-8",
+      );
+      const libEscaped = lib.replace(/[.]/g, "\\.");
       const regex = new RegExp(
-        `<PackageReference\\s+Include="${libEscaped}"\\s+Version="([^"]+)"`
+        `<PackageReference\\s+Include="${libEscaped}"\\s+Version="([^"]+)"`,
       );
       const match = csprojContent.match(regex);
       if (match) return match[1];
@@ -99,7 +123,7 @@ function getLibVersion(scenarioDir: string, manifestDir: string): string {
     const pomContent = readFileSync(path.join(scenarioDir, "pom.xml"), "utf-8");
     // Spring Boot starters inherit their version from the parent POM.
     const parentMatch = pomContent.match(
-      /<parent>[\s\S]*?<artifactId>spring-boot-starter-parent<\/artifactId>[\s\S]*?<version>([^<]+)<\/version>[\s\S]*?<\/parent>/
+      /<parent>[\s\S]*?<artifactId>spring-boot-starter-parent<\/artifactId>[\s\S]*?<version>([^<]+)<\/version>[\s\S]*?<\/parent>/,
     );
     if (parentMatch) return parentMatch[1];
   } catch {
@@ -111,9 +135,31 @@ function getLibVersion(scenarioDir: string, manifestDir: string): string {
 
 function getInstallCommand(scenarioDir: string): string {
   try {
-    const pkg = JSON.parse(readFileSync(path.join(scenarioDir, "package.json"), "utf-8"));
+    const pkg = JSON.parse(
+      readFileSync(path.join(scenarioDir, "package.json"), "utf-8"),
+    );
     const deps = Object.keys(pkg.dependencies || {}).filter(
-      (d) => !["react", "react-dom", "vue", "express", "express-session", "dotenv", "selfsigned", "@angular/animations", "@angular/common", "@angular/compiler", "@angular/core", "@angular/forms", "@angular/platform-browser", "@angular/platform-browser-dynamic", "@angular/router", "rxjs", "tslib", "zone.js"].includes(d)
+      (d) =>
+        ![
+          "react",
+          "react-dom",
+          "vue",
+          "express",
+          "express-session",
+          "dotenv",
+          "selfsigned",
+          "@angular/animations",
+          "@angular/common",
+          "@angular/compiler",
+          "@angular/core",
+          "@angular/forms",
+          "@angular/platform-browser",
+          "@angular/platform-browser-dynamic",
+          "@angular/router",
+          "rxjs",
+          "tslib",
+          "zone.js",
+        ].includes(d),
     );
     return deps.join(" ");
   } catch {
@@ -126,7 +172,7 @@ function extractStepsFromFile(
   filePath: string,
   lang: string,
   scenarioDir: string,
-  placeholderMap: PlaceholderMap
+  placeholderMap: PlaceholderMap,
 ): Step[] {
   const content = readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
@@ -154,10 +200,14 @@ function extractStepsFromFile(
       const endStep = parseInt(endMatch[1], 10);
       if (endStep !== currentStep) {
         throw new Error(
-          `Mismatched snippet end tag in ${filePath}:${i + 1}. Expected @snippet:step${currentStep}:end but found @snippet:step${endStep}:end.`
+          `Mismatched snippet end tag in ${filePath}:${i + 1}. Expected @snippet:step${currentStep}:end but found @snippet:step${endStep}:end.`,
         );
       }
-      const code = applyPlaceholders(currentLines.join("\n"), lang, placeholderMap);
+      const code = applyPlaceholders(
+        currentLines.join("\n"),
+        lang,
+        placeholderMap,
+      );
       steps.push({
         step: currentStep,
         description: currentDescription,
@@ -224,24 +274,36 @@ async function main() {
       }
 
       if (!hasPkg) {
-        console.warn(`Warning: no project found for scenario ${scenarioId} in samples/${fw}/${dirName}/`);
+        console.warn(
+          `Warning: no project found for scenario ${scenarioId} in samples/${fw}/${dirName}/`,
+        );
         continue;
       }
 
-      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue,cs,java,yml,yaml}", {
-        cwd: scenarioDir,
-      });
+      const sourceFiles = await glob(
+        "src/**/*.{ts,tsx,js,jsx,vue,cs,java,yml,yaml}",
+        {
+          cwd: scenarioDir,
+        },
+      );
       const allSteps: Step[] = [];
 
       for (const sourceFile of sourceFiles.sort()) {
         const fullPath = path.join(scenarioDir, sourceFile);
         const fileLang = langFor(sourceFile, lang);
-        const steps = extractStepsFromFile(fullPath, fileLang, scenarioDir, placeholderMap);
+        const steps = extractStepsFromFile(
+          fullPath,
+          fileLang,
+          scenarioDir,
+          placeholderMap,
+        );
         allSteps.push(...steps);
       }
 
       if (allSteps.length === 0) {
-        console.warn(`Warning: no @snippet tags found in samples/${fw}/${dirName}/`);
+        console.warn(
+          `Warning: no @snippet tags found in samples/${fw}/${dirName}/`,
+        );
         continue;
       }
 
@@ -252,14 +314,20 @@ async function main() {
       }
 
       const runCommand = manifest.scenarios[scenarioId]?.run_command;
+      const scenarioLib = manifest.scenarios[scenarioId]?.lib ?? manifest.lib;
+      const scenarioDocsUrl =
+        manifest.scenarios[scenarioId]?.docs_url ?? manifest.docs_url;
+      const scenarioCallout = manifest.scenarios[scenarioId]?.callout;
       snippets[scenarioId][fw] = {
         steps: allSteps,
         framework: fw,
-        lib: manifest.lib,
-        lib_version: getLibVersion(scenarioDir, frameworkDir),
+        lib: scenarioLib,
+        lib_version: getLibVersion(scenarioDir, frameworkDir, scenarioLib),
+        docs_url: scenarioDocsUrl,
         install: getInstallCommand(scenarioDir),
         repo_path: `samples/${path.relative(SAMPLES, scenarioDir)}`,
         ...(runCommand ? { run_command: runCommand } : {}),
+        ...(scenarioCallout ? { callout: scenarioCallout } : {}),
       };
     }
   }
@@ -269,10 +337,10 @@ async function main() {
 
   const totalSnippets = Object.values(snippets).reduce(
     (sum, fw) => sum + Object.keys(fw).length,
-    0
+    0,
   );
   console.log(
-    `Wrote ${outputPath} (${Object.keys(snippets).length} scenarios, ${totalSnippets} framework snippets)`
+    `Wrote ${outputPath} (${Object.keys(snippets).length} scenarios, ${totalSnippets} framework snippets)`,
   );
 }
 

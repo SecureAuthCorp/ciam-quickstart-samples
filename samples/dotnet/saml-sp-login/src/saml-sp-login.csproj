@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>saml-sp-login</AssemblyName>
+    <RootNamespace>SamlSpLogin</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Sustainsys.Saml2.AspNetCore2" Version="2.11.0" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <!-- Override transitive dep with vulnerable Newtonsoft.Json 10.0.1 (NU1903 / GHSA-5crp-9r3c-p9vr). -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

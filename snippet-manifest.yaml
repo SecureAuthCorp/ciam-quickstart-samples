@@ -42,7 +42,6 @@ scenarios:
     display_name: User Login
     grant: Auth Code + PKCE
     description: Redirect users to SecureAuth for login. PKCE protects against code interception.
-    callout: Uses PKCE — no client secret needed. The browser generates a code_verifier/code_challenge pair.
     config_rows:
       - label: Client ID
         value: "{{CLIENT_ID}}"
@@ -65,9 +64,6 @@ scenarios:
     display_name: Token Refresh
     grant: Refresh Token
     description: Use refresh tokens to get new access tokens without re-prompting the user. Requires offline_access scope.
-    callout: >-
-      Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the
-      application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope.
     required_scopes:
       - offline_access
     config_rows:
@@ -92,9 +88,6 @@ scenarios:
     description: >-
       Redirect users to SecureAuth for login. The server holds the client secret and manages the session; PKCE adds
       defense in depth.
-    callout: >-
-      Server-side flow — the client_secret never reaches the browser. PKCE is still enabled to protect against
-      authorization-code interception during the redirect back to /callback.
     config_rows:
       - label: Client ID
         value: "{{CLIENT_ID}}"
@@ -121,9 +114,6 @@ scenarios:
     description: >-
       Use refresh tokens server-side to renew the user's access token without re-prompting them. Requires the
       offline_access scope.
-    callout: >-
-      Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the
-      application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope.
     required_scopes:
       - offline_access
     config_rows:
@@ -141,6 +131,29 @@ scenarios:
         value: "{{SCOPES}}"
       - label: Grant
         value: Authorization Code + PKCE (+ Refresh Token)
+    frameworks:
+      - dotnet
+      - java
+      - node
+  server_saml_sp_login:
+    app_type: saml
+    display_name: SAML Login
+    grant: SAML 2.0
+    description: SAML SSO with SecureAuth as the IdP. The same ACS endpoint accepts SP-initiated and IdP-initiated responses.
+    config_rows:
+      - label: SP Entity ID
+        value: "{{SAML_SP_ENTITY_ID}}"
+      - label: SP ACS URL
+        value: "{{SAML_SP_ACS_URL}}"
+      - label: SAML IdP Entity ID
+        value: "{{SAML_IDP_ENTITY_ID}}"
+      - label: SAML IdP Single Sign-On URL
+        value: "{{SAML_IDP_SSO_URL}}"
+      - label: SAML IdP Signing Certificate
+        value: Download from admin UI → save as ./saml-certificate.pem
+      - label: IdP-Initiated SSO URL
+        value: "{{SAML_IDP_INITIATED_SSO_URL}}"
+        display_only: true
     frameworks:
       - dotnet
       - java

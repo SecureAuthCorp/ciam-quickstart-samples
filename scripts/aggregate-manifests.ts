@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 interface ConfigRow {
   label: string;
   value: string;
+  display_only?: boolean;
 }
 
 interface ScenarioManifest {
@@ -17,6 +18,8 @@ interface ScenarioManifest {
   callout?: string;
   extends?: string;
   run_command?: string;
+  lib?: string;
+  docs_url?: string;
   required_scopes?: string[];
   config_rows: ConfigRow[];
 }
@@ -49,7 +52,13 @@ async function main() {
   const scenarios: Record<string, AggregatedScenario> = {};
   const frameworks: Record<
     string,
-    { label: string; lang: string; lib: string; docs_url: string; env_file?: string }
+    {
+      label: string;
+      lang: string;
+      lib: string;
+      docs_url: string;
+      env_file?: string;
+    }
   > = {};
 
   for (const file of manifestFiles.sort()) {
@@ -67,9 +76,18 @@ async function main() {
 
     for (const [scenarioId, scenario] of Object.entries(manifest.scenarios)) {
       if (!scenarios[scenarioId]) {
-        const { run_command: _, ...scenarioWithoutRunCommand } = scenario;
+        // Strip per-framework concerns from the scenario-level entry — these all differ per
+        // framework, and the aggregated scenario merges multiple frameworks. Their values live
+        // in `snippets.json` keyed by framework instead.
+        const {
+          run_command: _rc,
+          lib: _lib,
+          docs_url: _docs,
+          callout: _callout,
+          ...scenarioForAllFrameworks
+        } = scenario;
         scenarios[scenarioId] = {
-          ...scenarioWithoutRunCommand,
+          ...scenarioForAllFrameworks,
           frameworks: [manifest.framework],
         };
       } else {
@@ -88,18 +106,22 @@ async function main() {
   }
 
   const orderedFrameworks = Object.fromEntries(
-    Object.entries(frameworks).sort(([a], [b]) => rank(a) - rank(b))
+    Object.entries(frameworks).sort(([a], [b]) => rank(a) - rank(b)),
   );
 
   const output = { frameworks: orderedFrameworks, scenarios };
-  const yamlStr = yaml.dump(output, { lineWidth: 120, noRefs: true, quotingType: '"' });
+  const yamlStr = yaml.dump(output, {
+    lineWidth: 120,
+    noRefs: true,
+    quotingType: '"',
+  });
   const outputPath = path.join(ROOT, "snippet-manifest.yaml");
   writeFileSync(
     outputPath,
-    `# GENERATED — do not edit. Aggregated from per-framework manifest.yaml files.\n${yamlStr}`
+    `# GENERATED — do not edit. Aggregated from per-framework manifest.yaml files.\n${yamlStr}`,
   );
   console.log(
-    `Wrote ${outputPath} (${Object.keys(scenarios).length} scenarios, ${Object.keys(frameworks).length} frameworks)`
+    `Wrote ${outputPath} (${Object.keys(scenarios).length} scenarios, ${Object.keys(frameworks).length} frameworks)`,
   );
 }
 
