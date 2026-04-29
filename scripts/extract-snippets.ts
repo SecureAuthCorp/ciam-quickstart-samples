@@ -89,15 +89,18 @@ function getLibVersion(
   ) as FrameworkManifest;
   const lib = libOverride ?? manifest.lib;
 
+  // npm — package.json
   try {
     const pkg = JSON.parse(
       readFileSync(path.join(scenarioDir, "package.json"), "utf-8"),
     );
-    return pkg.dependencies?.[lib] || pkg.devDependencies?.[lib] || "unknown";
+    const v = pkg.dependencies?.[lib] || pkg.devDependencies?.[lib];
+    if (v) return String(v).replace(/^[\^~>=<\s]+/, "");
   } catch {
-    // no package.json — try .csproj (C#/.NET)
+    // no package.json — try next
   }
 
+  // .NET — *.csproj under src/
   try {
     const srcDir = path.join(scenarioDir, "src");
     const csprojFiles = readdirSync(srcDir).filter((f) =>
@@ -119,15 +122,110 @@ function getLibVersion(
     // no src/ dir or no .csproj — fall through
   }
 
+  // Java — pom.xml (Spring Boot starters inherit version from parent POM)
   try {
     const pomContent = readFileSync(path.join(scenarioDir, "pom.xml"), "utf-8");
-    // Spring Boot starters inherit their version from the parent POM.
     const parentMatch = pomContent.match(
       /<parent>[\s\S]*?<artifactId>spring-boot-starter-parent<\/artifactId>[\s\S]*?<version>([^<]+)<\/version>[\s\S]*?<\/parent>/,
     );
     if (parentMatch) return parentMatch[1];
   } catch {
     // no pom.xml — fall through
+  }
+
+  // Flutter — pubspec.yaml dependencies
+  try {
+    const pubspec = yaml.load(
+      readFileSync(path.join(scenarioDir, "pubspec.yaml"), "utf-8"),
+    ) as { dependencies?: Record<string, unknown> };
+    const dep = pubspec?.dependencies?.[lib];
+    if (typeof dep === "string") {
+      return dep.replace(/^[\^~>=<\s]+/, "");
+    }
+    if (
+      dep &&
+      typeof dep === "object" &&
+      typeof (dep as { version?: unknown }).version === "string"
+    ) {
+      return (dep as { version: string }).version.replace(/^[\^~>=<\s]+/, "");
+    }
+  } catch {
+    // no pubspec.yaml — fall through
+  }
+
+  // iOS — Package.resolved (preferred) or Package.swift literal
+  try {
+    const resolvedPaths = [
+      path.join(scenarioDir, "Package.resolved"),
+      path.join(
+        scenarioDir,
+        "Quickstart.xcworkspace",
+        "xcshareddata",
+        "swiftpm",
+        "Package.resolved",
+      ),
+    ];
+    for (const p of resolvedPaths) {
+      try {
+        const resolved = JSON.parse(readFileSync(p, "utf-8")) as {
+          pins?: Array<{
+            identity?: string;
+            location?: string;
+            state?: { version?: string };
+          }>;
+        };
+        const libLower = lib.toLowerCase();
+        const pin = resolved.pins?.find((p) => {
+          const id = (p.identity || "").toLowerCase();
+          const loc = (p.location || "").toLowerCase();
+          return id === libLower || loc.includes(`/${libLower}`);
+        });
+        if (pin?.state?.version) return pin.state.version;
+      } catch {
+        // try next path
+      }
+    }
+    // Fall back to scanning Package.swift for `.upToNextMajor(from: "X.Y.Z")` literals.
+    const swiftContent = readFileSync(
+      path.join(scenarioDir, "Package.swift"),
+      "utf-8",
+    );
+    const libEscapedSwift = lib.replace(/[.+*?^${}()|[\]\\]/g, "\\$&");
+    const literalMatch = swiftContent.match(
+      new RegExp(
+        `${libEscapedSwift}[\\s\\S]{0,200}?\\.upToNextMajor\\(from:\\s*"([0-9][0-9A-Za-z.\\-]*)"\\)`,
+      ),
+    );
+    if (literalMatch) return literalMatch[1];
+  } catch {
+    // no Package.swift / no Package.resolved — fall through
+  }
+
+  // Android — build.gradle.kts (Kotlin DSL) or build.gradle (Groovy DSL)
+  try {
+    const gradlePaths = [
+      path.join(scenarioDir, "app", "build.gradle.kts"),
+      path.join(scenarioDir, "app", "build.gradle"),
+      path.join(scenarioDir, "build.gradle.kts"),
+      path.join(scenarioDir, "build.gradle"),
+    ];
+    for (const p of gradlePaths) {
+      try {
+        const gradle = readFileSync(p, "utf-8");
+        // Match e.g. `implementation("net.openid:appauth:0.11.1")`.
+        // The `lib` value is expected to be `group:artifact` (e.g. `net.openid:appauth`).
+        const libEscaped = lib.replace(/[.+*?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(
+          `["']${libEscaped}:([0-9][0-9A-Za-z.\\-]*)["']`,
+        );
+        const match = gradle.match(regex);
+        if (match) return match[1];
+      } catch {
+        // try next path
+      }
+    }
+  } catch {
+    // no Gradle file — fall through
   }
 
   return "unknown";
@@ -237,6 +335,12 @@ const EXT_LANG_OVERRIDES: Record<string, string> = {
   ".java": "java",
   ".yml": "yaml",
   ".yaml": "yaml",
+  ".swift": "swift",
+  ".kt": "kotlin",
+  ".kts": "kotlin",
+  ".dart": "dart",
+  ".gradle": "groovy",
+  ".xcconfig": "xcconfig",
 };
 
 function langFor(file: string, manifestLang: string): string {
@@ -261,15 +365,30 @@ async function main() {
       const scenarioDir = path.join(frameworkDir, dirName);
 
       let hasPkg = false;
-      try {
-        readFileSync(path.join(scenarioDir, "package.json"), "utf-8");
-        hasPkg = true;
-      } catch {
+      const projectMarkers = [
+        "package.json", // Node / RN
+        "pom.xml", // Java
+        "pubspec.yaml", // Flutter
+        "Package.swift", // iOS (SPM)
+        "build.gradle.kts", // Android (Kotlin DSL)
+        "build.gradle", // Android (Groovy DSL)
+      ];
+      for (const marker of projectMarkers) {
+        try {
+          readFileSync(path.join(scenarioDir, marker), "utf-8");
+          hasPkg = true;
+          break;
+        } catch {
+          // marker not found — try next
+        }
+      }
+      if (!hasPkg) {
+        // .NET projects keep their .csproj inside src/ — fall back to "any src/ content".
         try {
           const srcFiles = await glob("src/**/*", { cwd: scenarioDir });
           hasPkg = srcFiles.length > 0;
         } catch {
-          // directory doesn't exist
+          // src/ doesn't exist
         }
       }
 
@@ -281,9 +400,25 @@ async function main() {
       }
 
       const sourceFiles = await glob(
-        "src/**/*.{ts,tsx,js,jsx,vue,cs,java,yml,yaml}",
+        "**/*.{ts,tsx,js,jsx,vue,cs,java,yml,yaml,swift,kt,kts,dart,gradle,xcconfig}",
         {
           cwd: scenarioDir,
+          ignore: [
+            "**/node_modules/**",
+            "**/.yarn/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/target/**",
+            "**/bin/**",
+            "**/obj/**",
+            "**/.gradle/**",
+            "**/.dart_tool/**",
+            "**/.flutter-plugins-dependencies",
+            "**/Pods/**",
+            "**/DerivedData/**",
+            "**/.build/**",
+            "**/coverage/**",
+          ],
         },
       );
       const allSteps: Step[] = [];
