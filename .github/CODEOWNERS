@@ -1,7 +1,5 @@
 # All files require review
-* @ksroda-sa
-# * @SecureAuthCorp/team-eng-ciam-ui-write
+* @SecureAuthCorp/team-eng-ciam-ui-write
 
 # GitHub Actions and CI config
-.github/ @ksroda-sa
-# .github/ @SecureAuthCorp/devops
+.github/ @SecureAuthCorp/devops
