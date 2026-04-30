@@ -90,11 +90,11 @@ jobs:
           git commit -m "chore: update extracted snippets and manifest"
           git push
 
-      # - name: Notify ciam-core of snippet changes
-      #   if: steps.diff.outputs.changed == 'true'
-      #   run: |
-      #     gh api repos/SecureAuthCorp/ciam-core/dispatches \
-      #       -f event_type=quickstart-snippets-updated \
-      #       -f 'client_payload[sha]=${{ github.sha }}'
-      #   env:
-      #     GH_TOKEN: ${{ secrets.CIAM_CORE_DISPATCH_TOKEN }}
+      - name: Notify ciam-core of snippet changes
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          gh api repos/SecureAuthCorp/ciam-core/dispatches \
+            -f event_type=quickstart-snippets-updated \
+            -f 'client_payload[sha]=${{ github.sha }}'
+        env:
+          GH_TOKEN: ${{ secrets.GH_SERVICE_ACCOUNT_DEVOPS_1_PAT1 }}
