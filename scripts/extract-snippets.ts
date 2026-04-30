@@ -155,27 +155,45 @@ function getLibVersion(
 
   // iOS — Package.resolved (preferred) or Package.swift literal
   try {
+    // Look for Package.resolved at the SPM root and inside any *.xcworkspace or
+    // *.xcodeproj/project.xcworkspace under the scenario dir. globSync is
+    // synchronous — fine here since this whole function is sync.
+    const swiftpmGlobs = glob
+      .sync(
+        [
+          "**/*.xcworkspace/**/swiftpm/Package.resolved",
+          "**/*.xcodeproj/**/swiftpm/Package.resolved",
+        ],
+        { cwd: scenarioDir, absolute: true, nodir: true },
+      )
+      // glob may include both the .xcworkspace inside a .xcodeproj and the
+      // .xcodeproj's own embedded workspace — dedupe.
+      .filter((p, i, arr) => arr.indexOf(p) === i);
     const resolvedPaths = [
       path.join(scenarioDir, "Package.resolved"),
-      path.join(
-        scenarioDir,
-        "Quickstart.xcworkspace",
-        "xcshareddata",
-        "swiftpm",
-        "Package.resolved",
-      ),
+      ...swiftpmGlobs,
     ];
     for (const p of resolvedPaths) {
       try {
+        // SwiftPM v1 puts pins at the top level; v2 (used by modern Xcode)
+        // wraps them under `object.pins`. Handle both.
         const resolved = JSON.parse(readFileSync(p, "utf-8")) as {
           pins?: Array<{
             identity?: string;
             location?: string;
             state?: { version?: string };
           }>;
+          object?: {
+            pins?: Array<{
+              identity?: string;
+              location?: string;
+              state?: { version?: string };
+            }>;
+          };
         };
+        const pins = resolved.pins ?? resolved.object?.pins;
         const libLower = lib.toLowerCase();
-        const pin = resolved.pins?.find((p) => {
+        const pin = pins?.find((p) => {
           const id = (p.identity || "").toLowerCase();
           const loc = (p.location || "").toLowerCase();
           return id === libLower || loc.includes(`/${libLower}`);
