@@ -45,11 +45,16 @@ type IdTokenClaims = {
 };
 
 function decodeIdToken(idToken: string): IdTokenClaims {
-  const [, payload] = idToken.split(".");
-  if (!payload) return {};
-  const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
-  return JSON.parse(atob(padded)) as IdTokenClaims;
+  try {
+    const [, payload] = idToken.split(".");
+    if (!payload) return {};
+    const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
+    return JSON.parse(atob(padded)) as IdTokenClaims;
+  } catch {
+    // Malformed / opaque token — fall through to the default welcome message
+    return {};
+  }
 }
 
 function welcomeMessage(...tokens: (string | null | undefined)[]): string {

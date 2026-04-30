@@ -678,7 +678,7 @@
           "code": "  async function signIn() {\n    setError(null);\n    setExpired(false);\n    try {\n      const result = await authorize(authConfig);\n      setAuthState(result);\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }",
           "file": "App.tsx",
           "lang": "tsx",
-          "lines": "67-78"
+          "lines": "72-83"
         },
         {
           "step": 4,
@@ -686,7 +686,7 @@
           "code": "  async function signOut() {\n    if (!authState) return;\n    try {\n      await revoke(authConfig, {\n        tokenToRevoke: authState.accessToken,\n        sendClientId: true,\n      });\n    } catch (e) {\n      // Revocation is best-effort — proceed with local logout regardless.\n      Alert.alert(\n        \"Sign-out warning\",\n        e instanceof Error ? e.message : String(e),\n      );\n    }\n    setAuthState(null);\n    setExpired(false);\n  }",
           "file": "App.tsx",
           "lang": "tsx",
-          "lines": "81-99"
+          "lines": "86-104"
         }
       ],
       "framework": "react-native",
@@ -724,7 +724,7 @@
           "code": "  const signIn = useCallback(async () => {\n    setError(null);\n    try {\n      const result: AuthorizeResult = await authorize(authConfig);\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? null,\n        idToken: result.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }, []);",
           "file": "App.tsx",
           "lang": "tsx",
-          "lines": "80-99"
+          "lines": "85-104"
         },
         {
           "step": 4,
@@ -732,7 +732,7 @@
           "code": "  async function persistRefreshToken(refreshToken: string): Promise<void> {\n    await Keychain.setGenericPassword(\"refreshToken\", refreshToken, {\n      service: KEYCHAIN_SERVICE,\n      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,\n    });\n  }\n\n  async function loadRefreshToken(): Promise<string | null> {\n    const credentials = await Keychain.getGenericPassword({\n      service: KEYCHAIN_SERVICE,\n    });\n    return credentials ? credentials.password : null;\n  }\n\n  async function clearRefreshToken(): Promise<void> {\n    await Keychain.resetGenericPassword({ service: KEYCHAIN_SERVICE });\n  }",
           "file": "App.tsx",
           "lang": "tsx",
-          "lines": "102-120"
+          "lines": "107-125"
         },
         {
           "step": 5,
@@ -740,7 +740,7 @@
           "code": "  const refreshTokens = useCallback(async () => {\n    setError(null);\n    try {\n      const stored = tokens?.refreshToken ?? (await loadRefreshToken());\n      if (!stored) {\n        setError(\"No refresh token available. Sign in first.\");\n        return;\n      }\n      const result: RefreshResult = await refresh(authConfig, {\n        refreshToken: stored,\n      });\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? stored,\n        // Refresh responses don't always include a new id_token — keep the\n        // previous one so the welcome message stays populated.\n        idToken: result.idToken ?? tokens?.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken && next.refreshToken !== stored) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      // Refresh tokens can be revoked or expire — clear local state and surface the error.\n      await clearRefreshToken();\n      setTokens(null);\n      setError(\n        e instanceof Error\n          ? `Refresh failed (${e.message}). Sign in again.`\n          : `Refresh failed. Sign in again.`,\n      );\n    }\n  }, [tokens]);",
           "file": "App.tsx",
           "lang": "tsx",
-          "lines": "123-158"
+          "lines": "128-163"
         }
       ],
       "framework": "react-native",

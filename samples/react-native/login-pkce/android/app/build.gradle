@@ -87,7 +87,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        manifestPlaceholders = [appAuthRedirectScheme: "com.secureauth.quickstart"]
+        // Use put() (or +=) instead of `=` so we don't wipe placeholders
+        // injected upstream by the React Native gradle plugin (e.g. usesCleartextTraffic).
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.secureauth.quickstart"
     }
     signingConfigs {
         debug {
