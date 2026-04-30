@@ -241,6 +241,7 @@ function getInstallCommand(scenarioDir: string): string {
         ![
           "react",
           "react-dom",
+          "react-native",
           "vue",
           "express",
           "express-session",
