@@ -22,6 +22,19 @@ function error(msg: string) {
   errors++;
 }
 
+function exampleFileFor(envFile: string): string {
+  // Special case: .env (a dotfile with no stem) → .env.example.
+  if (path.basename(envFile) === ".env") {
+    return envFile + ".example";
+  }
+  // General case: insert ".example" before the final extension.
+  const ext = path.extname(envFile);
+  if (ext) {
+    return envFile.slice(0, -ext.length) + ".example" + ext;
+  }
+  return envFile + ".example";
+}
+
 async function main() {
   const manifestFiles = await glob("*/manifest.yaml", { cwd: SAMPLES });
 
@@ -35,48 +48,78 @@ async function main() {
       const scenarioDir = path.join(frameworkDir, dirName);
 
       if (!existsSync(scenarioDir)) {
-        error(`Directory not found: samples/${manifest.framework}/${dirName}/ (scenario: ${scenarioId})`);
+        error(
+          `Directory not found: samples/${manifest.framework}/${dirName}/ (scenario: ${scenarioId})`,
+        );
         continue;
       }
 
       const envFile = manifest.env_file || ".env";
-      const exampleFile = envFile.endsWith(".ts")
-        ? envFile.replace(/\.ts$/, ".example.ts")
-        : ".env.example";
+      const exampleFile = exampleFileFor(envFile);
       if (!existsSync(path.join(scenarioDir, exampleFile))) {
-        error(`Missing ${exampleFile} in samples/${manifest.framework}/${dirName}/`);
+        error(
+          `Missing ${exampleFile} in samples/${manifest.framework}/${dirName}/`,
+        );
       }
 
       if (!existsSync(path.join(scenarioDir, "README.md"))) {
         error(`Missing README.md in samples/${manifest.framework}/${dirName}/`);
       }
 
-      const sourceFiles = await glob("src/**/*.{ts,tsx,js,jsx,vue,cs,java,yml,yaml}", {
-        cwd: scenarioDir,
-      });
+      const sourceFiles = await glob(
+        "**/*.{ts,tsx,js,jsx,vue,cs,java,yml,yaml,swift,kt,kts,dart,gradle,xcconfig}",
+        {
+          cwd: scenarioDir,
+          ignore: [
+            "**/node_modules/**",
+            "**/.yarn/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/target/**",
+            "**/bin/**",
+            "**/obj/**",
+            "**/.gradle/**",
+            "**/.dart_tool/**",
+            "**/Pods/**",
+            "**/DerivedData/**",
+            "**/.build/**",
+            "**/coverage/**",
+          ],
+        },
+      );
 
       let hasSnippetTag = false;
       for (const file of sourceFiles) {
         const fileContent = readFileSync(path.join(scenarioDir, file), "utf-8");
-        const starts = [...fileContent.matchAll(TAG_START)].map((m) => parseInt(m[1], 10));
-        const ends = [...fileContent.matchAll(TAG_END)].map((m) => parseInt(m[1], 10));
+        const starts = [...fileContent.matchAll(TAG_START)].map((m) =>
+          parseInt(m[1], 10),
+        );
+        const ends = [...fileContent.matchAll(TAG_END)].map((m) =>
+          parseInt(m[1], 10),
+        );
 
         if (starts.length > 0) hasSnippetTag = true;
 
         for (const step of starts) {
           if (!ends.includes(step)) {
-            error(`Missing @snippet:step${step}:end in samples/${manifest.framework}/${dirName}/${file}`);
+            error(
+              `Missing @snippet:step${step}:end in samples/${manifest.framework}/${dirName}/${file}`,
+            );
           }
         }
         for (const step of ends) {
           if (!starts.includes(step)) {
-            error(`Missing @snippet:step${step}:start in samples/${manifest.framework}/${dirName}/${file}`);
+            error(
+              `Missing @snippet:step${step}:start in samples/${manifest.framework}/${dirName}/${file}`,
+            );
           }
         }
       }
 
       if (!hasSnippetTag) {
-        error(`No @snippet tags found in samples/${manifest.framework}/${dirName}/`);
+        error(
+          `No @snippet tags found in samples/${manifest.framework}/${dirName}/`,
+        );
       }
     }
   }
