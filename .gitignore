@@ -75,6 +75,7 @@ target/
 **/build/
 **/Pods/
 **/.gradle/
+**/.cxx/
 **/.xcode.env.local
 **/*.xcworkspace/
 **/local.properties
