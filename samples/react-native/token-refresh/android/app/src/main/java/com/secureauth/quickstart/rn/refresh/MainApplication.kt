@@ -1,4 +1,4 @@
-package com.secureauth.quickstart
+package com.secureauth.quickstart.rn.refresh
 
 import android.app.Application
 import com.facebook.react.PackageList

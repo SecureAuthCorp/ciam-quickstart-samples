@@ -14,9 +14,9 @@ Minimal React Native app demonstrating OIDC login using Authorization Code + PKC
 1. Copy `.env.example` to `.env` and fill in your SecureAuth values:
    - `ISSUER_URL` — your workspace URL
    - `CLIENT_ID` — the OAuth client ID
-   - `REDIRECT_URI` — leave as `com.secureauth.quickstart://oauthredirect` (must match the scheme registered in `ios/Quickstart/Info.plist` and `android/app/build.gradle`)
+   - `REDIRECT_URI` — leave as `com.secureauth.quickstart.rn.login://oauthredirect` (must match the scheme registered in `ios/Quickstart/Info.plist` and `android/app/build.gradle`)
    - `SCOPES` — space-separated list (e.g. `openid profile email`)
-2. In CIAM admin UI, register the redirect URI exactly: `com.secureauth.quickstart://oauthredirect`
+2. In CIAM admin UI, register the redirect URI exactly: `com.secureauth.quickstart.rn.login://oauthredirect`
 3. Install JS deps: `yarn install`
 4. Install iOS native deps: `cd ios && pod install && cd ..`
 5. (Android only, first run) Generate a debug keystore: `cd android/app && keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" && cd ../..`

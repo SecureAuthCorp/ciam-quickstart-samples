@@ -11,7 +11,7 @@ Minimal React Native app demonstrating OIDC token refresh using [`react-native-a
 ## Setup
 
 1. Copy `.env.example` to `.env` and fill in your SecureAuth values. Note `SCOPES` includes `offline_access`.
-2. In CIAM admin UI, register the redirect URI exactly: `com.secureauth.quickstart://oauthredirect`
+2. In CIAM admin UI, register the redirect URI exactly: `com.secureauth.quickstart.rn.refresh://oauthredirect`
 3. `yarn install`
 4. `cd ios && pod install && cd ..`
 5. (Android only, first run) Generate a debug keystore: `cd android/app && keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" && cd ../..`

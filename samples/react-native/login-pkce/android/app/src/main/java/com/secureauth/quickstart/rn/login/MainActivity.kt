@@ -1,4 +1,4 @@
-package com.secureauth.quickstart
+package com.secureauth.quickstart.rn.login
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

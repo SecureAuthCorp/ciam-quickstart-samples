@@ -80,16 +80,16 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.secureauth.quickstart"
+    namespace "com.secureauth.quickstart.rn.refresh"
     defaultConfig {
-        applicationId "com.secureauth.quickstart"
+        applicationId "com.secureauth.quickstart.rn.refresh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         // Use put() (or +=) instead of `=` so we don't wipe placeholders
         // injected upstream by the React Native gradle plugin (e.g. usesCleartextTraffic).
-        manifestPlaceholders["appAuthRedirectScheme"] = "com.secureauth.quickstart"
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.secureauth.quickstart.rn.refresh"
     }
     signingConfigs {
         debug {

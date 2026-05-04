@@ -28,10 +28,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.secureauth.quickstart</string>
+			<string>com.secureauth.quickstart.rn.login</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.secureauth.quickstart</string>
+				<string>com.secureauth.quickstart.rn.login</string>
 			</array>
 		</dict>
 	</array>
