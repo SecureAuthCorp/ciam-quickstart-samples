@@ -67,3 +67,16 @@ target/
 *.p12
 *.pem
 *.jks
+
+# Mobile (iOS / Android / RN) build artifacts
+.bundle/
+*.jsbundle
+.metro-health-check*
+**/build/
+**/Pods/
+**/.gradle/
+**/.cxx/
+**/.xcode.env.local
+**/*.xcworkspace/
+**/local.properties
+**/debug.keystore
