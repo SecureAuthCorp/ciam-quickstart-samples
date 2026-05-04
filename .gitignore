@@ -80,3 +80,4 @@ target/
 **/*.xcworkspace/
 **/local.properties
 **/debug.keystore
+samples/ios/**/Config.xcconfig
