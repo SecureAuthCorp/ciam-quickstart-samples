@@ -41,10 +41,145 @@ updates:
       prefix: "deps"
 
   - package-ecosystem: "npm"
+    directory: "/samples/vue/login-pkce"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/vue/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/node/login-auth-code"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/node/saml-sp-login"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/node/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  # React Native samples — labelled "manual-review" so the auto-merge workflow
+  # skips them. Dep bumps here can break native autolinking / API shapes that
+  # `tsc --noEmit` doesn't catch; require human eyes on every update.
+  - package-ecosystem: "npm"
+    directory: "/samples/react-native/login-pkce"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "manual-review"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/react-native/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "manual-review"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
     directory: "/scripts"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "maven"
+    directory: "/samples/java/login-auth-code"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "maven"
+    directory: "/samples/java/saml-sp-login"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "maven"
+    directory: "/samples/java/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "nuget"
+    directory: "/samples/dotnet/login-auth-code"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "nuget"
+    directory: "/samples/dotnet/saml-sp-login"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "nuget"
+    directory: "/samples/dotnet/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
     commit-message:
