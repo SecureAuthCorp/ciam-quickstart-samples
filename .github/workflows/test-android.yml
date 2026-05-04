@@ -53,7 +53,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
 
       # React Native samples need their JS deps installed first so autolinking
       # can resolve native modules from node_modules. Detect by walking up to

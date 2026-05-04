@@ -90,9 +90,11 @@ updates:
     commit-message:
       prefix: "deps"
 
-  # React Native samples — labelled "manual-review" so the auto-merge workflow
-  # skips them. Dep bumps here can break native autolinking / API shapes that
-  # `tsc --noEmit` doesn't catch; require human eyes on every update.
+  # React Native samples — the auto-merge workflow excludes
+  # /samples/react-native/* by directory match, so bumps here always require
+  # human review. Dep bumps can break native autolinking / API shapes that
+  # `tsc --noEmit` doesn't catch. The "manual-review" label is informational
+  # only (the workflow filter is directory-based, not label-based).
   - package-ecosystem: "npm"
     directory: "/samples/react-native/login-pkce"
     schedule:
