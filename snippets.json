@@ -652,5 +652,105 @@
       "run_command": "yarn install && yarn start",
       "callout": "AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure SP request signing per your library's docs."
     }
+  },
+  "mobile_login_pkce": {
+    "react-native": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import the AppAuth wrapper and the env loader",
+          "code": "import Config from \"react-native-config\";\nimport {\n  authorize,\n  revoke,\n  type AuthConfiguration,\n} from \"react-native-app-auth\";",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "1-8"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client with your SecureAuth app settings",
+          "code": "const authConfig: AuthConfiguration = {\n  issuer: \"{{ISSUER_URL}}\",\n  clientId: \"{{CLIENT_ID}}\",\n  redirectUrl: \"{{REDIRECT_URI}}\",\n  scopes: \"{{SCOPES}}\".split(\" \"),\n};",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "11-18"
+        },
+        {
+          "step": 3,
+          "description": "Open the system browser, run Auth Code + PKCE, and receive the tokens",
+          "code": "  async function signIn() {\n    setError(null);\n    setExpired(false);\n    try {\n      const result = await authorize(authConfig);\n      setAuthState(result);\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "72-83"
+        },
+        {
+          "step": 4,
+          "description": "Revoke the access token at the IdP and clear local auth state",
+          "code": "  async function signOut() {\n    if (!authState) return;\n    try {\n      await revoke(authConfig, {\n        tokenToRevoke: authState.accessToken,\n        sendClientId: true,\n      });\n    } catch (e) {\n      // Revocation is best-effort — proceed with local logout regardless.\n      Alert.alert(\n        \"Sign-out warning\",\n        e instanceof Error ? e.message : String(e),\n      );\n    }\n    setAuthState(null);\n    setExpired(false);\n  }",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "86-104"
+        }
+      ],
+      "framework": "react-native",
+      "lib": "react-native-app-auth",
+      "lib_version": "8.1.0",
+      "docs_url": "https://github.com/FormidableLabs/react-native-app-auth",
+      "install": "react-native-app-auth react-native-config react-native-safe-area-context",
+      "repo_path": "samples/react-native/login-pkce",
+      "run_command": "yarn install && yarn ios",
+      "callout": "Uses the system browser (ASWebAuthenticationSession on iOS / Custom Tabs on Android) — never an embedded WebView. AppAuth enforces this for you."
+    }
+  },
+  "mobile_token_refresh": {
+    "react-native": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import AppAuth, env loader, and the secure-storage backend",
+          "code": "import Config from \"react-native-config\";\nimport {\n  authorize,\n  refresh,\n  revoke,\n  type AuthConfiguration,\n} from \"react-native-app-auth\";\nimport * as Keychain from \"react-native-keychain\";",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "1-10"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client — the offline_access scope (set in .env) enables refresh tokens",
+          "code": "const authConfig: AuthConfiguration = {\n  issuer: \"{{ISSUER_URL}}\",\n  clientId: \"{{CLIENT_ID}}\",\n  redirectUrl: \"{{REDIRECT_URI}}\",\n  scopes: \"{{SCOPES}}\".split(\" \"),\n};",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "13-20"
+        },
+        {
+          "step": 3,
+          "description": "Trigger login with the offline_access scope and capture the refresh token",
+          "code": "  const signIn = useCallback(async () => {\n    setError(null);\n    try {\n      const result: AuthorizeResult = await authorize(authConfig);\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? null,\n        idToken: result.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }, []);",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "85-104"
+        },
+        {
+          "step": 4,
+          "description": "Persist the refresh token in platform secure storage (Keychain on iOS, EncryptedSharedPreferences on Android)",
+          "code": "  async function persistRefreshToken(refreshToken: string): Promise<void> {\n    await Keychain.setGenericPassword(\"refreshToken\", refreshToken, {\n      service: KEYCHAIN_SERVICE,\n      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,\n    });\n  }\n\n  async function loadRefreshToken(): Promise<string | null> {\n    const credentials = await Keychain.getGenericPassword({\n      service: KEYCHAIN_SERVICE,\n    });\n    return credentials ? credentials.password : null;\n  }\n\n  async function clearRefreshToken(): Promise<void> {\n    await Keychain.resetGenericPassword({ service: KEYCHAIN_SERVICE });\n  }",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "107-125"
+        },
+        {
+          "step": 5,
+          "description": "Exchange the refresh token for a new access token; on failure clear local state and require re-login",
+          "code": "  const refreshTokens = useCallback(async () => {\n    setError(null);\n    try {\n      const stored = tokens?.refreshToken ?? (await loadRefreshToken());\n      if (!stored) {\n        setError(\"No refresh token available. Sign in first.\");\n        return;\n      }\n      const result: RefreshResult = await refresh(authConfig, {\n        refreshToken: stored,\n      });\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? stored,\n        // Refresh responses don't always include a new id_token — keep the\n        // previous one so the welcome message stays populated.\n        idToken: result.idToken ?? tokens?.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken && next.refreshToken !== stored) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      // Refresh tokens can be revoked or expire — clear local state and surface the error.\n      await clearRefreshToken();\n      setTokens(null);\n      setError(\n        e instanceof Error\n          ? `Refresh failed (${e.message}). Sign in again.`\n          : `Refresh failed. Sign in again.`,\n      );\n    }\n  }, [tokens]);",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "128-163"
+        }
+      ],
+      "framework": "react-native",
+      "lib": "react-native-app-auth",
+      "lib_version": "8.1.0",
+      "docs_url": "https://github.com/FormidableLabs/react-native-app-auth",
+      "install": "react-native-app-auth react-native-config react-native-keychain react-native-safe-area-context",
+      "repo_path": "samples/react-native/token-refresh",
+      "run_command": "yarn install && yarn ios",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
+    }
   }
 }
