@@ -3,15 +3,13 @@ name: Test Android Builds
 on:
   push:
     paths:
-      - "samples/**/android/**"
-      - "samples/**/package.json"
-      - "samples/**/yarn.lock"
+      - "samples/react-native/**"
+      - "samples/android/**"
       - ".github/workflows/test-android.yml"
   pull_request:
     paths:
-      - "samples/**/android/**"
-      - "samples/**/package.json"
-      - "samples/**/yarn.lock"
+      - "samples/react-native/**"
+      - "samples/android/**"
       - ".github/workflows/test-android.yml"
   schedule:
     - cron: "0 9 * * 1"

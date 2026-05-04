@@ -3,10 +3,12 @@ name: Test Java Frameworks
 on:
   push:
     paths:
-      - "samples/**"
+      - "samples/java/**"
+      - ".github/workflows/test-java.yml"
   pull_request:
     paths:
-      - "samples/**"
+      - "samples/java/**"
+      - ".github/workflows/test-java.yml"
   schedule:
     - cron: "0 8 * * 1"
   workflow_dispatch:

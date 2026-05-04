@@ -3,10 +3,12 @@ name: Test .NET Frameworks
 on:
   push:
     paths:
-      - "samples/**"
+      - "samples/dotnet/**"
+      - ".github/workflows/test-dotnet.yml"
   pull_request:
     paths:
-      - "samples/**"
+      - "samples/dotnet/**"
+      - ".github/workflows/test-dotnet.yml"
   schedule:
     - cron: "0 8 * * 1"
   workflow_dispatch:
