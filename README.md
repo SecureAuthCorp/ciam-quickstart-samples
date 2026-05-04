@@ -5,10 +5,15 @@ Framework-specific sample apps demonstrating SecureAuth integration. Code is ext
 ## Structure
 
 ```
-samples/          # One folder per framework
-  react/          # React sample apps
-    login-pkce/   # Login with Auth Code + PKCE
-scripts/          # Extraction and validation tools
+samples/                # One folder per framework
+  react/                # React SPA samples
+  vue/                  # Vue SPA samples
+  angular/              # Angular SPA samples
+  node/                 # Node.js server samples (OIDC + SAML)
+  java/                 # Java/Spring Boot server samples (OIDC + SAML)
+  dotnet/               # .NET server samples (OIDC + SAML)
+  react-native/         # React Native mobile samples (PKCE + token refresh)
+scripts/                # Extraction and validation tools
 ```
 
 ## Adding a new sample
