@@ -20,6 +20,15 @@
         <java.version>21</java.version>
     </properties>
 
+    <!-- OpenSAML (transitive dep of spring-security-saml2-service-provider) is
+         hosted on Shibboleth's repo, not Maven Central. -->
+    <repositories>
+        <repository>
+            <id>shibboleth</id>
+            <url>https://build.shibboleth.net/maven/releases/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
