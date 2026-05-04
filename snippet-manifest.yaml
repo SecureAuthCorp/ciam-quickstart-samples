@@ -30,6 +30,12 @@ frameworks:
     lib: openid-client
     docs_url: https://github.com/panva/openid-client
     env_file: .env
+  react-native:
+    label: React Native
+    lang: tsx
+    lib: react-native-app-auth
+    docs_url: https://github.com/FormidableLabs/react-native-app-auth
+    env_file: .env
   vue:
     label: Vue
     lang: ts
@@ -158,3 +164,41 @@ scenarios:
       - dotnet
       - java
       - node
+  mobile_login_pkce:
+    app_type: mobile_desktop
+    display_name: User Login
+    grant: Auth Code + PKCE
+    description: Native mobile login via the system browser. PKCE is required — public clients must not embed a secret.
+    config_rows:
+      - label: Client ID
+        value: "{{CLIENT_ID}}"
+      - label: Issuer URL
+        value: "{{ISSUER_URL}}"
+      - label: Redirect URI
+        value: "{{REDIRECT_URI}}"
+      - label: Scopes
+        value: "{{SCOPES}}"
+      - label: Grant
+        value: Authorization Code + PKCE
+    frameworks:
+      - react-native
+  mobile_token_refresh:
+    app_type: mobile_desktop
+    display_name: Token Refresh
+    grant: Refresh Token
+    description: >-
+      Use refresh tokens to renew access tokens without re-prompting. Requires offline_access. Refresh tokens are stored
+      in platform secure storage (Keychain / EncryptedSharedPreferences).
+    required_scopes:
+      - offline_access
+    config_rows:
+      - label: Client ID
+        value: "{{CLIENT_ID}}"
+      - label: Issuer URL
+        value: "{{ISSUER_URL}}"
+      - label: Redirect URI
+        value: "{{REDIRECT_URI}}"
+      - label: Scopes
+        value: "{{SCOPES}}"
+    frameworks:
+      - react-native
