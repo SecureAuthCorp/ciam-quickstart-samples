@@ -667,10 +667,10 @@
         {
           "step": 2,
           "description": "Configure the OIDC client with your SecureAuth app settings",
-          "code": "private func plist(_ key: String) -> String {\n    Bundle.main.object(forInfoDictionaryKey: key) as? String ?? \"\"\n}\n\nstruct AuthConfig {\n    static let issuer = AuthConfig.buildIssuerURL(host: plist(\"CIAM_ISSUER_HOST\"),\n                                                  path: plist(\"CIAM_ISSUER_PATH\"))!\n    static let clientId    = plist(\"CIAM_CLIENT_ID\")\n    static let redirectURI = URL(string: \"\\(plist(\"CIAM_REDIRECT_SCHEME\"))://oauthredirect\")!\n    static let scopes      = plist(\"CIAM_SCOPES\").split(separator: \" \").map(String.init)\n\n    /// Combines an issuer host (which may include a port) with an optional workspace path.\n    /// Path is optional — local dev IdPs (e.g. `default.acp.localhost:8443`) have no\n    /// workspace component, while SaaS issuers do. Avoid a trailing slash so that\n    /// `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.\n    static func buildIssuerURL(host: String, path: String) -> URL? {\n        let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: \"/\"))\n        let urlString = trimmedPath.isEmpty ? \"https://\\(host)\" : \"https://\\(host)/\\(trimmedPath)\"\n        return URL(string: urlString)\n    }\n}",
+          "code": "private func plist(_ key: String) -> String {\n    Bundle.main.object(forInfoDictionaryKey: key) as? String ?? \"\"\n}\n\nstruct AuthConfig {\n    static let issuer = AuthConfig.buildIssuerURL(host: plist(\"CIAM_ISSUER_HOST\"),\n                                                  path: plist(\"CIAM_ISSUER_PATH\"))!\n    static let clientId    = plist(\"CIAM_CLIENT_ID\")\n    static let redirectURI = URL(string: \"\\(plist(\"CIAM_REDIRECT_SCHEME\"))://oauthredirect\")!\n    static let scopes      = plist(\"CIAM_SCOPES\").split(separator: \" \").map(String.init)\n\n    /// Combines an issuer host (which may include a port) with an optional workspace path.\n    /// Avoid a trailing slash so that `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.\n    static func buildIssuerURL(host: String, path: String) -> URL? {\n        let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: \"/\"))\n        let urlString = trimmedPath.isEmpty ? \"https://\\(host)\" : \"https://\\(host)/\\(trimmedPath)\"\n        return URL(string: urlString)\n    }\n}",
           "file": "Quickstart/AuthClient.swift",
           "lang": "swift",
-          "lines": "9-31"
+          "lines": "9-29"
         },
         {
           "step": 3,
@@ -678,7 +678,7 @@
           "code": "    func signIn(presenting: UIViewController) async {\n        error = nil\n        expired = false\n        do {\n            let config = try await discoverConfiguration(forIssuer: AuthConfig.issuer)\n            let request = OIDAuthorizationRequest(\n                configuration: config,\n                clientId: AuthConfig.clientId,\n                scopes: AuthConfig.scopes,\n                redirectURL: AuthConfig.redirectURI,\n                responseType: OIDResponseTypeCode,\n                additionalParameters: nil\n            )\n            let authState = try await authStateByPresenting(request: request, presenting: presenting)\n            state = authState\n            scheduleExpiryTimer()\n        } catch {\n            self.error = error.localizedDescription\n        }\n    }",
           "file": "Quickstart/AuthClient.swift",
           "lang": "swift",
-          "lines": "43-64"
+          "lines": "41-62"
         },
         {
           "step": 4,
@@ -686,7 +686,7 @@
           "code": "    func signOut() async {\n        if let token = state?.lastTokenResponse?.accessToken {\n            try? await revokeToken(token)  // best-effort — proceed with local logout regardless\n        }\n        state = nil\n        expired = false\n        expiryTask?.cancel()\n    }",
           "file": "Quickstart/AuthClient.swift",
           "lang": "swift",
-          "lines": "67-76"
+          "lines": "65-74"
         }
       ],
       "framework": "ios",

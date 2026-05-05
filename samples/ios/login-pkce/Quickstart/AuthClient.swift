@@ -20,9 +20,7 @@ struct AuthConfig {
     static let scopes      = plist("CIAM_SCOPES").split(separator: " ").map(String.init)
 
     /// Combines an issuer host (which may include a port) with an optional workspace path.
-    /// Path is optional — local dev IdPs (e.g. `default.acp.localhost:8443`) have no
-    /// workspace component, while SaaS issuers do. Avoid a trailing slash so that
-    /// `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.
+    /// Avoid a trailing slash so that `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.
     static func buildIssuerURL(host: String, path: String) -> URL? {
         let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let urlString = trimmedPath.isEmpty ? "https://\(host)" : "https://\(host)/\(trimmedPath)"
