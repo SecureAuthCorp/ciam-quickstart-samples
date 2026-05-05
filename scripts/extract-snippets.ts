@@ -412,6 +412,16 @@ async function main() {
       }
 
       if (!hasPkg) {
+        // iOS Xcode projects (xcodegen-generated or hand-rolled) — any *.xcodeproj/ folder.
+        try {
+          const xcodeprojDirs = await glob("*.xcodeproj", { cwd: scenarioDir });
+          hasPkg = xcodeprojDirs.length > 0;
+        } catch {
+          // no .xcodeproj
+        }
+      }
+
+      if (!hasPkg) {
         console.warn(
           `Warning: no project found for scenario ${scenarioId} in samples/${fw}/${dirName}/`,
         );

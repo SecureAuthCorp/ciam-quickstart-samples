@@ -18,6 +18,12 @@ frameworks:
     lib: Microsoft.AspNetCore.Authentication.OpenIdConnect
     docs_url: https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication
     env_file: .env
+  ios:
+    label: iOS
+    lang: swift
+    lib: AppAuth-iOS
+    docs_url: https://github.com/openid/AppAuth-iOS
+    env_file: Config.xcconfig
   java:
     label: Java
     lang: java
@@ -181,6 +187,7 @@ scenarios:
       - label: Grant
         value: Authorization Code + PKCE
     frameworks:
+      - ios
       - react-native
   mobile_token_refresh:
     app_type: mobile_desktop
