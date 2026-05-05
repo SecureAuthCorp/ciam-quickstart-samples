@@ -13,7 +13,7 @@ Minimal iOS app demonstrating OIDC login using Authorization Code + PKCE via [Ap
 
 1. Copy `Config.example.xcconfig` to `Config.xcconfig` and fill in your SecureAuth values:
    - `CLIENT_ID` — the OAuth client ID
-   - `ISSUER_HOST` — host (and port if needed) of your issuer (e.g. `your-tenant.us.connect.secureauth.com`)
+   - `ISSUER_HOST` — host of your issuer (e.g. `your-tenant.us.connect.secureauth.com`)
    - `ISSUER_PATH` — workspace path of your issuer (e.g. `your-workspace`).
    - `REDIRECT_SCHEME` — leave as `com.secureauth.quickstart.ios.login` (must match the scheme in `Quickstart/Info.plist` and your CIAM-side redirect URI)
    - `SCOPES` — space-separated list (e.g. `openid profile email`)
