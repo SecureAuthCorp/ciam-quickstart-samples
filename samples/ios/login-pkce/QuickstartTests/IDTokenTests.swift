@@ -41,20 +41,17 @@ final class IDTokenTests: XCTestCase {
     }
 
     func test_decode_base64urlWithDashUnderscoreAndMissingPadding_decodesCorrectly() {
-        // Crafts a payload whose base64 encoding contains `+` and `/` chars
-        // (which become `-` and `_` in base64url) and is not a multiple of 4 in length.
-        // Payload: {"sub":"uÿû"} — non-ASCII bytes ensure `+`/`/` appear in raw base64.
-        let raw = #"{"sub":"u\#u{00ff}\#u{00fb}"}"#
-        let payload = Data(raw.utf8)
-            .base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
-        XCTAssertTrue(payload.contains("-") || payload.contains("_"),
-                      "Test fixture must include URL-safe chars")
-        let jwt = "header.\(payload).signature"
+        // Hardcoded JWT whose payload segment exercises ALL base64url quirks at once:
+        // - contains `_` (the base64url replacement for `/`)
+        // - contains `-` (the base64url replacement for `+`)
+        // - is not a multiple of 4 chars long (decoder must restore padding)
+        //
+        // The payload `eyJzdWIiOiI_Pz8-In0` decodes to {"sub":"???>"}.
+        let jwt = "header.eyJzdWIiOiI_Pz8-In0.signature"
+        XCTAssertTrue(jwt.contains("_") && jwt.contains("-"),
+                      "Hardcoded fixture must keep its URL-safe chars; don't 'tidy' it")
         let claims = IDToken.decode(jwt)
-        XCTAssertEqual(claims.sub, "u\u{00ff}\u{00fb}")
+        XCTAssertEqual(claims.sub, "???>")
     }
 
     func test_welcomeName_precedence() {

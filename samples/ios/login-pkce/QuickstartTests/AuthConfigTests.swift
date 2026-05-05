@@ -25,4 +25,9 @@ final class AuthConfigTests: XCTestCase {
         let url = AuthConfig.buildIssuerURL(host: "host.example", path: "/")
         XCTAssertEqual(url?.absoluteString, "https://host.example")
     }
+
+    func test_buildIssuerURL_emptyHost_returnsNil() {
+        XCTAssertNil(AuthConfig.buildIssuerURL(host: "", path: ""))
+        XCTAssertNil(AuthConfig.buildIssuerURL(host: "", path: "your-workspace"))
+    }
 }

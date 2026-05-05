@@ -14,14 +14,20 @@ private func plist(_ key: String) -> String {
 
 struct AuthConfig {
     static let issuer = AuthConfig.buildIssuerURL(host: plist("CIAM_ISSUER_HOST"),
-                                                  path: plist("CIAM_ISSUER_PATH"))!
+                                                  path: plist("CIAM_ISSUER_PATH"))
     static let clientId    = plist("CIAM_CLIENT_ID")
-    static let redirectURI = URL(string: "\(plist("CIAM_REDIRECT_SCHEME"))://oauthredirect")!
+    static let redirectURI: URL? = {
+        let scheme = plist("CIAM_REDIRECT_SCHEME")
+        guard !scheme.isEmpty else { return nil }
+        return URL(string: "\(scheme)://oauthredirect")
+    }()
     static let scopes      = plist("CIAM_SCOPES").split(separator: " ").map(String.init)
 
     /// Combines an issuer host (which may include a port) with an optional workspace path.
-    /// Avoid a trailing slash so that `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.
+    /// Returns nil if host is empty. Avoids a trailing slash so that
+    /// `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.
     static func buildIssuerURL(host: String, path: String) -> URL? {
+        guard !host.isEmpty else { return nil }
         let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let urlString = trimmedPath.isEmpty ? "https://\(host)" : "https://\(host)/\(trimmedPath)"
         return URL(string: urlString)
@@ -44,12 +50,21 @@ final class AuthClient: ObservableObject {
         error = nil
         expired = false
         do {
-            let config = try await discoverConfiguration(forIssuer: AuthConfig.issuer)
+            guard let issuer = AuthConfig.issuer else {
+                throw AuthError.misconfigured("CIAM_ISSUER_HOST is missing — fill in Config.xcconfig")
+            }
+            guard !AuthConfig.clientId.isEmpty else {
+                throw AuthError.misconfigured("CIAM_CLIENT_ID is missing — fill in Config.xcconfig")
+            }
+            guard let redirectURI = AuthConfig.redirectURI else {
+                throw AuthError.misconfigured("CIAM_REDIRECT_SCHEME is missing — fill in Config.xcconfig")
+            }
+            let config = try await discoverConfiguration(forIssuer: issuer)
             let request = OIDAuthorizationRequest(
                 configuration: config,
                 clientId: AuthConfig.clientId,
                 scopes: AuthConfig.scopes,
-                redirectURL: AuthConfig.redirectURI,
+                redirectURL: redirectURI,
                 responseType: OIDResponseTypeCode,
                 additionalParameters: nil
             )
@@ -123,7 +138,9 @@ final class AuthClient: ObservableObject {
     }
 
     private func revokeToken(_ token: String) async throws {
-        let config = try await discoverConfiguration(forIssuer: AuthConfig.issuer)
+        // If we got here we already signed in successfully, so issuer was non-nil at sign-in time.
+        guard let issuer = AuthConfig.issuer else { return }
+        let config = try await discoverConfiguration(forIssuer: issuer)
         guard let revokeURLString = config.discoveryDocument?.discoveryDictionary["revocation_endpoint"] as? String,
               let revokeURL = URL(string: revokeURLString) else { return }
         var req = URLRequest(url: revokeURL)
@@ -155,6 +172,14 @@ final class AuthClient: ObservableObject {
     }
 }
 
-enum AuthError: Error {
+enum AuthError: LocalizedError {
     case unknown
+    case misconfigured(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .unknown: return "Unknown error"
+        case .misconfigured(let msg): return msg
+        }
+    }
 }

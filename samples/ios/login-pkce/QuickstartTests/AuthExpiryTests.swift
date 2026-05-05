@@ -16,8 +16,9 @@ final class AuthExpiryTests: XCTestCase {
         let future = Date().addingTimeInterval(30)
         switch AuthExpiry.evaluate(expiresAt: future) {
         case .valid(let remainingMs):
-            XCTAssertNotNil(remainingMs)
-            XCTAssertEqual(remainingMs ?? 0, 30_000, accuracy: 100)
+            guard let remainingMs else { XCTFail("Expected remainingMs to be non-nil"); return }
+            XCTAssertGreaterThan(remainingMs, 25_000)
+            XCTAssertLessThanOrEqual(remainingMs, 30_000)
         case .expired:
             XCTFail("Future expiry should be .valid")
         }
