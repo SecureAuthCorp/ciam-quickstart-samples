@@ -195,7 +195,7 @@ scenarios:
     grant: Refresh Token
     description: >-
       Use refresh tokens to renew access tokens without re-prompting. Requires offline_access. Refresh tokens are stored
-      in platform secure storage (Keychain / EncryptedSharedPreferences).
+      in iOS Keychain (kSecAttrAccessibleWhenUnlocked).
     required_scopes:
       - offline_access
     config_rows:
@@ -208,4 +208,5 @@ scenarios:
       - label: Scopes
         value: "{{SCOPES}}"
     frameworks:
+      - ios
       - react-native
