@@ -23,7 +23,7 @@ import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.core.Saml2ResponseValidatorResult;
 import org.springframework.security.saml2.core.Saml2X509Credential;
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
@@ -101,9 +101,9 @@ public class Application {
 
         @Bean
         SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            OpenSaml4AuthenticationProvider provider = new OpenSaml4AuthenticationProvider();
-            Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2ResponseValidatorResult> defaultValidator =
-                    OpenSaml4AuthenticationProvider.createDefaultResponseValidator();
+            OpenSaml5AuthenticationProvider provider = new OpenSaml5AuthenticationProvider();
+            Converter<OpenSaml5AuthenticationProvider.ResponseToken, Saml2ResponseValidatorResult> defaultValidator =
+                    OpenSaml5AuthenticationProvider.createDefaultResponseValidator();
             provider.setResponseValidator(token -> {
                 Saml2ResponseValidatorResult result = defaultValidator.convert(token);
                 List<Saml2Error> filtered = result.getErrors().stream()
@@ -138,7 +138,7 @@ public class Application {
                     }
                 }
                 final String expectedInResponseTo = assertionInResponseTo;
-                return OpenSaml4AuthenticationProvider.createDefaultAssertionValidatorWithParameters(
+                return OpenSaml5AuthenticationProvider.createDefaultAssertionValidatorWithParameters(
                         params -> {
                             params.put(
                                     org.opensaml.saml.saml2.assertion.SAML2AssertionValidationParameters.SC_CHECK_ADDRESS,
@@ -162,7 +162,9 @@ public class Application {
                     // requires POST + CSRF; for a quickstart we let a simple <a href="/logout">
                     // link work directly).
                     .logout(l -> l
-                            .logoutRequestMatcher(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/logout"))
+                            // Spring Security 7 dropped AntPathRequestMatcher; PathPatternRequestMatcher
+                            // is the replacement. `.matcher(path)` (no HTTP method) matches any method.
+                            .logoutRequestMatcher(org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher.withDefaults().matcher("/logout"))
                             .logoutSuccessUrl("/"))
                     // Disable CSRF for the demo. SAML2 ACS endpoint is already exempt by the
                     // framework; this just removes the requirement on /logout. Production apps
