@@ -10,6 +10,6 @@
     <PackageReference Include="Sustainsys.Saml2.AspNetCore2" Version="2.11.0" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <!-- Override transitive dep with vulnerable Newtonsoft.Json 10.0.1 (NU1903 / GHSA-5crp-9r3c-p9vr). -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 </Project>
