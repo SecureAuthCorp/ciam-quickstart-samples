@@ -1,195 +1,113 @@
 version: 2
+
 updates:
-  - package-ecosystem: "npm"
+  # ── npm (samples + scripts) ──────────────────────────────────────────────
+  # Shared defaults via YAML anchor: weekly schedule, max 3 open PRs, group
+  # minor+patch updates so a single weekly Angular/Vue/RN-monorepo release
+  # doesn't fan out into 5+ separate PRs (e.g. @angular/build, @angular/compiler,
+  # @angular/forms, @angular/router all bumping in lockstep). Major bumps stay
+  # solo so a human reads the changelog before merging.
+  - &npm-defaults
+    package-ecosystem: "npm"
     directory: "/samples/react/login-pkce"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/react/token-refresh"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/angular/login-pkce"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/angular/token-refresh"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/vue/login-pkce"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/vue/token-refresh"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/node/login-auth-code"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/node/saml-sp-login"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/node/token-refresh"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-
-  # React Native samples — the auto-merge workflow excludes
-  # /samples/react-native/* by directory match, so bumps here always require
-  # human review. Dep bumps can break native autolinking / API shapes that
-  # `tsc --noEmit` doesn't catch. The "manual-review" label is informational
-  # only (the workflow filter is directory-based, not label-based).
-  - package-ecosystem: "npm"
-    directory: "/samples/react-native/login-pkce"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "manual-review"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/samples/react-native/token-refresh"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "manual-review"
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "npm"
-    directory: "/scripts"
-    schedule:
-      interval: "weekly"
     open-pull-requests-limit: 3
-    labels:
-      - "dependencies"
+    labels: ["dependencies"]
     commit-message:
       prefix: "deps"
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
 
-  - package-ecosystem: "maven"
+  - <<: *npm-defaults
+    directory: "/samples/react/token-refresh"
+
+  - <<: *npm-defaults
+    directory: "/samples/angular/login-pkce"
+
+  - <<: *npm-defaults
+    directory: "/samples/angular/token-refresh"
+
+  - <<: *npm-defaults
+    directory: "/samples/vue/login-pkce"
+
+  - <<: *npm-defaults
+    directory: "/samples/vue/token-refresh"
+
+  - <<: *npm-defaults
+    directory: "/samples/node/login-auth-code"
+
+  - <<: *npm-defaults
+    directory: "/samples/node/saml-sp-login"
+
+  - <<: *npm-defaults
+    directory: "/samples/node/token-refresh"
+
+  # React Native — auto-merge workflow excludes /samples/react-native/* by
+  # directory match, so bumps always require human review. Dep bumps can
+  # break native autolinking / API shapes that `tsc --noEmit` doesn't catch.
+  # The "manual-review" label is informational (workflow filter is dir-based).
+  - <<: *npm-defaults
+    directory: "/samples/react-native/login-pkce"
+    labels: ["dependencies", "manual-review"]
+
+  - <<: *npm-defaults
+    directory: "/samples/react-native/token-refresh"
+    labels: ["dependencies", "manual-review"]
+
+  - <<: *npm-defaults
+    directory: "/scripts"
+
+  # ── Maven (Java) ────────────────────────────────────────────────────────
+  # Monthly cadence: Spring Boot + plugin updates move slower than npm; weekly
+  # noise wasn't paying off.
+  - &maven-defaults
+    package-ecosystem: "maven"
     directory: "/samples/java/login-auth-code"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    labels: ["dependencies"]
     commit-message:
       prefix: "deps"
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
 
-  - package-ecosystem: "maven"
+  - <<: *maven-defaults
     directory: "/samples/java/saml-sp-login"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
 
-  - package-ecosystem: "maven"
+  - <<: *maven-defaults
     directory: "/samples/java/token-refresh"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
 
-  - package-ecosystem: "nuget"
+  # ── NuGet (.NET) ────────────────────────────────────────────────────────
+  # Monthly cadence: Microsoft.* packages bunch around SDK release cycles.
+  - &nuget-defaults
+    package-ecosystem: "nuget"
     directory: "/samples/dotnet/login-auth-code"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    labels: ["dependencies"]
     commit-message:
       prefix: "deps"
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
 
-  - package-ecosystem: "nuget"
+  - <<: *nuget-defaults
     directory: "/samples/dotnet/saml-sp-login"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
 
-  - package-ecosystem: "nuget"
+  - <<: *nuget-defaults
     directory: "/samples/dotnet/token-refresh"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
 
+  # ── GitHub Actions ──────────────────────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    labels:
-      - "dependencies"
+    labels: ["dependencies"]
