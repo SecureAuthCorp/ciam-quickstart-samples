@@ -45,7 +45,7 @@
 		F76342B15C804E11BAE6051A /* AuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthClient.swift; sourceTree = "<group>"; };
 		FC442DD6C63867CA7CDF6B42 /* AuthExpiry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthExpiry.swift; sourceTree = "<group>"; };
 		FF862174C6DBDE8356033575 /* Config.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.example.xcconfig; sourceTree = "<group>"; };
-		"TEMP_194B77FE-4336-4EA2-AA0D-E81215A58625" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		"TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,10 +104,10 @@
 			path = QuickstartTests;
 			sourceTree = "<group>";
 		};
-		"TEMP_20BC4284-A51D-4D08-9666-895F046CC075" /* token-refresh */ = {
+		"TEMP_647D934F-E9EA-4025-9A97-044A3A22AA15" /* token-refresh */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_194B77FE-4336-4EA2-AA0D-E81215A58625" /* Config.xcconfig */,
+				"TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */,
 			);
 			path = "token-refresh";
 			sourceTree = "<group>";
@@ -251,7 +251,7 @@
 		};
 		36EAA512DC23D068A23E984E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_194B77FE-4336-4EA2-AA0D-E81215A58625" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -369,7 +369,7 @@
 		};
 		C0849BB623D67D543C053764 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_194B77FE-4336-4EA2-AA0D-E81215A58625" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -469,7 +469,7 @@
 			repositoryURL = "https://github.com/openid/AppAuth-iOS";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.7.6;
+				minimumVersion = 2.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
