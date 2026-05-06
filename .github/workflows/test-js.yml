@@ -3,10 +3,20 @@ name: Test JS Frameworks
 on:
   push:
     paths:
-      - "samples/**"
+      - "samples/react/**"
+      - "samples/angular/**"
+      - "samples/vue/**"
+      - "samples/node/**"
+      - "samples/react-native/**"
+      - ".github/workflows/test-js.yml"
   pull_request:
     paths:
-      - "samples/**"
+      - "samples/react/**"
+      - "samples/angular/**"
+      - "samples/vue/**"
+      - "samples/node/**"
+      - "samples/react-native/**"
+      - ".github/workflows/test-js.yml"
   schedule:
     - cron: "0 8 * * 1"
   workflow_dispatch:

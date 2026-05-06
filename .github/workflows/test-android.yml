@@ -1,0 +1,102 @@
+name: Test Android Builds
+
+on:
+  push:
+    paths:
+      - "samples/react-native/**"
+      - "samples/android/**"
+      - ".github/workflows/test-android.yml"
+  pull_request:
+    paths:
+      - "samples/react-native/**"
+      - "samples/android/**"
+      - ".github/workflows/test-android.yml"
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  find-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.find.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: find
+        # Discover any sample with an Android Gradle wrapper. Today: react-native
+        # samples; future: native android samples will surface automatically.
+        run: |
+          DIRS=$(find samples -name "gradlew" -not -path "*/node_modules/*" -not -path "*/build/*" -exec dirname {} \; 2>/dev/null \
+            | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: find-projects
+    if: ${{ needs.find-projects.outputs.matrix != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        android_dir: ${{ fromJson(needs.find-projects.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+
+      # React Native samples need their JS deps installed first so autolinking
+      # can resolve native modules from node_modules. Detect by walking up to
+      # the directory that owns package.json.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install JS dependencies (RN samples)
+        run: |
+          # ${{ matrix.android_dir }} is e.g. "samples/react-native/login-pkce/android".
+          # Walk up until we find a package.json or hit the repo root.
+          dir="${{ matrix.android_dir }}"
+          while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+            if [ -f "$dir/package.json" ]; then
+              echo "Installing JS deps in $dir"
+              (cd "$dir" && yarn install --immutable)
+              break
+            fi
+            dir=$(dirname "$dir")
+          done
+
+      - name: Generate debug keystore
+        # The committed sample doesn't ship debug.keystore (gitignored).
+        # Generate a throwaway one so Gradle's `validateSigningDebug` passes.
+        run: |
+          keytool -genkeypair -v \
+            -keystore "${{ matrix.android_dir }}/app/debug.keystore" \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles(format('{0}/gradle/wrapper/gradle-wrapper.properties', matrix.android_dir), format('{0}/build.gradle*', matrix.android_dir), format('{0}/app/build.gradle*', matrix.android_dir)) }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: assembleDebug
+        working-directory: ${{ matrix.android_dir }}
+        run: ./gradlew assembleDebug --no-daemon

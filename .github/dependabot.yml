@@ -41,10 +41,147 @@ updates:
       prefix: "deps"
 
   - package-ecosystem: "npm"
+    directory: "/samples/vue/login-pkce"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/vue/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/node/login-auth-code"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/node/saml-sp-login"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/node/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  # React Native samples — the auto-merge workflow excludes
+  # /samples/react-native/* by directory match, so bumps here always require
+  # human review. Dep bumps can break native autolinking / API shapes that
+  # `tsc --noEmit` doesn't catch. The "manual-review" label is informational
+  # only (the workflow filter is directory-based, not label-based).
+  - package-ecosystem: "npm"
+    directory: "/samples/react-native/login-pkce"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "manual-review"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
+    directory: "/samples/react-native/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "manual-review"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "npm"
     directory: "/scripts"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "maven"
+    directory: "/samples/java/login-auth-code"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "maven"
+    directory: "/samples/java/saml-sp-login"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "maven"
+    directory: "/samples/java/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "nuget"
+    directory: "/samples/dotnet/login-auth-code"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "nuget"
+    directory: "/samples/dotnet/saml-sp-login"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "nuget"
+    directory: "/samples/dotnet/token-refresh"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
     commit-message:
