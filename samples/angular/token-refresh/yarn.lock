@@ -334,9 +334,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/compiler-cli@npm:21.2.9":
-  version: 21.2.9
-  resolution: "@angular/compiler-cli@npm:21.2.9"
+"@angular/compiler-cli@npm:21.2.11":
+  version: 21.2.11
+  resolution: "@angular/compiler-cli@npm:21.2.11"
   dependencies:
     "@babel/core": "npm:7.29.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
@@ -347,7 +347,7 @@ __metadata:
     tslib: "npm:^2.3.0"
     yargs: "npm:^18.0.0"
   peerDependencies:
-    "@angular/compiler": 21.2.9
+    "@angular/compiler": 21.2.11
     typescript: ">=5.9 <6.1"
   peerDependenciesMeta:
     typescript:
@@ -355,16 +355,16 @@ __metadata:
   bin:
     ng-xi18n: bundles/src/bin/ng_xi18n.js
     ngc: bundles/src/bin/ngc.js
-  checksum: 10c0/1e66a56d55661e876540bc466622efb656b276c929a670be845b9710479d9e2faeaafa730e5126f46db6245c92ab83c1c4e8a43df59a755bc1ccda08cc6162fe
+  checksum: 10c0/b92fcdefac692176d307366e781c9f91930082996802ce5396990bccf8b80f012d12afe10d87a8c2dbdfac38b8313109695f40bfe41ff4cbbd87e4f361e7e1de
   languageName: node
   linkType: hard
 
-"@angular/compiler@npm:21.2.9":
-  version: 21.2.9
-  resolution: "@angular/compiler@npm:21.2.9"
+"@angular/compiler@npm:21.2.11":
+  version: 21.2.11
+  resolution: "@angular/compiler@npm:21.2.11"
   dependencies:
     tslib: "npm:^2.3.0"
-  checksum: 10c0/be1e2b74e0b6e1aab060da31142a3096c6c8fcff66594ed82583d382c256709f20fce76d5eab16b856d7ae6e9ebd089264f9afba1e425005d29b26734b362ed5
+  checksum: 10c0/c21cad297db199b17fe01c83b74a19cb3ce994cd2c84c5227fe89ccbc0d9567511ab9dc1d7fedf4601625eacc949a4a81f9afe26979db31437a1bf739d358eb2
   languageName: node
   linkType: hard
 
@@ -386,48 +386,48 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/forms@npm:21.2.10":
-  version: 21.2.10
-  resolution: "@angular/forms@npm:21.2.10"
+"@angular/forms@npm:21.2.11":
+  version: 21.2.11
+  resolution: "@angular/forms@npm:21.2.11"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 21.2.10
-    "@angular/core": 21.2.10
-    "@angular/platform-browser": 21.2.10
+    "@angular/common": 21.2.11
+    "@angular/core": 21.2.11
+    "@angular/platform-browser": 21.2.11
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/ac1b48b588c1d8ab2a08a2d86cef7e2cda63499c45a5e1579e5ba014baf5c63f44d96c90d9c7590a3731667fbd5286c8419b258145c6a47ba6148e6a5238bf1f
+  checksum: 10c0/20cb1afd0bdf442bf0a98f2a6fb2c07ef7c7982a474361a7e5e796d33e2e91c39736816ae55168752cbb332d67b5d358bc77c72f546d745081a882e7206cb7ea
   languageName: node
   linkType: hard
 
-"@angular/platform-browser@npm:21.2.10":
-  version: 21.2.10
-  resolution: "@angular/platform-browser@npm:21.2.10"
+"@angular/platform-browser@npm:21.2.11":
+  version: 21.2.11
+  resolution: "@angular/platform-browser@npm:21.2.11"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/animations": 21.2.10
-    "@angular/common": 21.2.10
-    "@angular/core": 21.2.10
+    "@angular/animations": 21.2.11
+    "@angular/common": 21.2.11
+    "@angular/core": 21.2.11
   peerDependenciesMeta:
     "@angular/animations":
       optional: true
-  checksum: 10c0/9eed09ed031f159811ee02fa2d1cd5f12f254c5e93100cbb0e1a57892bc26649e33c093d925b9bad505f88bab5b76d035334cce6c7b342d3b88795b5601b2f71
+  checksum: 10c0/22227f86388dfa87653e7ea51edc8f1140b5034a95c90330772c03ea69a0906fa49c4dca056f9aa3746f2052c16b063b834272e9293f9d4328b0b92714b047cd
   languageName: node
   linkType: hard
 
-"@angular/router@npm:21.2.9":
-  version: 21.2.9
-  resolution: "@angular/router@npm:21.2.9"
+"@angular/router@npm:21.2.11":
+  version: 21.2.11
+  resolution: "@angular/router@npm:21.2.11"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 21.2.9
-    "@angular/core": 21.2.9
-    "@angular/platform-browser": 21.2.9
+    "@angular/common": 21.2.11
+    "@angular/core": 21.2.11
+    "@angular/platform-browser": 21.2.11
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/846a966178f4827f642129a49ac120a4059ce0f4a1291096793292d1310c7e1d199e719fbcff852045ee517b29b66c319d5ffa950854ba11b8c88e4929a9c499
+  checksum: 10c0/55bb1e80ac7f1feff5079a2a49a7bfdb34bf0ae3b469315f8da22658e12dabc9866644833ee0c157aa4ec4f99a7d6bd08e9a36edb6c6c9ed01361614b3845293
   languageName: node
   linkType: hard
 
@@ -682,13 +682,13 @@ __metadata:
     "@angular/build": "npm:21.2.9"
     "@angular/cli": "npm:21.2.9"
     "@angular/common": "npm:21.2.11"
-    "@angular/compiler": "npm:21.2.9"
-    "@angular/compiler-cli": "npm:21.2.9"
+    "@angular/compiler": "npm:21.2.11"
+    "@angular/compiler-cli": "npm:21.2.11"
     "@angular/core": "npm:21.2.11"
-    "@angular/forms": "npm:21.2.10"
-    "@angular/platform-browser": "npm:21.2.10"
-    "@angular/router": "npm:21.2.9"
-    angular-auth-oidc-client: "npm:21.0.1"
+    "@angular/forms": "npm:21.2.11"
+    "@angular/platform-browser": "npm:21.2.11"
+    "@angular/router": "npm:21.2.11"
+    angular-auth-oidc-client: "npm:21.0.2"
     jsdom: "npm:29.1.1"
     prettier: "npm:3.8.3"
     rxjs: "npm:7.8.2"
@@ -2775,9 +2775,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"angular-auth-oidc-client@npm:21.0.1":
-  version: 21.0.1
-  resolution: "angular-auth-oidc-client@npm:21.0.1"
+"angular-auth-oidc-client@npm:21.0.2":
+  version: 21.0.2
+  resolution: "angular-auth-oidc-client@npm:21.0.2"
   dependencies:
     rfc4648: "npm:^1.5.0"
     tslib: "npm:^2.3.0"
@@ -2786,7 +2786,7 @@ __metadata:
     "@angular/core": ">=20.0.0"
     "@angular/router": ">=20.0.0"
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/f5678d249621aa4645057ce1d4b28094ef2893628bb00baa6a68a94c63ac27470d75c61ae8f574ded37d5a54e544afdba5cb46e05b4d20c9a4a979b06716b2bd
+  checksum: 10c0/8a80b72443a88b97a90a95516adeb0a1dd86741950a0cf72e7cb625205c4c231ada12698361f0e16146ea8ab4b7102ca40c71f974f84749d3b6ca88e0d8c3f18
   languageName: node
   linkType: hard
 

@@ -1,5 +1,12 @@
 # All files require review
 * @SecureAuthCorp/team-eng-ciam-ui-write
 
+# Dependency manifests and lockfiles
+**/package.json @ksroda-sa
+**/package-lock.json @ksroda-sa
+**/yarn.lock @ksroda-sa
+**/pom.xml @ksroda-sa
+**/*.csproj @ksroda-sa
+
 # GitHub Actions and CI config
 .github/ @SecureAuthCorp/devops
