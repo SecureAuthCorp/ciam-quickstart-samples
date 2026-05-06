@@ -1,15 +1,17 @@
 version: 2
 
 updates:
-  # ── npm (samples + scripts) ──────────────────────────────────────────────
-  # Shared defaults via YAML anchor: weekly schedule, max 3 open PRs, group
-  # minor+patch updates so a single weekly Angular/Vue/RN-monorepo release
-  # doesn't fan out into 5+ separate PRs (e.g. @angular/build, @angular/compiler,
-  # @angular/forms, @angular/router all bumping in lockstep). Major bumps stay
-  # solo so a human reads the changelog before merging.
+  # ── npm samples ─────────────────────────────────────────────────────────
+  # Within a framework, login-pkce and token-refresh share package.json
+  # contents (same React/Angular/Vue versions), so we combine them into a
+  # single dependabot entry via `directories:`. With `groups: minor-and-patch`,
+  # one weekly PR covers all listed directories instead of one per directory.
+  # Major bumps still get individual PRs so a human reads the changelog.
   - &npm-defaults
     package-ecosystem: "npm"
-    directory: "/samples/react/login-pkce"
+    directories:
+      - "/samples/react/login-pkce"
+      - "/samples/react/token-refresh"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
@@ -22,50 +24,42 @@ updates:
         update-types: ["minor", "patch"]
 
   - <<: *npm-defaults
-    directory: "/samples/react/token-refresh"
+    directories:
+      - "/samples/angular/login-pkce"
+      - "/samples/angular/token-refresh"
 
   - <<: *npm-defaults
-    directory: "/samples/angular/login-pkce"
+    directories:
+      - "/samples/vue/login-pkce"
+      - "/samples/vue/token-refresh"
 
   - <<: *npm-defaults
-    directory: "/samples/angular/token-refresh"
-
-  - <<: *npm-defaults
-    directory: "/samples/vue/login-pkce"
-
-  - <<: *npm-defaults
-    directory: "/samples/vue/token-refresh"
-
-  - <<: *npm-defaults
-    directory: "/samples/node/login-auth-code"
-
-  - <<: *npm-defaults
-    directory: "/samples/node/saml-sp-login"
-
-  - <<: *npm-defaults
-    directory: "/samples/node/token-refresh"
+    directories:
+      - "/samples/node/login-auth-code"
+      - "/samples/node/saml-sp-login"
+      - "/samples/node/token-refresh"
 
   # React Native — auto-merge workflow excludes /samples/react-native/* by
   # directory match, so bumps always require human review. Dep bumps can
   # break native autolinking / API shapes that `tsc --noEmit` doesn't catch.
   # The "manual-review" label is informational (workflow filter is dir-based).
   - <<: *npm-defaults
-    directory: "/samples/react-native/login-pkce"
+    directories:
+      - "/samples/react-native/login-pkce"
+      - "/samples/react-native/token-refresh"
     labels: ["dependencies", "manual-review"]
 
   - <<: *npm-defaults
-    directory: "/samples/react-native/token-refresh"
-    labels: ["dependencies", "manual-review"]
-
-  - <<: *npm-defaults
-    directory: "/scripts"
+    directories:
+      - "/scripts"
 
   # ── Maven (Java) ────────────────────────────────────────────────────────
-  # Monthly cadence: Spring Boot + plugin updates move slower than npm; weekly
-  # noise wasn't paying off.
-  - &maven-defaults
-    package-ecosystem: "maven"
-    directory: "/samples/java/login-auth-code"
+  # Monthly cadence: Spring Boot + plugin updates move slower than npm.
+  - package-ecosystem: "maven"
+    directories:
+      - "/samples/java/login-auth-code"
+      - "/samples/java/saml-sp-login"
+      - "/samples/java/token-refresh"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3
@@ -76,18 +70,14 @@ updates:
       minor-and-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
-
-  - <<: *maven-defaults
-    directory: "/samples/java/saml-sp-login"
-
-  - <<: *maven-defaults
-    directory: "/samples/java/token-refresh"
 
   # ── NuGet (.NET) ────────────────────────────────────────────────────────
   # Monthly cadence: Microsoft.* packages bunch around SDK release cycles.
-  - &nuget-defaults
-    package-ecosystem: "nuget"
-    directory: "/samples/dotnet/login-auth-code"
+  - package-ecosystem: "nuget"
+    directories:
+      - "/samples/dotnet/login-auth-code"
+      - "/samples/dotnet/saml-sp-login"
+      - "/samples/dotnet/token-refresh"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3
@@ -98,12 +88,6 @@ updates:
       minor-and-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
-
-  - <<: *nuget-defaults
-    directory: "/samples/dotnet/saml-sp-login"
-
-  - <<: *nuget-defaults
-    directory: "/samples/dotnet/token-refresh"
 
   # ── GitHub Actions ──────────────────────────────────────────────────────
   - package-ecosystem: "github-actions"
