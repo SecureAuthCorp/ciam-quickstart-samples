@@ -401,19 +401,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/platform-browser@npm:21.2.10":
-  version: 21.2.10
-  resolution: "@angular/platform-browser@npm:21.2.10"
+"@angular/platform-browser@npm:21.2.11":
+  version: 21.2.11
+  resolution: "@angular/platform-browser@npm:21.2.11"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/animations": 21.2.10
-    "@angular/common": 21.2.10
-    "@angular/core": 21.2.10
+    "@angular/animations": 21.2.11
+    "@angular/common": 21.2.11
+    "@angular/core": 21.2.11
   peerDependenciesMeta:
     "@angular/animations":
       optional: true
-  checksum: 10c0/9eed09ed031f159811ee02fa2d1cd5f12f254c5e93100cbb0e1a57892bc26649e33c093d925b9bad505f88bab5b76d035334cce6c7b342d3b88795b5601b2f71
+  checksum: 10c0/22227f86388dfa87653e7ea51edc8f1140b5034a95c90330772c03ea69a0906fa49c4dca056f9aa3746f2052c16b063b834272e9293f9d4328b0b92714b047cd
   languageName: node
   linkType: hard
 
@@ -686,7 +686,7 @@ __metadata:
     "@angular/compiler-cli": "npm:21.2.9"
     "@angular/core": "npm:21.2.11"
     "@angular/forms": "npm:21.2.10"
-    "@angular/platform-browser": "npm:21.2.10"
+    "@angular/platform-browser": "npm:21.2.11"
     "@angular/router": "npm:21.2.9"
     angular-auth-oidc-client: "npm:21.0.1"
     jsdom: "npm:29.1.1"
