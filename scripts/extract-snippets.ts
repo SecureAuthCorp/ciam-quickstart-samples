@@ -219,6 +219,28 @@ function getLibVersion(
     // no Package.swift / no Package.resolved — fall through
   }
 
+  // iOS — xcodegen project.yml `packages:` block. The Package.resolved lockfile
+  // lives inside *.xcworkspace/, which is typically gitignored, so CI checkouts
+  // can't see it; project.yml is the committed source of truth for SPM pins.
+  try {
+    const projectYml = yaml.load(
+      readFileSync(path.join(scenarioDir, "project.yml"), "utf-8"),
+    ) as { packages?: Record<string, { url?: string; from?: string | number }> };
+    const libLower = lib.toLowerCase();
+    for (const [name, pkg] of Object.entries(projectYml?.packages ?? {})) {
+      const url = (pkg?.url || "").toLowerCase();
+      if (
+        name.toLowerCase() === libLower ||
+        url.endsWith(`/${libLower}`) ||
+        url.endsWith(`/${libLower}.git`)
+      ) {
+        if (pkg.from != null) return String(pkg.from);
+      }
+    }
+  } catch {
+    // no project.yml — fall through
+  }
+
   // Android — build.gradle.kts (Kotlin DSL) or build.gradle (Groovy DSL)
   try {
     const gradlePaths = [
@@ -408,6 +430,16 @@ async function main() {
           hasPkg = srcFiles.length > 0;
         } catch {
           // src/ doesn't exist
+        }
+      }
+
+      if (!hasPkg) {
+        // iOS Xcode projects (xcodegen-generated or hand-rolled) — any *.xcodeproj/ folder.
+        try {
+          const xcodeprojDirs = await glob("*.xcodeproj", { cwd: scenarioDir });
+          hasPkg = xcodeprojDirs.length > 0;
+        } catch {
+          // no .xcodeproj
         }
       }
 

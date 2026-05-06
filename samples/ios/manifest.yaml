@@ -1,0 +1,26 @@
+framework: ios
+label: iOS
+lang: swift
+lib: AppAuth-iOS
+docs_url: https://github.com/openid/AppAuth-iOS
+env_file: "Config.xcconfig"
+
+scenarios:
+  mobile_login_pkce:
+    app_type: mobile_desktop
+    display_name: "User Login"
+    grant: "Auth Code + PKCE"
+    description: "Native mobile login via the system browser. PKCE is required — public clients must not embed a secret."
+    callout: "Uses ASWebAuthenticationSession (the system browser) — never WKWebView. AppAuth-iOS enforces this for you."
+    run_command: "open Quickstart.xcodeproj"
+    config_rows:
+      - label: "Client ID"
+        value: "{{CLIENT_ID}}"
+      - label: "Issuer URL"
+        value: "{{ISSUER_URL}}"
+      - label: "Redirect URI"
+        value: "{{REDIRECT_URI}}"
+      - label: "Scopes"
+        value: "{{SCOPES}}"
+      - label: "Grant"
+        value: "Authorization Code + PKCE"

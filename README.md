@@ -12,6 +12,7 @@ samples/                # One folder per framework
   node/                 # Node.js server samples (OIDC + SAML)
   java/                 # Java/Spring Boot server samples (OIDC + SAML)
   dotnet/               # .NET server samples (OIDC + SAML)
+  ios/                  # Native iOS samples (Swift + SwiftUI + AppAuth-iOS)
   react-native/         # React Native mobile samples (PKCE + token refresh)
 scripts/                # Extraction and validation tools
 ```
