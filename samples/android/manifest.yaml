@@ -1,0 +1,26 @@
+framework: android
+label: Android
+lang: kotlin
+lib: net.openid:appauth
+docs_url: https://github.com/openid/AppAuth-Android
+env_file: "local.properties"
+
+scenarios:
+  mobile_login_pkce:
+    app_type: mobile_desktop
+    display_name: "User Login"
+    grant: "Auth Code + PKCE"
+    description: "Native mobile login via the system browser. PKCE is required — public clients must not embed a secret."
+    callout: "Uses Chrome Custom Tabs (the system browser) — never an embedded WebView. AppAuth-Android enforces this for you."
+    run_command: "./gradlew :app:installDebug"
+    config_rows:
+      - label: "Client ID"
+        value: "{{CLIENT_ID}}"
+      - label: "Issuer URL"
+        value: "{{ISSUER_URL}}"
+      - label: "Redirect URI"
+        value: "{{REDIRECT_URI}}"
+      - label: "Scopes"
+        value: "{{SCOPES}}"
+      - label: "Grant"
+        value: "Authorization Code + PKCE"

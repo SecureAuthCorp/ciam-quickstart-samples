@@ -1,4 +1,138 @@
 {
+  "mobile_login_pkce": {
+    "android": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import AppAuth-Android types",
+          "code": "import net.openid.appauth.AuthState\nimport net.openid.appauth.AuthorizationException\nimport net.openid.appauth.AuthorizationRequest\nimport net.openid.appauth.AuthorizationResponse\nimport net.openid.appauth.AuthorizationService\nimport net.openid.appauth.AuthorizationServiceConfiguration\nimport net.openid.appauth.ResponseTypeValues\nimport net.openid.appauth.TokenRequest\nimport net.openid.appauth.TokenResponse",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "5-15"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client with your SecureAuth app settings",
+          "code": "object AuthConfig {\n    /** java.net.URI here so JVM unit tests can exercise buildIssuerUri without\n     *  needing a device runtime. The device-side AppAuth call converts via\n     *  android.net.Uri.parse(issuer.toString()) at the boundary. */\n    val issuer: URI? = buildIssuerUri(BuildConfig.CIAM_ISSUER_HOST, BuildConfig.CIAM_ISSUER_PATH)\n    val clientId: String = BuildConfig.CIAM_CLIENT_ID\n    val redirectUri: android.net.Uri? by lazy {\n        BuildConfig.CIAM_REDIRECT_SCHEME\n            .takeIf { it.isNotEmpty() }\n            ?.let { android.net.Uri.parse(\"$it://oauthredirect\") }\n    }\n    val scopes: List<String> = BuildConfig.CIAM_SCOPES\n        .split(\" \")\n        .filter { it.isNotEmpty() }\n\n    /** Combine an issuer host (which may include a port) with an optional workspace path.\n     *  Returns null if host is empty. Avoids a trailing slash so that\n     *  `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`. */\n    fun buildIssuerUri(host: String, path: String): URI? {\n        if (host.isEmpty()) return null\n        val trimmedPath = path.trim('/')\n        val urlString = if (trimmedPath.isEmpty()) \"https://$host\" else \"https://$host/$trimmedPath\"\n        return try { URI.create(urlString) } catch (_: IllegalArgumentException) { null }\n    }\n}",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "35-61"
+        },
+        {
+          "step": 3,
+          "description": "Open Chrome Custom Tabs, run Auth Code + PKCE, and receive tokens",
+          "code": "    suspend fun signIn(): Intent? {\n        _error.value = null\n        _expired.value = false\n        val issuerJavaUri = AuthConfig.issuer\n            ?: run { _error.value = \"CIAM_ISSUER_HOST is missing — fill in local.properties\"; return null }\n        if (AuthConfig.clientId.isEmpty()) {\n            _error.value = \"CIAM_CLIENT_ID is missing — fill in local.properties\"; return null\n        }\n        val redirect = AuthConfig.redirectUri\n            ?: run { _error.value = \"CIAM_REDIRECT_SCHEME is missing — fill in local.properties\"; return null }\n        return try {\n            val issuerAndroidUri = android.net.Uri.parse(issuerJavaUri.toString())\n            val config = discoverConfiguration(issuerAndroidUri)\n            val request = AuthorizationRequest.Builder(\n                config,\n                AuthConfig.clientId,\n                ResponseTypeValues.CODE,\n                redirect,\n            )\n                .setScopes(AuthConfig.scopes)\n                .build()\n            pendingAuthState = AuthState(config)\n            authService.getAuthorizationRequestIntent(request)\n        } catch (e: Throwable) {\n            _error.value = e.localizedMessage ?: \"Authorization failed\"\n            null\n        }\n    }",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "79-108"
+        },
+        {
+          "step": 4,
+          "description": "Revoke the access token at the IdP and clear local auth state",
+          "code": "    suspend fun signOut() {\n        _state.value?.lastTokenResponse?.accessToken?.let { token ->\n            try { revokeToken(token) } catch (_: Throwable) { /* best-effort */ }\n        }\n        _state.value = null\n        _expired.value = false\n        _error.value = null\n        expiryJob?.cancel()\n    }",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "136-146"
+        }
+      ],
+      "framework": "android",
+      "lib": "net.openid:appauth",
+      "lib_version": "0.11.1",
+      "docs_url": "https://github.com/openid/AppAuth-Android",
+      "install": "",
+      "repo_path": "samples/android/login-pkce",
+      "run_command": "./gradlew :app:installDebug",
+      "callout": "Uses Chrome Custom Tabs (the system browser) — never an embedded WebView. AppAuth-Android enforces this for you."
+    },
+    "ios": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import AppAuth and Foundation",
+          "code": "import AppAuth\nimport Foundation",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "3-6"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client with your SecureAuth app settings",
+          "code": "private func plist(_ key: String) -> String {\n    Bundle.main.object(forInfoDictionaryKey: key) as? String ?? \"\"\n}\n\nstruct AuthConfig {\n    static let issuer = AuthConfig.buildIssuerURL(host: plist(\"CIAM_ISSUER_HOST\"),\n                                                  path: plist(\"CIAM_ISSUER_PATH\"))\n    static let clientId    = plist(\"CIAM_CLIENT_ID\")\n    static let redirectURI: URL? = {\n        let scheme = plist(\"CIAM_REDIRECT_SCHEME\")\n        guard !scheme.isEmpty else { return nil }\n        return URL(string: \"\\(scheme)://oauthredirect\")\n    }()\n    static let scopes      = plist(\"CIAM_SCOPES\").split(separator: \" \").map(String.init)\n\n    /// Combines an issuer host (which may include a port) with an optional workspace path.\n    /// Returns nil if host is empty. Avoids a trailing slash so that\n    /// `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.\n    static func buildIssuerURL(host: String, path: String) -> URL? {\n        guard !host.isEmpty else { return nil }\n        let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: \"/\"))\n        let urlString = trimmedPath.isEmpty ? \"https://\\(host)\" : \"https://\\(host)/\\(trimmedPath)\"\n        return URL(string: urlString)\n    }\n}",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "9-35"
+        },
+        {
+          "step": 3,
+          "description": "Open ASWebAuthenticationSession, run Auth Code + PKCE, and receive tokens",
+          "code": "    func signIn(presenting: UIViewController) async {\n        error = nil\n        expired = false\n        do {\n            guard let issuer = AuthConfig.issuer else {\n                throw AuthError.misconfigured(\"CIAM_ISSUER_HOST is missing — fill in Config.xcconfig\")\n            }\n            guard !AuthConfig.clientId.isEmpty else {\n                throw AuthError.misconfigured(\"CIAM_CLIENT_ID is missing — fill in Config.xcconfig\")\n            }\n            guard let redirectURI = AuthConfig.redirectURI else {\n                throw AuthError.misconfigured(\"CIAM_REDIRECT_SCHEME is missing — fill in Config.xcconfig\")\n            }\n            let config = try await discoverConfiguration(forIssuer: issuer)\n            let request = OIDAuthorizationRequest(\n                configuration: config,\n                clientId: AuthConfig.clientId,\n                scopes: AuthConfig.scopes,\n                redirectURL: redirectURI,\n                responseType: OIDResponseTypeCode,\n                additionalParameters: nil\n            )\n            let authState = try await authStateByPresenting(request: request, presenting: presenting)\n            state = authState\n            scheduleExpiryTimer()\n        } catch {\n            self.error = error.localizedDescription\n        }\n    }",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "47-77"
+        },
+        {
+          "step": 4,
+          "description": "Revoke the access token at the IdP and clear local auth state",
+          "code": "    func signOut() async {\n        if let token = state?.lastTokenResponse?.accessToken {\n            try? await revokeToken(token)  // best-effort — proceed with local logout regardless\n        }\n        state = nil\n        expired = false\n        expiryTask?.cancel()\n    }",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "80-89"
+        }
+      ],
+      "framework": "ios",
+      "lib": "AppAuth-iOS",
+      "lib_version": "1.7.6",
+      "docs_url": "https://github.com/openid/AppAuth-iOS",
+      "install": "",
+      "repo_path": "samples/ios/login-pkce",
+      "run_command": "open Quickstart.xcodeproj",
+      "callout": "Uses ASWebAuthenticationSession (the system browser) — never WKWebView. AppAuth-iOS enforces this for you."
+    },
+    "react-native": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import the AppAuth wrapper and the env loader",
+          "code": "import Config from \"react-native-config\";\nimport {\n  authorize,\n  revoke,\n  type AuthConfiguration,\n} from \"react-native-app-auth\";",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "1-8"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client with your SecureAuth app settings",
+          "code": "const authConfig: AuthConfiguration = {\n  issuer: \"{{ISSUER_URL}}\",\n  clientId: \"{{CLIENT_ID}}\",\n  redirectUrl: \"{{REDIRECT_URI}}\",\n  scopes: \"{{SCOPES}}\".split(\" \"),\n};",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "11-18"
+        },
+        {
+          "step": 3,
+          "description": "Open the system browser, run Auth Code + PKCE, and receive the tokens",
+          "code": "  async function signIn() {\n    setError(null);\n    setExpired(false);\n    try {\n      const result = await authorize(authConfig);\n      setAuthState(result);\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "72-83"
+        },
+        {
+          "step": 4,
+          "description": "Revoke the access token at the IdP and clear local auth state",
+          "code": "  async function signOut() {\n    if (!authState) return;\n    try {\n      await revoke(authConfig, {\n        tokenToRevoke: authState.accessToken,\n        sendClientId: true,\n      });\n    } catch (e) {\n      // Revocation is best-effort — proceed with local logout regardless.\n      Alert.alert(\n        \"Sign-out warning\",\n        e instanceof Error ? e.message : String(e),\n      );\n    }\n    setAuthState(null);\n    setExpired(false);\n  }",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "86-104"
+        }
+      ],
+      "framework": "react-native",
+      "lib": "react-native-app-auth",
+      "lib_version": "8.1.0",
+      "docs_url": "https://github.com/FormidableLabs/react-native-app-auth",
+      "install": "react-native-app-auth react-native-config react-native-safe-area-context",
+      "repo_path": "samples/react-native/login-pkce",
+      "run_command": "yarn install && yarn ios",
+      "callout": "Uses the system browser (ASWebAuthenticationSession on iOS / Custom Tabs on Android) — never an embedded WebView. AppAuth enforces this for you."
+    }
+  },
   "spa_login_pkce": {
     "angular": {
       "steps": [
@@ -651,96 +785,6 @@
       "repo_path": "samples/node/saml-sp-login",
       "run_command": "yarn install && yarn start",
       "callout": "AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure SP request signing per your library's docs."
-    }
-  },
-  "mobile_login_pkce": {
-    "ios": {
-      "steps": [
-        {
-          "step": 1,
-          "description": "Import AppAuth and Foundation",
-          "code": "import AppAuth\nimport Foundation",
-          "file": "Quickstart/AuthClient.swift",
-          "lang": "swift",
-          "lines": "3-6"
-        },
-        {
-          "step": 2,
-          "description": "Configure the OIDC client with your SecureAuth app settings",
-          "code": "private func plist(_ key: String) -> String {\n    Bundle.main.object(forInfoDictionaryKey: key) as? String ?? \"\"\n}\n\nstruct AuthConfig {\n    static let issuer = AuthConfig.buildIssuerURL(host: plist(\"CIAM_ISSUER_HOST\"),\n                                                  path: plist(\"CIAM_ISSUER_PATH\"))\n    static let clientId    = plist(\"CIAM_CLIENT_ID\")\n    static let redirectURI: URL? = {\n        let scheme = plist(\"CIAM_REDIRECT_SCHEME\")\n        guard !scheme.isEmpty else { return nil }\n        return URL(string: \"\\(scheme)://oauthredirect\")\n    }()\n    static let scopes      = plist(\"CIAM_SCOPES\").split(separator: \" \").map(String.init)\n\n    /// Combines an issuer host (which may include a port) with an optional workspace path.\n    /// Returns nil if host is empty. Avoids a trailing slash so that\n    /// `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`.\n    static func buildIssuerURL(host: String, path: String) -> URL? {\n        guard !host.isEmpty else { return nil }\n        let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: \"/\"))\n        let urlString = trimmedPath.isEmpty ? \"https://\\(host)\" : \"https://\\(host)/\\(trimmedPath)\"\n        return URL(string: urlString)\n    }\n}",
-          "file": "Quickstart/AuthClient.swift",
-          "lang": "swift",
-          "lines": "9-35"
-        },
-        {
-          "step": 3,
-          "description": "Open ASWebAuthenticationSession, run Auth Code + PKCE, and receive tokens",
-          "code": "    func signIn(presenting: UIViewController) async {\n        error = nil\n        expired = false\n        do {\n            guard let issuer = AuthConfig.issuer else {\n                throw AuthError.misconfigured(\"CIAM_ISSUER_HOST is missing — fill in Config.xcconfig\")\n            }\n            guard !AuthConfig.clientId.isEmpty else {\n                throw AuthError.misconfigured(\"CIAM_CLIENT_ID is missing — fill in Config.xcconfig\")\n            }\n            guard let redirectURI = AuthConfig.redirectURI else {\n                throw AuthError.misconfigured(\"CIAM_REDIRECT_SCHEME is missing — fill in Config.xcconfig\")\n            }\n            let config = try await discoverConfiguration(forIssuer: issuer)\n            let request = OIDAuthorizationRequest(\n                configuration: config,\n                clientId: AuthConfig.clientId,\n                scopes: AuthConfig.scopes,\n                redirectURL: redirectURI,\n                responseType: OIDResponseTypeCode,\n                additionalParameters: nil\n            )\n            let authState = try await authStateByPresenting(request: request, presenting: presenting)\n            state = authState\n            scheduleExpiryTimer()\n        } catch {\n            self.error = error.localizedDescription\n        }\n    }",
-          "file": "Quickstart/AuthClient.swift",
-          "lang": "swift",
-          "lines": "47-77"
-        },
-        {
-          "step": 4,
-          "description": "Revoke the access token at the IdP and clear local auth state",
-          "code": "    func signOut() async {\n        if let token = state?.lastTokenResponse?.accessToken {\n            try? await revokeToken(token)  // best-effort — proceed with local logout regardless\n        }\n        state = nil\n        expired = false\n        expiryTask?.cancel()\n    }",
-          "file": "Quickstart/AuthClient.swift",
-          "lang": "swift",
-          "lines": "80-89"
-        }
-      ],
-      "framework": "ios",
-      "lib": "AppAuth-iOS",
-      "lib_version": "2.0.0",
-      "docs_url": "https://github.com/openid/AppAuth-iOS",
-      "install": "",
-      "repo_path": "samples/ios/login-pkce",
-      "run_command": "open Quickstart.xcodeproj",
-      "callout": "Uses ASWebAuthenticationSession (the system browser) — never WKWebView. AppAuth-iOS enforces this for you."
-    },
-    "react-native": {
-      "steps": [
-        {
-          "step": 1,
-          "description": "Import the AppAuth wrapper and the env loader",
-          "code": "import Config from \"react-native-config\";\nimport {\n  authorize,\n  revoke,\n  type AuthConfiguration,\n} from \"react-native-app-auth\";",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "1-8"
-        },
-        {
-          "step": 2,
-          "description": "Configure the OIDC client with your SecureAuth app settings",
-          "code": "const authConfig: AuthConfiguration = {\n  issuer: \"{{ISSUER_URL}}\",\n  clientId: \"{{CLIENT_ID}}\",\n  redirectUrl: \"{{REDIRECT_URI}}\",\n  scopes: \"{{SCOPES}}\".split(\" \"),\n};",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "11-18"
-        },
-        {
-          "step": 3,
-          "description": "Open the system browser, run Auth Code + PKCE, and receive the tokens",
-          "code": "  async function signIn() {\n    setError(null);\n    setExpired(false);\n    try {\n      const result = await authorize(authConfig);\n      setAuthState(result);\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "72-83"
-        },
-        {
-          "step": 4,
-          "description": "Revoke the access token at the IdP and clear local auth state",
-          "code": "  async function signOut() {\n    if (!authState) return;\n    try {\n      await revoke(authConfig, {\n        tokenToRevoke: authState.accessToken,\n        sendClientId: true,\n      });\n    } catch (e) {\n      // Revocation is best-effort — proceed with local logout regardless.\n      Alert.alert(\n        \"Sign-out warning\",\n        e instanceof Error ? e.message : String(e),\n      );\n    }\n    setAuthState(null);\n    setExpired(false);\n  }",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "86-104"
-        }
-      ],
-      "framework": "react-native",
-      "lib": "react-native-app-auth",
-      "lib_version": "8.1.0",
-      "docs_url": "https://github.com/FormidableLabs/react-native-app-auth",
-      "install": "react-native-app-auth react-native-config react-native-safe-area-context",
-      "repo_path": "samples/react-native/login-pkce",
-      "run_command": "yarn install && yarn ios",
-      "callout": "Uses the system browser (ASWebAuthenticationSession on iOS / Custom Tabs on Android) — never an embedded WebView. AppAuth enforces this for you."
     }
   },
   "mobile_token_refresh": {
