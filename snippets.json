@@ -133,6 +133,112 @@
       "callout": "Uses the system browser (ASWebAuthenticationSession on iOS / Custom Tabs on Android) — never an embedded WebView. AppAuth enforces this for you."
     }
   },
+  "mobile_token_refresh": {
+    "android": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import AppAuth-Android, Foundation, and the secure-storage backend",
+          "code": "import net.openid.appauth.AuthState\nimport net.openid.appauth.AuthorizationException\nimport net.openid.appauth.AuthorizationRequest\nimport net.openid.appauth.AuthorizationResponse\nimport net.openid.appauth.AuthorizationService\nimport net.openid.appauth.AuthorizationServiceConfiguration\nimport net.openid.appauth.GrantTypeValues\nimport net.openid.appauth.ResponseTypeValues\nimport net.openid.appauth.TokenRequest\nimport net.openid.appauth.TokenResponse",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "6-17"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client — `offline_access` (set in local.properties) enables refresh tokens",
+          "code": "object AuthConfig {\n    /** java.net.URI here so JVM unit tests can exercise buildIssuerUri without\n     *  needing a device runtime. The device-side AppAuth call converts via\n     *  android.net.Uri.parse(issuer.toString()) at the boundary. */\n    val issuer: URI? = buildIssuerUri(BuildConfig.CIAM_ISSUER_HOST, BuildConfig.CIAM_ISSUER_PATH)\n    val clientId: String = BuildConfig.CIAM_CLIENT_ID\n    val redirectUri: Uri? by lazy {\n        BuildConfig.CIAM_REDIRECT_SCHEME\n            .takeIf { it.isNotEmpty() }\n            ?.let { Uri.parse(\"$it://oauthredirect\") }\n    }\n    val scopes: List<String> = BuildConfig.CIAM_SCOPES\n        .split(\" \")\n        .filter { it.isNotEmpty() }\n\n    /** Combine an issuer host (which may include a port) with an optional workspace path.\n     *  Returns null if host is empty. Avoids a trailing slash so that\n     *  `<issuer>/.well-known/openid-configuration` doesn't become `//.well-known/...`. */\n    fun buildIssuerUri(host: String, path: String): URI? {\n        if (host.isEmpty()) return null\n        val trimmedPath = path.trim('/')\n        val urlString = if (trimmedPath.isEmpty()) \"https://$host\" else \"https://$host/$trimmedPath\"\n        return try { URI.create(urlString) } catch (_: IllegalArgumentException) { null }\n    }\n}",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "37-63"
+        },
+        {
+          "step": 3,
+          "description": "Trigger login with offline_access and capture the refresh token",
+          "code": "    suspend fun signIn(): Intent? {\n        _error.value = null\n        val issuerJavaUri = AuthConfig.issuer\n            ?: run { _error.value = \"CIAM_ISSUER_HOST is missing — fill in local.properties\"; return null }\n        if (AuthConfig.clientId.isEmpty()) {\n            _error.value = \"CIAM_CLIENT_ID is missing — fill in local.properties\"; return null\n        }\n        val redirect = AuthConfig.redirectUri\n            ?: run { _error.value = \"CIAM_REDIRECT_SCHEME is missing — fill in local.properties\"; return null }\n        return try {\n            val issuerAndroidUri = Uri.parse(issuerJavaUri.toString())\n            val config = discoverConfiguration(issuerAndroidUri)\n            val request = AuthorizationRequest.Builder(\n                config,\n                AuthConfig.clientId,\n                ResponseTypeValues.CODE,\n                redirect,\n            )\n                .setScopes(AuthConfig.scopes)\n                .build()\n            pendingAuthState = AuthState(config)\n            authService.getAuthorizationRequestIntent(request)\n        } catch (e: Throwable) {\n            _error.value = e.localizedMessage ?: \"Authorization failed\"\n            null\n        }\n    }",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "96-124"
+        },
+        {
+          "step": 4,
+          "description": "Persist the refresh token in EncryptedSharedPreferences (AES-GCM, key in Android Keystore)",
+          "code": "class RefreshTokenStore(context: Context, fileName: String = DEFAULT_FILE) : TokenStore {\n    private val prefs: SharedPreferences = EncryptedSharedPreferences.create(\n        context.applicationContext,\n        fileName,\n        MasterKey.Builder(context.applicationContext)\n            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)\n            .build(),\n        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,\n        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,\n    )\n\n    override fun save(token: String) {\n        prefs.edit().putString(KEY_REFRESH_TOKEN, token).apply()\n    }\n\n    override fun load(): String? = prefs.getString(KEY_REFRESH_TOKEN, null)?.takeIf { it.isNotEmpty() }\n\n    override fun clear() {\n        prefs.edit().remove(KEY_REFRESH_TOKEN).apply()\n    }\n\n    companion object {\n        const val DEFAULT_FILE = \"secureauth_refresh_token\"\n        private const val KEY_REFRESH_TOKEN = \"refresh_token\"\n    }\n}",
+          "file": "app/src/main/java/com/secureauth/quickstart/RefreshTokenStore.kt",
+          "lang": "kotlin",
+          "lines": "8-35"
+        },
+        {
+          "step": 5,
+          "description": "Exchange the refresh token for a new access token; on failure clear local state and require re-login",
+          "code": "    suspend fun refreshTokens() {\n        _error.value = null\n        val issuerJavaUri = AuthConfig.issuer\n            ?: run { _error.value = \"CIAM_ISSUER_HOST is missing — fill in local.properties\"; return }\n        val storedRefresh = _tokens.value?.refreshToken?.takeIf { it.isNotEmpty() }\n            ?: store.load()\n            ?: run { _error.value = \"No refresh token available. Sign in first.\"; return }\n        try {\n            val config = discoverConfiguration(Uri.parse(issuerJavaUri.toString()))\n            val request = TokenRequest.Builder(config, AuthConfig.clientId)\n                .setGrantType(GrantTypeValues.REFRESH_TOKEN)\n                .setRefreshToken(storedRefresh)\n                .build()\n            val response = performTokenRequest(request)\n            val next = toTokens(response, fallback = _tokens.value)\n            _tokens.value = next\n            // If the IdP rotated the refresh token, persist the new one.\n            if (next.refreshToken != null && next.refreshToken != storedRefresh) {\n                store.save(next.refreshToken)\n            }\n            scheduleRefreshTimer()\n        } catch (e: Throwable) {\n            // Refresh tokens can be revoked or expire — clear local state and force re-login.\n            store.clear()\n            _tokens.value = null\n            refreshJob?.cancel()\n            _error.value = \"Refresh failed (${e.localizedMessage}). Sign in again.\"\n        }\n    }",
+          "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
+          "lang": "kotlin",
+          "lines": "155-185"
+        }
+      ],
+      "framework": "android",
+      "lib": "net.openid:appauth",
+      "lib_version": "0.11.1",
+      "docs_url": "https://github.com/openid/AppAuth-Android",
+      "install": "",
+      "repo_path": "samples/android/token-refresh",
+      "run_command": "./gradlew :app:installDebug",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
+    },
+    "react-native": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import AppAuth, env loader, and the secure-storage backend",
+          "code": "import Config from \"react-native-config\";\nimport {\n  authorize,\n  refresh,\n  revoke,\n  type AuthConfiguration,\n} from \"react-native-app-auth\";\nimport * as Keychain from \"react-native-keychain\";",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "1-10"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client — the offline_access scope (set in .env) enables refresh tokens",
+          "code": "const authConfig: AuthConfiguration = {\n  issuer: \"{{ISSUER_URL}}\",\n  clientId: \"{{CLIENT_ID}}\",\n  redirectUrl: \"{{REDIRECT_URI}}\",\n  scopes: \"{{SCOPES}}\".split(\" \"),\n};",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "13-20"
+        },
+        {
+          "step": 3,
+          "description": "Trigger login with the offline_access scope and capture the refresh token",
+          "code": "  const signIn = useCallback(async () => {\n    setError(null);\n    try {\n      const result: AuthorizeResult = await authorize(authConfig);\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? null,\n        idToken: result.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }, []);",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "85-104"
+        },
+        {
+          "step": 4,
+          "description": "Persist the refresh token in platform secure storage (Keychain on iOS, EncryptedSharedPreferences on Android)",
+          "code": "  async function persistRefreshToken(refreshToken: string): Promise<void> {\n    await Keychain.setGenericPassword(\"refreshToken\", refreshToken, {\n      service: KEYCHAIN_SERVICE,\n      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,\n    });\n  }\n\n  async function loadRefreshToken(): Promise<string | null> {\n    const credentials = await Keychain.getGenericPassword({\n      service: KEYCHAIN_SERVICE,\n    });\n    return credentials ? credentials.password : null;\n  }\n\n  async function clearRefreshToken(): Promise<void> {\n    await Keychain.resetGenericPassword({ service: KEYCHAIN_SERVICE });\n  }",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "107-125"
+        },
+        {
+          "step": 5,
+          "description": "Exchange the refresh token for a new access token; on failure clear local state and require re-login",
+          "code": "  const refreshTokens = useCallback(async () => {\n    setError(null);\n    try {\n      const stored = tokens?.refreshToken ?? (await loadRefreshToken());\n      if (!stored) {\n        setError(\"No refresh token available. Sign in first.\");\n        return;\n      }\n      const result: RefreshResult = await refresh(authConfig, {\n        refreshToken: stored,\n      });\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? stored,\n        // Refresh responses don't always include a new id_token — keep the\n        // previous one so the welcome message stays populated.\n        idToken: result.idToken ?? tokens?.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken && next.refreshToken !== stored) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      // Refresh tokens can be revoked or expire — clear local state and surface the error.\n      await clearRefreshToken();\n      setTokens(null);\n      setError(\n        e instanceof Error\n          ? `Refresh failed (${e.message}). Sign in again.`\n          : `Refresh failed. Sign in again.`,\n      );\n    }\n  }, [tokens]);",
+          "file": "App.tsx",
+          "lang": "tsx",
+          "lines": "128-163"
+        }
+      ],
+      "framework": "react-native",
+      "lib": "react-native-app-auth",
+      "lib_version": "8.1.0",
+      "docs_url": "https://github.com/FormidableLabs/react-native-app-auth",
+      "install": "react-native-app-auth react-native-config react-native-keychain react-native-safe-area-context",
+      "repo_path": "samples/react-native/token-refresh",
+      "run_command": "yarn install && yarn ios",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
+    }
+  },
   "spa_login_pkce": {
     "angular": {
       "steps": [
@@ -785,60 +891,6 @@
       "repo_path": "samples/node/saml-sp-login",
       "run_command": "yarn install && yarn start",
       "callout": "AuthnRequests are unsigned for simplicity — CIAM accepts unsigned requests by default. For production, configure SP request signing per your library's docs."
-    }
-  },
-  "mobile_token_refresh": {
-    "react-native": {
-      "steps": [
-        {
-          "step": 1,
-          "description": "Import AppAuth, env loader, and the secure-storage backend",
-          "code": "import Config from \"react-native-config\";\nimport {\n  authorize,\n  refresh,\n  revoke,\n  type AuthConfiguration,\n} from \"react-native-app-auth\";\nimport * as Keychain from \"react-native-keychain\";",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "1-10"
-        },
-        {
-          "step": 2,
-          "description": "Configure the OIDC client — the offline_access scope (set in .env) enables refresh tokens",
-          "code": "const authConfig: AuthConfiguration = {\n  issuer: \"{{ISSUER_URL}}\",\n  clientId: \"{{CLIENT_ID}}\",\n  redirectUrl: \"{{REDIRECT_URI}}\",\n  scopes: \"{{SCOPES}}\".split(\" \"),\n};",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "13-20"
-        },
-        {
-          "step": 3,
-          "description": "Trigger login with the offline_access scope and capture the refresh token",
-          "code": "  const signIn = useCallback(async () => {\n    setError(null);\n    try {\n      const result: AuthorizeResult = await authorize(authConfig);\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? null,\n        idToken: result.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      setError(e instanceof Error ? e.message : String(e));\n    }\n  }, []);",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "85-104"
-        },
-        {
-          "step": 4,
-          "description": "Persist the refresh token in platform secure storage (Keychain on iOS, EncryptedSharedPreferences on Android)",
-          "code": "  async function persistRefreshToken(refreshToken: string): Promise<void> {\n    await Keychain.setGenericPassword(\"refreshToken\", refreshToken, {\n      service: KEYCHAIN_SERVICE,\n      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,\n    });\n  }\n\n  async function loadRefreshToken(): Promise<string | null> {\n    const credentials = await Keychain.getGenericPassword({\n      service: KEYCHAIN_SERVICE,\n    });\n    return credentials ? credentials.password : null;\n  }\n\n  async function clearRefreshToken(): Promise<void> {\n    await Keychain.resetGenericPassword({ service: KEYCHAIN_SERVICE });\n  }",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "107-125"
-        },
-        {
-          "step": 5,
-          "description": "Exchange the refresh token for a new access token; on failure clear local state and require re-login",
-          "code": "  const refreshTokens = useCallback(async () => {\n    setError(null);\n    try {\n      const stored = tokens?.refreshToken ?? (await loadRefreshToken());\n      if (!stored) {\n        setError(\"No refresh token available. Sign in first.\");\n        return;\n      }\n      const result: RefreshResult = await refresh(authConfig, {\n        refreshToken: stored,\n      });\n      const next: Tokens = {\n        accessToken: result.accessToken,\n        accessTokenExpirationDate: result.accessTokenExpirationDate,\n        refreshToken: result.refreshToken ?? stored,\n        // Refresh responses don't always include a new id_token — keep the\n        // previous one so the welcome message stays populated.\n        idToken: result.idToken ?? tokens?.idToken ?? null,\n      };\n      setTokens(next);\n      if (next.refreshToken && next.refreshToken !== stored) {\n        await persistRefreshToken(next.refreshToken);\n      }\n    } catch (e) {\n      // Refresh tokens can be revoked or expire — clear local state and surface the error.\n      await clearRefreshToken();\n      setTokens(null);\n      setError(\n        e instanceof Error\n          ? `Refresh failed (${e.message}). Sign in again.`\n          : `Refresh failed. Sign in again.`,\n      );\n    }\n  }, [tokens]);",
-          "file": "App.tsx",
-          "lang": "tsx",
-          "lines": "128-163"
-        }
-      ],
-      "framework": "react-native",
-      "lib": "react-native-app-auth",
-      "lib_version": "8.1.0",
-      "docs_url": "https://github.com/FormidableLabs/react-native-app-auth",
-      "install": "react-native-app-auth react-native-config react-native-keychain react-native-safe-area-context",
-      "repo_path": "samples/react-native/token-refresh",
-      "run_command": "yarn install && yarn ios",
-      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
     }
   }
 }
