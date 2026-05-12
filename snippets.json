@@ -21,18 +21,18 @@
         {
           "step": 3,
           "description": "Open Chrome Custom Tabs, run Auth Code + PKCE, and receive tokens",
-          "code": "    suspend fun signIn(): Intent? {\n        _error.value = null\n        _expired.value = false\n        val issuerJavaUri = AuthConfig.issuer\n            ?: run { _error.value = \"CIAM_ISSUER_HOST is missing — fill in local.properties\"; return null }\n        if (AuthConfig.clientId.isEmpty()) {\n            _error.value = \"CIAM_CLIENT_ID is missing — fill in local.properties\"; return null\n        }\n        val redirect = AuthConfig.redirectUri\n            ?: run { _error.value = \"CIAM_REDIRECT_SCHEME is missing — fill in local.properties\"; return null }\n        return try {\n            val issuerAndroidUri = android.net.Uri.parse(issuerJavaUri.toString())\n            val config = discoverConfiguration(issuerAndroidUri)\n            val request = AuthorizationRequest.Builder(\n                config,\n                AuthConfig.clientId,\n                ResponseTypeValues.CODE,\n                redirect,\n            )\n                .setScopes(AuthConfig.scopes)\n                .build()\n            pendingAuthState = AuthState(config)\n            authService.getAuthorizationRequestIntent(request)\n        } catch (e: Throwable) {\n            _error.value = e.localizedMessage ?: \"Authorization failed\"\n            null\n        }\n    }",
+          "code": "    suspend fun signIn(): Intent? {\n        _error.value = null\n        _expired.value = false\n        val issuerJavaUri = AuthConfig.issuer\n            ?: run { _error.value = \"CIAM_ISSUER_HOST is missing — fill in local.properties\"; return null }\n        if (AuthConfig.clientId.isEmpty()) {\n            _error.value = \"CIAM_CLIENT_ID is missing — fill in local.properties\"; return null\n        }\n        val redirect = AuthConfig.redirectUri\n            ?: run { _error.value = \"CIAM_REDIRECT_SCHEME is missing — fill in local.properties\"; return null }\n        return try {\n            val issuerAndroidUri = android.net.Uri.parse(issuerJavaUri.toString())\n            val config = discoverConfiguration(issuerAndroidUri)\n            val request = AuthorizationRequest.Builder(\n                config,\n                AuthConfig.clientId,\n                ResponseTypeValues.CODE,\n                redirect,\n            )\n                .setScopes(AuthConfig.scopes)\n                .build()\n            val intent = authService.getAuthorizationRequestIntent(request)\n            pendingAuthState = AuthState(config)\n            intent\n        } catch (e: Exception) {\n            _error.value = e.localizedMessage ?: \"Authorization failed\"\n            null\n        }\n    }",
           "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
           "lang": "kotlin",
-          "lines": "79-108"
+          "lines": "79-109"
         },
         {
           "step": 4,
           "description": "Revoke the access token at the IdP and clear local auth state",
-          "code": "    suspend fun signOut() {\n        _state.value?.lastTokenResponse?.accessToken?.let { token ->\n            try { revokeToken(token) } catch (_: Throwable) { /* best-effort */ }\n        }\n        _state.value = null\n        _expired.value = false\n        _error.value = null\n        expiryJob?.cancel()\n    }",
+          "code": "    suspend fun signOut() {\n        _state.value?.lastTokenResponse?.accessToken?.let { token ->\n            try { revokeToken(token) } catch (_: Exception) { /* best-effort */ }\n        }\n        _state.value = null\n        _expired.value = false\n        _error.value = null\n        expiryJob?.cancel()\n    }",
           "file": "app/src/main/java/com/secureauth/quickstart/AuthViewModel.kt",
           "lang": "kotlin",
-          "lines": "136-146"
+          "lines": "138-148"
         }
       ],
       "framework": "android",
