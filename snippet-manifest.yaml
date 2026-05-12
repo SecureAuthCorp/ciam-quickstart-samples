@@ -95,6 +95,7 @@ scenarios:
         value: "{{SCOPES}}"
     frameworks:
       - android
+      - ios
       - react-native
   spa_login_pkce:
     app_type: single_page
