@@ -78,7 +78,7 @@ jobs:
           } >> "$GITHUB_PATH"
 
           # Accept licenses (sdkmanager errors out otherwise).
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          printf 'y\n%.0s' $(seq 1 50) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
