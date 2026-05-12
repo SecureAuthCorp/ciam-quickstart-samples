@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 // @snippet:step1:start
-// @description Import AppAuth-Android, Foundation, and the secure-storage backend
+// @description Import AppAuth-Android types and the secure-storage backend
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
@@ -185,7 +185,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             store.clear()
             _tokens.value = null
             refreshJob?.cancel()
-            _error.value = "Refresh failed (${e.localizedMessage}). Sign in again."
+            _error.value = "Refresh failed (${e.localizedMessage ?: "unknown error"}). Sign in again."
         }
     }
     // @snippet:step5:end
@@ -256,20 +256,27 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         try {
             store.save(refresh)
         } catch (e: Exception) {
-            _error.value = "Sign-in succeeded but refresh token could not be saved to secure storage (${e.localizedMessage}). Silent re-login on next launch will not work."
+            _error.value = "Sign-in succeeded but refresh token could not be saved to secure storage (${e.localizedMessage ?: "unknown error"}). Silent re-login on next launch will not work."
         }
     }
 
     /** Project an AppAuth TokenResponse onto our flat Tokens data class. Refresh
      *  responses sometimes omit a fresh refresh_token or id_token — when missing,
-     *  fall back to the previously-known values so display state stays populated. */
-    private fun toTokens(response: TokenResponse, fallback: Tokens?): Tokens =
-        Tokens(
-            accessToken = response.accessToken ?: fallback?.accessToken ?: "",
+     *  fall back to the previously-known values so display state stays populated.
+     *  Throws if access_token is unavailable from both response and fallback — a
+     *  successful AppAuth response always sets it, so a null here means the request
+     *  effectively failed and we don't want to put the UI into a "signed-in" state
+     *  with an empty access token. */
+    private fun toTokens(response: TokenResponse, fallback: Tokens?): Tokens {
+        val accessToken = response.accessToken ?: fallback?.accessToken
+            ?: throw IllegalStateException("Token response missing access_token")
+        return Tokens(
+            accessToken = accessToken,
             accessTokenExpirationTime = response.accessTokenExpirationTime ?: fallback?.accessTokenExpirationTime,
             refreshToken = response.refreshToken ?: fallback?.refreshToken,
             idToken = response.idToken ?: fallback?.idToken,
         )
+    }
 
     // MARK: - async wrappers around AppAuth-Android's callback APIs
 

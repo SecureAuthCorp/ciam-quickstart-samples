@@ -79,8 +79,11 @@ dependencies {
     // out in pure-JVM unit tests. The standalone Apache org.json JAR provides a
     // working implementation for unit tests; production code uses the framework one.
     testImplementation(libs.org.json)
-    // Robolectric provides a host-JVM Android runtime including the Keystore so
-    // EncryptedSharedPreferences works in unit tests without an emulator.
+    // Robolectric provides a host-JVM Android runtime so unit tests can exercise
+    // Android-dependent classes without an emulator. Note: Robolectric does NOT
+    // ship the Android Keystore JCE provider, so EncryptedSharedPreferences can't
+    // run under tests — RefreshTokenStoreTests uses FakeTokenStore via the
+    // TokenStore interface for that reason.
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
 }
