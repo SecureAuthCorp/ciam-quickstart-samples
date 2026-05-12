@@ -12,6 +12,12 @@ frameworks:
     lib: angular-auth-oidc-client
     docs_url: https://github.com/damienbod/angular-auth-oidc-client
     env_file: src/environments/environment.ts
+  android:
+    label: Android
+    lang: kotlin
+    lib: net.openid:appauth
+    docs_url: https://github.com/openid/AppAuth-Android
+    env_file: local.properties
   dotnet:
     label: .NET
     lang: csharp
@@ -49,6 +55,26 @@ frameworks:
     docs_url: https://github.com/authts/oidc-client-ts
     env_file: .env
 scenarios:
+  mobile_login_pkce:
+    app_type: mobile_desktop
+    display_name: User Login
+    grant: Auth Code + PKCE
+    description: Native mobile login via the system browser. PKCE is required — public clients must not embed a secret.
+    config_rows:
+      - label: Client ID
+        value: "{{CLIENT_ID}}"
+      - label: Issuer URL
+        value: "{{ISSUER_URL}}"
+      - label: Redirect URI
+        value: "{{REDIRECT_URI}}"
+      - label: Scopes
+        value: "{{SCOPES}}"
+      - label: Grant
+        value: Authorization Code + PKCE
+    frameworks:
+      - android
+      - ios
+      - react-native
   spa_login_pkce:
     app_type: single_page
     display_name: User Login
@@ -170,25 +196,6 @@ scenarios:
       - dotnet
       - java
       - node
-  mobile_login_pkce:
-    app_type: mobile_desktop
-    display_name: User Login
-    grant: Auth Code + PKCE
-    description: Native mobile login via the system browser. PKCE is required — public clients must not embed a secret.
-    config_rows:
-      - label: Client ID
-        value: "{{CLIENT_ID}}"
-      - label: Issuer URL
-        value: "{{ISSUER_URL}}"
-      - label: Redirect URI
-        value: "{{REDIRECT_URI}}"
-      - label: Scopes
-        value: "{{SCOPES}}"
-      - label: Grant
-        value: Authorization Code + PKCE
-    frameworks:
-      - ios
-      - react-native
   mobile_token_refresh:
     app_type: mobile_desktop
     display_name: Token Refresh
@@ -208,4 +215,5 @@ scenarios:
       - label: Scopes
         value: "{{SCOPES}}"
     frameworks:
+      - ios
       - react-native
