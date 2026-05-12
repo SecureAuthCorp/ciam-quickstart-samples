@@ -57,25 +57,28 @@ jobs:
         working-directory: ${{ matrix.project }}
         run: xcodebuild -resolvePackageDependencies -project Quickstart.xcodeproj -scheme Quickstart
 
-      # GitHub-hosted macOS runners ship multiple iPhone simulators. We pick the
-      # first available one rather than hard-coding a name so the workflow keeps
-      # working as Apple updates the runner image / device catalogue.
+      # GitHub-hosted macOS runners can ship multiple iOS runtimes (especially
+      # during macOS version transitions), each with overlapping device names
+      # like "iPhone 16 Pro". Capture the UDID — globally unique — rather than
+      # the name, and pass `id=` to xcodebuild for an unambiguous destination.
+      # We pick the newest iOS runtime by sorting runtime keys.
       - name: Pick iOS simulator
         id: sim
         run: |
-          DEVICE=$(xcrun simctl list devices available --json | jq -r '
+          UDID=$(xcrun simctl list devices available --json | jq -r '
             .devices
-            | to_entries[]
-            | select(.key | test("com.apple.CoreSimulator.SimRuntime.iOS"))
+            | to_entries
+            | map(select(.key | test("com.apple.CoreSimulator.SimRuntime.iOS")))
+            | sort_by(.key) | last
             | .value[]
             | select(.name | startswith("iPhone"))
-            | .name
+            | .udid
           ' | head -1)
-          if [ -z "$DEVICE" ]; then
+          if [ -z "$UDID" ]; then
             echo "No iPhone simulator found"; exit 1
           fi
-          echo "Selected: $DEVICE"
-          echo "name=$DEVICE" >> "$GITHUB_OUTPUT"
+          echo "Selected UDID: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: Build and test
         working-directory: ${{ matrix.project }}
@@ -90,7 +93,7 @@ jobs:
           xcodebuild test \
             -project Quickstart.xcodeproj \
             -scheme Quickstart \
-            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
             CODE_SIGN_IDENTITY=- \
             CODE_SIGNING_REQUIRED=NO \
             GENERATE_INFOPLIST_FILE=YES
