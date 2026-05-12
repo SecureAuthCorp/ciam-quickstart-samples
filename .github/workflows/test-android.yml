@@ -59,11 +59,16 @@ jobs:
         env:
           ANDROID_HOME: ${{ runner.temp }}/android-sdk
           CMDLINE_TOOLS_ZIP: commandlinetools-linux-11076708_latest.zip
+          # SHA-256 of the build above as published by Google. Bumping the build
+          # number requires updating this hash; mismatch fails the workflow so we
+          # never silently run a corrupted/poisoned download.
+          CMDLINE_TOOLS_SHA256: 2d2d50857e4eb553af5a6dc3ad507a17adf43d115264b1afc116f95c92e5e258
         run: |
           set -euo pipefail
           mkdir -p "$ANDROID_HOME/cmdline-tools"
           cd "$ANDROID_HOME/cmdline-tools"
           curl -fsSL "https://dl.google.com/android/repository/$CMDLINE_TOOLS_ZIP" -o tools.zip
+          echo "$CMDLINE_TOOLS_SHA256  tools.zip" | sha256sum -c -
           unzip -q tools.zip
           mv cmdline-tools latest
           rm tools.zip
