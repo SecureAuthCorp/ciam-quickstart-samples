@@ -208,4 +208,5 @@ scenarios:
       - label: Scopes
         value: "{{SCOPES}}"
     frameworks:
+      - ios
       - react-native

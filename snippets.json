@@ -29,7 +29,7 @@
       ],
       "framework": "angular",
       "lib": "angular-auth-oidc-client",
-      "lib_version": "21.0.1",
+      "lib_version": "21.0.2",
       "docs_url": "https://github.com/damienbod/angular-auth-oidc-client",
       "install": "angular-auth-oidc-client",
       "repo_path": "samples/angular/login-pkce",
@@ -155,7 +155,7 @@
       ],
       "framework": "angular",
       "lib": "angular-auth-oidc-client",
-      "lib_version": "21.0.1",
+      "lib_version": "21.0.2",
       "docs_url": "https://github.com/damienbod/angular-auth-oidc-client",
       "install": "angular-auth-oidc-client",
       "repo_path": "samples/angular/token-refresh",
@@ -281,7 +281,7 @@
       ],
       "framework": "dotnet",
       "lib": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
-      "lib_version": "10.0.0",
+      "lib_version": "10.0.7",
       "docs_url": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication",
       "install": "",
       "repo_path": "samples/dotnet/login-auth-code",
@@ -369,7 +369,7 @@
       ],
       "framework": "node",
       "lib": "openid-client",
-      "lib_version": "6.8.3",
+      "lib_version": "6.8.4",
       "docs_url": "https://github.com/panva/openid-client",
       "install": "openid-client",
       "repo_path": "samples/node/login-auth-code",
@@ -423,7 +423,7 @@
       ],
       "framework": "dotnet",
       "lib": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
-      "lib_version": "10.0.0",
+      "lib_version": "10.0.7",
       "docs_url": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-oidc-web-authentication",
       "install": "",
       "repo_path": "samples/dotnet/token-refresh",
@@ -535,7 +535,7 @@
       ],
       "framework": "node",
       "lib": "openid-client",
-      "lib_version": "6.8.3",
+      "lib_version": "6.8.4",
       "docs_url": "https://github.com/panva/openid-client",
       "install": "openid-client",
       "repo_path": "samples/node/token-refresh",
@@ -691,7 +691,7 @@
       ],
       "framework": "ios",
       "lib": "AppAuth-iOS",
-      "lib_version": "1.7.6",
+      "lib_version": "2.0.0",
       "docs_url": "https://github.com/openid/AppAuth-iOS",
       "install": "",
       "repo_path": "samples/ios/login-pkce",
@@ -744,6 +744,58 @@
     }
   },
   "mobile_token_refresh": {
+    "ios": {
+      "steps": [
+        {
+          "step": 1,
+          "description": "Import AppAuth, Foundation, and Security (the Keychain backend)",
+          "code": "import AppAuth\nimport Foundation\nimport Security",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "3-7"
+        },
+        {
+          "step": 2,
+          "description": "Configure the OIDC client — `offline_access` (set in Config.xcconfig) enables refresh tokens",
+          "code": "private func plist(_ key: String) -> String {\n    Bundle.main.object(forInfoDictionaryKey: key) as? String ?? \"\"\n}\n\nstruct AuthConfig {\n    static let issuer = AuthConfig.buildIssuerURL(host: plist(\"CIAM_ISSUER_HOST\"),\n                                                  path: plist(\"CIAM_ISSUER_PATH\"))\n    static let clientId    = plist(\"CIAM_CLIENT_ID\")\n    static let redirectURI: URL? = {\n        let scheme = plist(\"CIAM_REDIRECT_SCHEME\")\n        guard !scheme.isEmpty else { return nil }\n        return URL(string: \"\\(scheme)://oauthredirect\")\n    }()\n    static let scopes      = plist(\"CIAM_SCOPES\").split(separator: \" \").map(String.init)\n\n    static func buildIssuerURL(host: String, path: String) -> URL? {\n        guard !host.isEmpty else { return nil }\n        let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: \"/\"))\n        let urlString = trimmedPath.isEmpty ? \"https://\\(host)\" : \"https://\\(host)/\\(trimmedPath)\"\n        return URL(string: urlString)\n    }\n}",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "10-33"
+        },
+        {
+          "step": 3,
+          "description": "Trigger login with offline_access and capture the refresh token",
+          "code": "    func signIn(presenting: UIViewController) async {\n        error = nil\n        do {\n            guard let issuer = AuthConfig.issuer else {\n                throw AuthError.misconfigured(\"CIAM_ISSUER_HOST is missing — fill in Config.xcconfig\")\n            }\n            guard !AuthConfig.clientId.isEmpty else {\n                throw AuthError.misconfigured(\"CIAM_CLIENT_ID is missing — fill in Config.xcconfig\")\n            }\n            guard let redirectURI = AuthConfig.redirectURI else {\n                throw AuthError.misconfigured(\"CIAM_REDIRECT_SCHEME is missing — fill in Config.xcconfig\")\n            }\n            let config = try await discoverConfiguration(forIssuer: issuer)\n            let request = OIDAuthorizationRequest(\n                configuration: config,\n                clientId: AuthConfig.clientId,\n                scopes: AuthConfig.scopes,\n                redirectURL: redirectURI,\n                responseType: OIDResponseTypeCode,\n                additionalParameters: nil\n            )\n            let authState = try await authStateByPresenting(request: request, presenting: presenting)\n            let next = AuthClient.makeTokens(from: authState.lastTokenResponse, fallback: nil)\n            tokens = next\n            if let refresh = next?.refreshToken {\n                persistRefreshToken(refresh)\n            }\n            scheduleRefreshTimer()\n        } catch {\n            self.error = error.localizedDescription\n        }\n    }",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "52-85"
+        },
+        {
+          "step": 4,
+          "description": "Persist the refresh token in iOS Keychain (kSecClassGenericPassword, kSecAttrAccessibleWhenUnlocked)",
+          "code": "struct RefreshTokenStore {\n    let service: String\n\n    init(service: String = \"com.secureauth.quickstart.ios.refresh\") {\n        self.service = service\n    }\n\n    private var account: String { \"refreshToken\" }\n\n    func save(_ token: String) throws {\n        guard let data = token.data(using: .utf8) else {\n            throw RefreshTokenStoreError.unexpectedData\n        }\n        // Try update first (in case an entry exists), fall back to add. Avoids the\n        // \"duplicate item\" error from SecItemAdd when overwriting.\n        let updateStatus = SecItemUpdate(matchQuery() as CFDictionary,\n                                         [kSecValueData as String: data] as CFDictionary)\n        if updateStatus == errSecSuccess { return }\n        if updateStatus != errSecItemNotFound {\n            throw RefreshTokenStoreError.osStatus(updateStatus)\n        }\n        var addQuery = matchQuery()\n        addQuery[kSecValueData as String] = data\n        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked\n        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)\n        if addStatus != errSecSuccess {\n            throw RefreshTokenStoreError.osStatus(addStatus)\n        }\n    }\n\n    func load() throws -> String? {\n        var query = matchQuery()\n        query[kSecReturnData as String] = true\n        query[kSecMatchLimit as String] = kSecMatchLimitOne\n        var result: AnyObject?\n        let status = SecItemCopyMatching(query as CFDictionary, &result)\n        if status == errSecItemNotFound { return nil }\n        if status != errSecSuccess {\n            throw RefreshTokenStoreError.osStatus(status)\n        }\n        guard let data = result as? Data, let token = String(data: data, encoding: .utf8) else {\n            throw RefreshTokenStoreError.unexpectedData\n        }\n        return token\n    }\n\n    func clear() throws {\n        let status = SecItemDelete(matchQuery() as CFDictionary)\n        // errSecItemNotFound is fine — clear is idempotent.\n        if status != errSecSuccess && status != errSecItemNotFound {\n            throw RefreshTokenStoreError.osStatus(status)\n        }\n    }\n\n    /// Common query attributes shared across save/load/clear.\n    /// `kSecUseDataProtectionKeychain: true` opts into the modern data-protection\n    /// keychain (iOS 13+), which doesn't require a Keychain Sharing entitlement and\n    /// works correctly in unit-test bundles run with code signing disabled.\n    private func matchQuery() -> [String: Any] {\n        return [\n            kSecClass as String: kSecClassGenericPassword,\n            kSecAttrService as String: service,\n            kSecAttrAccount as String: account,\n            kSecUseDataProtectionKeychain as String: true,\n        ]\n    }\n}\n\nenum RefreshTokenStoreError: Error {\n    case osStatus(OSStatus)\n    case unexpectedData\n}",
+          "file": "Quickstart/RefreshTokenStore.swift",
+          "lang": "swift",
+          "lines": "4-77"
+        },
+        {
+          "step": 5,
+          "description": "Exchange the refresh token for a new access token; on failure clear local state and require re-login",
+          "code": "    func refreshTokens() async {\n        error = nil\n        guard let issuer = AuthConfig.issuer else {\n            error = \"CIAM_ISSUER_HOST is missing — fill in Config.xcconfig\"\n            return\n        }\n        guard !AuthConfig.clientId.isEmpty else {\n            error = \"CIAM_CLIENT_ID is missing — fill in Config.xcconfig\"\n            return\n        }\n        let storedRefresh: String?\n        if let inMemory = tokens?.refreshToken, !inMemory.isEmpty {\n            storedRefresh = inMemory\n        } else {\n            storedRefresh = (try? store.load()).flatMap { $0.isEmpty ? nil : $0 }\n        }\n        guard let stored = storedRefresh else {\n            error = \"No refresh token available. Sign in first.\"\n            return\n        }\n        do {\n            let config = try await discoverConfiguration(forIssuer: issuer)\n            let request = OIDTokenRequest(\n                configuration: config,\n                grantType: OIDGrantTypeRefreshToken,\n                authorizationCode: nil,\n                redirectURL: nil,\n                clientID: AuthConfig.clientId,\n                clientSecret: nil,\n                scope: nil,\n                refreshToken: stored,\n                codeVerifier: nil,\n                additionalParameters: nil\n            )\n            let response = try await performTokenRequest(request)\n            let next = AuthClient.makeTokens(from: response, fallback: tokens)\n            tokens = next\n            if let newRefresh = next?.refreshToken, newRefresh != stored {\n                persistRefreshToken(newRefresh)\n            }\n            scheduleRefreshTimer()\n        } catch {\n            // Refresh tokens can be revoked or expire — clear local state and force re-login.\n            try? store.clear()\n            tokens = nil\n            refreshTimer?.cancel()\n            self.error = \"Refresh failed (\\(error.localizedDescription)). Sign in again.\"\n        }\n    }",
+          "file": "Quickstart/AuthClient.swift",
+          "lang": "swift",
+          "lines": "88-138"
+        }
+      ],
+      "framework": "ios",
+      "lib": "AppAuth-iOS",
+      "lib_version": "2.0.0",
+      "docs_url": "https://github.com/openid/AppAuth-iOS",
+      "install": "",
+      "repo_path": "samples/ios/token-refresh",
+      "run_command": "open Quickstart.xcodeproj",
+      "callout": "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
+    },
     "react-native": {
       "steps": [
         {
