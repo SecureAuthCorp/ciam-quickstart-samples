@@ -75,9 +75,11 @@ target/
 **/build/
 **/Pods/
 **/.gradle/
+**/.kotlin/
 **/.cxx/
 **/.xcode.env.local
 **/*.xcworkspace/
 **/local.properties
-**/debug.keystore
+**/*.keystore
+**/captures/
 samples/ios/**/Config.xcconfig

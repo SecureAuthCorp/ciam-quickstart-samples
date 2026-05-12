@@ -10,8 +10,8 @@ final class AuthConfigTests: XCTestCase {
     }
 
     func test_buildIssuerURL_localDevHostWithPortNoPath_noTrailingSlash() {
-        let url = AuthConfig.buildIssuerURL(host: "default.acp.localhost:8443", path: "")
-        XCTAssertEqual(url?.absoluteString, "https://default.acp.localhost:8443")
+        let url = AuthConfig.buildIssuerURL(host: "sth.localhost:8443", path: "")
+        XCTAssertEqual(url?.absoluteString, "https://sth.localhost:8443")
     }
 
     func test_buildIssuerURL_pathWithLeadingOrTrailingSlash_normalized() {
