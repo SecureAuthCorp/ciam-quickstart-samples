@@ -2,6 +2,7 @@ name: Test iOS Builds
 
 on:
   push:
+    branches: [main]
     paths:
       - "samples/ios/**"
       - ".github/workflows/test-ios.yml"

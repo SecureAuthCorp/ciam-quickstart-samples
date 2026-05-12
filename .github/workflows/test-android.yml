@@ -2,6 +2,7 @@ name: Test Android Builds
 
 on:
   push:
+    branches: [main]
     paths:
       - "samples/react-native/**"
       - "samples/android/**"

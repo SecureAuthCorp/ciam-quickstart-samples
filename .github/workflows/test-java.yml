@@ -2,6 +2,7 @@ name: Test Java Frameworks
 
 on:
   push:
+    branches: [main]
     paths:
       - "samples/java/**"
       - ".github/workflows/test-java.yml"

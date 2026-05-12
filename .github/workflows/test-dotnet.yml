@@ -2,6 +2,7 @@ name: Test .NET Frameworks
 
 on:
   push:
+    branches: [main]
     paths:
       - "samples/dotnet/**"
       - ".github/workflows/test-dotnet.yml"
