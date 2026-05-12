@@ -1,0 +1,15 @@
+// Build settings consumed by Info.plist via $(VAR_NAME) macros, then read
+// from Bundle.main at runtime.
+//
+// xcconfig treats `//` as a comment marker, so the issuer URL is split into
+// HOST + PATH and rebuilt in Swift as `https://HOST` (when PATH is empty)
+// or `https://HOST/PATH` (when PATH is set). ISSUER_HOST may include a port.
+//
+// SCOPES MUST include `offline_access` — that's what asks the IdP to issue a
+// refresh token alongside the access token.
+
+CLIENT_ID = your-client-id
+ISSUER_HOST = your-tenant.us.connect.secureauth.com
+ISSUER_PATH = your-workspace
+REDIRECT_SCHEME = com.secureauth.quickstart.ios.refresh
+SCOPES = openid profile email offline_access
