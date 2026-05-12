@@ -51,9 +51,36 @@ jobs:
           java-version: "17"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+        # The community `android-actions/setup-android` action isn't on the org's
+        # third-party action allowlist, so we install Android command-line tools
+        # ourselves. The build number in the cmdline-tools URL is pinned (Google
+        # publishes new ones periodically; bump intentionally rather than chasing).
+        env:
+          ANDROID_HOME: ${{ runner.temp }}/android-sdk
+          CMDLINE_TOOLS_ZIP: commandlinetools-linux-11076708_latest.zip
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          cd "$ANDROID_HOME/cmdline-tools"
+          curl -fsSL "https://dl.google.com/android/repository/$CMDLINE_TOOLS_ZIP" -o tools.zip
+          unzip -q tools.zip
+          mv cmdline-tools latest
+          rm tools.zip
+
+          # Expose for subsequent steps (Gradle reads ANDROID_HOME).
+          {
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            echo "ANDROID_SDK_ROOT=$ANDROID_HOME"
+          } >> "$GITHUB_ENV"
+          {
+            echo "$ANDROID_HOME/cmdline-tools/latest/bin"
+            echo "$ANDROID_HOME/platform-tools"
+          } >> "$GITHUB_PATH"
+
+          # Accept licenses (sdkmanager errors out otherwise).
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       # React Native samples need their JS deps installed first so autolinking
       # can resolve native modules from node_modules. Detect by walking up to
