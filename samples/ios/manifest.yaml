@@ -24,3 +24,22 @@ scenarios:
         value: "{{SCOPES}}"
       - label: "Grant"
         value: "Authorization Code + PKCE"
+
+  mobile_token_refresh:
+    app_type: mobile_desktop
+    display_name: "Token Refresh"
+    grant: "Refresh Token"
+    description: "Use refresh tokens to renew access tokens without re-prompting. Requires offline_access. Refresh tokens are stored in platform secure storage (Keychain / EncryptedSharedPreferences)."
+    callout: "Requires refresh_token grant type enabled in workspace [OAuth settings](workspace-oauth-general) and in the application's [Grant Types](workspace-applications-oauth). Also requires the offline_access scope."
+    run_command: "open Quickstart.xcodeproj"
+    required_scopes:
+      - offline_access
+    config_rows:
+      - label: "Client ID"
+        value: "{{CLIENT_ID}}"
+      - label: "Issuer URL"
+        value: "{{ISSUER_URL}}"
+      - label: "Redirect URI"
+        value: "{{REDIRECT_URI}}"
+      - label: "Scopes"
+        value: "{{SCOPES}}"
