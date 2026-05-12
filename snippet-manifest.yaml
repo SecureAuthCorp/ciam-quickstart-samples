@@ -75,6 +75,28 @@ scenarios:
       - android
       - ios
       - react-native
+  mobile_token_refresh:
+    app_type: mobile_desktop
+    display_name: Token Refresh
+    grant: Refresh Token
+    description: >-
+      Use refresh tokens to renew access tokens without re-prompting. Requires offline_access. Refresh tokens are stored
+      in platform secure storage (Keychain / EncryptedSharedPreferences).
+    required_scopes:
+      - offline_access
+    config_rows:
+      - label: Client ID
+        value: "{{CLIENT_ID}}"
+      - label: Issuer URL
+        value: "{{ISSUER_URL}}"
+      - label: Redirect URI
+        value: "{{REDIRECT_URI}}"
+      - label: Scopes
+        value: "{{SCOPES}}"
+    frameworks:
+      - android
+      - ios
+      - react-native
   spa_login_pkce:
     app_type: single_page
     display_name: User Login
@@ -196,24 +218,3 @@ scenarios:
       - dotnet
       - java
       - node
-  mobile_token_refresh:
-    app_type: mobile_desktop
-    display_name: Token Refresh
-    grant: Refresh Token
-    description: >-
-      Use refresh tokens to renew access tokens without re-prompting. Requires offline_access. Refresh tokens are stored
-      in platform secure storage (Keychain / EncryptedSharedPreferences).
-    required_scopes:
-      - offline_access
-    config_rows:
-      - label: Client ID
-        value: "{{CLIENT_ID}}"
-      - label: Issuer URL
-        value: "{{ISSUER_URL}}"
-      - label: Redirect URI
-        value: "{{REDIRECT_URI}}"
-      - label: Scopes
-        value: "{{SCOPES}}"
-    frameworks:
-      - ios
-      - react-native
