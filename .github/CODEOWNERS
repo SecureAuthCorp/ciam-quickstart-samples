@@ -8,5 +8,5 @@
 **/pom.xml @ksroda-sa
 **/*.csproj @ksroda-sa
 
-# GitHub Actions and CI config
-.github/ @SecureAuthCorp/devops
+# GitHub Actions and CI config — approval from either team is sufficient
+.github/ @SecureAuthCorp/devops @SecureAuthCorp/team-eng-ciam-ui-write
