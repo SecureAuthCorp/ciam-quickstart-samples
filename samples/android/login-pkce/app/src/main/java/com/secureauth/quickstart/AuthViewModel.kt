@@ -99,9 +99,10 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             )
                 .setScopes(AuthConfig.scopes)
                 .build()
+            val intent = authService.getAuthorizationRequestIntent(request)
             pendingAuthState = AuthState(config)
-            authService.getAuthorizationRequestIntent(request)
-        } catch (e: Throwable) {
+            intent
+        } catch (e: Exception) {
             _error.value = e.localizedMessage ?: "Authorization failed"
             null
         }
@@ -115,6 +116,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         val ex = AuthorizationException.fromIntent(intent)
         val pending = pendingAuthState
         if (response == null || pending == null) {
+            pendingAuthState = null
             _error.value = ex?.localizedMessage ?: "Authorization failed"
             return
         }
@@ -125,7 +127,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
                 pending.update(tokenResponse, null)
                 _state.value = pending
                 scheduleExpiryTimer()
-            } catch (e: Throwable) {
+            } catch (e: Exception) {
                 _error.value = e.localizedMessage ?: "Token exchange failed"
             } finally {
                 pendingAuthState = null
@@ -137,7 +139,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     // @description Revoke the access token at the IdP and clear local auth state
     suspend fun signOut() {
         _state.value?.lastTokenResponse?.accessToken?.let { token ->
-            try { revokeToken(token) } catch (_: Throwable) { /* best-effort */ }
+            try { revokeToken(token) } catch (_: Exception) { /* best-effort */ }
         }
         _state.value = null
         _expired.value = false
@@ -195,13 +197,16 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             val conn = (URL(revokeUrl).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 doOutput = true
+                connectTimeout = 5_000
+                readTimeout = 5_000
                 setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
             }
             try {
                 val body = "token=${URLEncoder.encode(token, "UTF-8")}" +
                     "&client_id=${URLEncoder.encode(AuthConfig.clientId, "UTF-8")}"
                 conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-                conn.inputStream.use { it.readBytes() }
+                val stream = if (conn.responseCode in 200..299) conn.inputStream else conn.errorStream
+                stream?.use { it.readBytes() }
             } finally {
                 conn.disconnect()
             }
