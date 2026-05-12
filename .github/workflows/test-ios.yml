@@ -78,19 +78,21 @@ jobs:
 
       - name: Build and test
         working-directory: ${{ matrix.project }}
-        # Use ad-hoc signing rather than CODE_SIGNING_ALLOWED=NO so the app gets
-        # a valid `application-identifier` entitlement. Keychain APIs (used by
-        # RefreshTokenStoreTests in the token-refresh sample) check that
-        # entitlement and return errSecMissingEntitlement (-34018) without it.
-        # CODE_SIGNING_REQUIRED=NO keeps things permissive in case the runner's
-        # signing keychain ever lacks even an ad-hoc identity.
+        # - Ad-hoc signing (`CODE_SIGN_IDENTITY=-`) gives the app an
+        #   `application-identifier` entitlement so Keychain APIs work on the
+        #   simulator. `CODE_SIGNING_REQUIRED=NO` keeps things permissive.
+        # - `GENERATE_INFOPLIST_FILE=YES` lets xcodebuild auto-generate the
+        #   QuickstartTests target's Info.plist, which the project.yml doesn't
+        #   declare explicitly (Xcode's GUI builds it implicitly, but xcodebuild
+        #   demands one once we ad-hoc sign).
         run: |
           xcodebuild test \
             -project Quickstart.xcodeproj \
             -scheme Quickstart \
             -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }}" \
             CODE_SIGN_IDENTITY=- \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_REQUIRED=NO \
+            GENERATE_INFOPLIST_FILE=YES
 
   # Stable aggregator for branch protection.
   all-tests-passed:
