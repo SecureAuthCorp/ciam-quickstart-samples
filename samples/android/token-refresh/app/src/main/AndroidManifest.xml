@@ -8,8 +8,7 @@
         android:name=".QuickstartApp"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
-        android:allowBackup="false"
-        tools:targetApi="33">
+        android:allowBackup="false">
 
         <activity
             android:name=".MainActivity"

@@ -115,9 +115,10 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             )
                 .setScopes(AuthConfig.scopes)
                 .build()
+            val intent = authService.getAuthorizationRequestIntent(request)
             pendingAuthState = AuthState(config)
-            authService.getAuthorizationRequestIntent(request)
-        } catch (e: Throwable) {
+            intent
+        } catch (e: Exception) {
             _error.value = e.localizedMessage ?: "Authorization failed"
             null
         }
@@ -132,6 +133,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         val ex = AuthorizationException.fromIntent(intent)
         val pending = pendingAuthState
         if (response == null || pending == null) {
+            pendingAuthState = null
             _error.value = ex?.localizedMessage ?: "Authorization failed"
             return
         }
@@ -142,9 +144,9 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
                 pending.update(tokenResponse, null)
                 val next = toTokens(tokenResponse, fallback = null)
                 _tokens.value = next
-                next.refreshToken?.let { store.save(it) }
+                next.refreshToken?.let { persistRefreshToken(it) }
                 scheduleRefreshTimer()
-            } catch (e: Throwable) {
+            } catch (e: Exception) {
                 _error.value = e.localizedMessage ?: "Token exchange failed"
             } finally {
                 pendingAuthState = null
@@ -158,6 +160,9 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         _error.value = null
         val issuerJavaUri = AuthConfig.issuer
             ?: run { _error.value = "CIAM_ISSUER_HOST is missing — fill in local.properties"; return }
+        if (AuthConfig.clientId.isEmpty()) {
+            _error.value = "CIAM_CLIENT_ID is missing — fill in local.properties"; return
+        }
         val storedRefresh = _tokens.value?.refreshToken?.takeIf { it.isNotEmpty() }
             ?: store.load()
             ?: run { _error.value = "No refresh token available. Sign in first."; return }
@@ -172,10 +177,10 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             _tokens.value = next
             // If the IdP rotated the refresh token, persist the new one.
             if (next.refreshToken != null && next.refreshToken != storedRefresh) {
-                store.save(next.refreshToken)
+                persistRefreshToken(next.refreshToken)
             }
             scheduleRefreshTimer()
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             // Refresh tokens can be revoked or expire — clear local state and force re-login.
             store.clear()
             _tokens.value = null
@@ -187,7 +192,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun signOut() {
         _tokens.value?.accessToken?.let { token ->
-            try { revokeToken(token) } catch (_: Throwable) { /* best-effort */ }
+            try { revokeToken(token) } catch (_: Exception) { /* best-effort */ }
         }
         store.clear()
         refreshJob?.cancel()
@@ -202,6 +207,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         if (_tokens.value != null) return
         val stored = store.load()?.takeIf { it.isNotEmpty() } ?: return
         val issuerJavaUri = AuthConfig.issuer ?: return
+        if (AuthConfig.clientId.isEmpty()) return
         try {
             val config = discoverConfiguration(Uri.parse(issuerJavaUri.toString()))
             val request = TokenRequest.Builder(config, AuthConfig.clientId)
@@ -214,10 +220,10 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             val next = toTokens(response, fallback = null)
             _tokens.value = next
             if (next.refreshToken != null && next.refreshToken != stored) {
-                store.save(next.refreshToken)
+                persistRefreshToken(next.refreshToken)
             }
             scheduleRefreshTimer()
-        } catch (_: Throwable) {
+        } catch (_: Exception) {
             // Stored token is no longer valid — let the user sign in.
             store.clear()
         }
@@ -239,6 +245,18 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
                     refreshTokens()
                 }
             }
+        }
+    }
+
+    /** Save the refresh token to EncryptedSharedPreferences. If the write fails (e.g.,
+     *  Keystore unavailable), surface a warning so the user knows the README's silent
+     *  re-login promise won't hold on next launch — but keep the in-memory token so
+     *  the current session still refreshes the access token. */
+    private fun persistRefreshToken(refresh: String) {
+        try {
+            store.save(refresh)
+        } catch (e: Exception) {
+            _error.value = "Sign-in succeeded but refresh token could not be saved to secure storage (${e.localizedMessage}). Silent re-login on next launch will not work."
         }
     }
 
@@ -283,13 +301,16 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             val conn = (URL(revokeUrl).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 doOutput = true
+                connectTimeout = 5_000
+                readTimeout = 5_000
                 setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
             }
             try {
                 val body = "token=${URLEncoder.encode(token, "UTF-8")}" +
                     "&client_id=${URLEncoder.encode(AuthConfig.clientId, "UTF-8")}"
                 conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-                conn.inputStream.use { it.readBytes() }
+                val stream = if (conn.responseCode in 200..299) conn.inputStream else conn.errorStream
+                stream?.use { it.readBytes() }
             } finally {
                 conn.disconnect()
             }
