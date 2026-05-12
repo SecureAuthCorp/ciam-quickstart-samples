@@ -76,7 +76,7 @@ final class AuthClient: ObservableObject {
             let next = AuthClient.makeTokens(from: authState.lastTokenResponse, fallback: nil)
             tokens = next
             if let refresh = next?.refreshToken {
-                try? store.save(refresh)
+                persistRefreshToken(refresh)
             }
             scheduleRefreshTimer()
         } catch {
@@ -91,6 +91,10 @@ final class AuthClient: ObservableObject {
         error = nil
         guard let issuer = AuthConfig.issuer else {
             error = "CIAM_ISSUER_HOST is missing — fill in Config.xcconfig"
+            return
+        }
+        guard !AuthConfig.clientId.isEmpty else {
+            error = "CIAM_CLIENT_ID is missing — fill in Config.xcconfig"
             return
         }
         let storedRefresh: String?
@@ -121,7 +125,7 @@ final class AuthClient: ObservableObject {
             let next = AuthClient.makeTokens(from: response, fallback: tokens)
             tokens = next
             if let newRefresh = next?.refreshToken, newRefresh != stored {
-                try? store.save(newRefresh)
+                persistRefreshToken(newRefresh)
             }
             scheduleRefreshTimer()
         } catch {
@@ -151,6 +155,7 @@ final class AuthClient: ObservableObject {
         guard tokens == nil else { return }
         guard let stored = (try? store.load()).flatMap({ $0.isEmpty ? nil : $0 }) else { return }
         guard let issuer = AuthConfig.issuer else { return }
+        guard !AuthConfig.clientId.isEmpty else { return }
         do {
             let config = try await discoverConfiguration(forIssuer: issuer)
             let request = OIDTokenRequest(
@@ -171,7 +176,7 @@ final class AuthClient: ObservableObject {
             let next = AuthClient.makeTokens(from: response, fallback: nil)
             tokens = next
             if let newRefresh = next?.refreshToken, newRefresh != stored {
-                try? store.save(newRefresh)
+                persistRefreshToken(newRefresh)
             }
             scheduleRefreshTimer()
         } catch {
@@ -202,6 +207,17 @@ final class AuthClient: ObservableObject {
                 guard !Task.isCancelled else { return }
                 await self?.refreshTokens()
             }
+        }
+    }
+
+    /// Save the refresh token to Keychain. If the write fails, surface a warning so the
+    /// user knows the README's silent-re-login promise won't hold on next launch — but
+    /// keep the in-memory token so the current session still refreshes the access token.
+    private func persistRefreshToken(_ refresh: String) {
+        do {
+            try store.save(refresh)
+        } catch {
+            self.error = "Sign-in succeeded but refresh token could not be saved to Keychain (\(error.localizedDescription)). Silent re-login on next launch will not work."
         }
     }
 
