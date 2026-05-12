@@ -91,12 +91,6 @@ jobs:
           git push
 
       - name: Notify ciam-core of snippet changes
-        # Dispatch unconditionally on push to main. The PR-side "Verify no drift"
-        # check already enforces that snippets.json/snippet-manifest.yaml are up to
-        # date before merge, so the diff above is almost always clean — gating the
-        # dispatch on it meant ciam-core never received the notification. The sync
-        # workflow on ciam-core uses peter-evans/create-pull-request, which is
-        # idempotent: it opens a PR only if there's actually a diff to apply.
         run: |
           gh api repos/SecureAuthCorp/ciam-core/dispatches \
             -f event_type=quickstart-snippets-updated \
