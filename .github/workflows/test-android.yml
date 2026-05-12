@@ -100,3 +100,14 @@ jobs:
       - name: assembleDebug
         working-directory: ${{ matrix.android_dir }}
         run: ./gradlew assembleDebug --no-daemon
+
+  # Stable aggregator for branch protection.
+  all-tests-passed:
+    name: Android tests passed
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify build matrix succeeded
+        if: needs.build.result != 'success' && needs.build.result != 'skipped'
+        run: exit 1

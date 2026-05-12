@@ -46,3 +46,14 @@ jobs:
       - name: Build and test
         working-directory: ${{ matrix.project }}
         run: mvn -B verify
+
+  # Stable aggregator for branch protection.
+  all-tests-passed:
+    name: Java tests passed
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test matrix succeeded
+        if: needs.test.result != 'success' && needs.test.result != 'skipped'
+        run: exit 1

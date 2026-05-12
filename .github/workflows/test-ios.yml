@@ -1,0 +1,97 @@
+name: Test iOS Builds
+
+on:
+  push:
+    paths:
+      - "samples/ios/**"
+      - ".github/workflows/test-ios.yml"
+  pull_request:
+    paths:
+      - "samples/ios/**"
+      - ".github/workflows/test-ios.yml"
+  schedule:
+    - cron: "0 10 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  find-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.find.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: find
+        # Each iOS sample is identified by its project.yml (xcodegen input). We use
+        # that as the marker rather than the generated .xcodeproj because the
+        # project.yml is the authoritative source — generated files come and go.
+        run: |
+          DIRS=$(find samples/ios -mindepth 2 -maxdepth 2 -name "project.yml" -exec dirname {} \; 2>/dev/null | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: find-projects
+    if: ${{ needs.find-projects.outputs.matrix != '[]' }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      # Config.xcconfig is gitignored — copy the example so build settings have
+      # placeholder values. No real CIAM workspace is needed for build + unit tests
+      # (network-touching paths only execute in the running app).
+      - name: Provision example xcconfig
+        working-directory: ${{ matrix.project }}
+        run: cp Config.example.xcconfig Config.xcconfig
+
+      # Pre-fetch Swift Package Manager deps (AppAuth-iOS) so the test step doesn't
+      # also pay the resolution cost — makes failures during dep resolution easier
+      # to spot in logs.
+      - name: Resolve SPM dependencies
+        working-directory: ${{ matrix.project }}
+        run: xcodebuild -resolvePackageDependencies -project Quickstart.xcodeproj -scheme Quickstart
+
+      # GitHub-hosted macOS runners ship multiple iPhone simulators. We pick the
+      # first available one rather than hard-coding a name so the workflow keeps
+      # working as Apple updates the runner image / device catalogue.
+      - name: Pick iOS simulator
+        id: sim
+        run: |
+          DEVICE=$(xcrun simctl list devices available --json | jq -r '
+            .devices
+            | to_entries[]
+            | select(.key | test("com.apple.CoreSimulator.SimRuntime.iOS"))
+            | .value[]
+            | select(.name | startswith("iPhone"))
+            | .name
+          ' | head -1)
+          if [ -z "$DEVICE" ]; then
+            echo "No iPhone simulator found"; exit 1
+          fi
+          echo "Selected: $DEVICE"
+          echo "name=$DEVICE" >> "$GITHUB_OUTPUT"
+
+      - name: Build and test
+        working-directory: ${{ matrix.project }}
+        run: |
+          xcodebuild test \
+            -project Quickstart.xcodeproj \
+            -scheme Quickstart \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }}" \
+            CODE_SIGNING_ALLOWED=NO
+
+  # Stable aggregator for branch protection.
+  all-tests-passed:
+    name: iOS tests passed
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test matrix succeeded
+        if: needs.test.result != 'success' && needs.test.result != 'skipped'
+        run: exit 1
