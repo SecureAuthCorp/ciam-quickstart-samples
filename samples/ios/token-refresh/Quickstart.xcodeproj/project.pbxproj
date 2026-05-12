@@ -15,7 +15,9 @@
 		80EB4FFD5EE06E8019520987 /* IDToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3310C6FEEFA210766C55E81 /* IDToken.swift */; };
 		879E5CFF294A4B61C68CA55A /* AuthConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A684BE7DC4C0A7A1994228 /* AuthConfigTests.swift */; };
 		A7DCF89BBA57D3B256B736C0 /* QuickstartApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C86C06A0A63882D5FBFCEAC /* QuickstartApp.swift */; };
+		AFB8EF2CA3CC92FFE8A4E45C /* RefreshTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94E718E6FC83EA5513BB4FB /* RefreshTokenStore.swift */; };
 		D538EC144C3EA9AFCFE90A51 /* AuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76342B15C804E11BAE6051A /* AuthClient.swift */; };
+		ECBDB5F5DB80A73E2F1C17C1 /* RefreshTokenStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155231D2544B284689F74112 /* RefreshTokenStoreTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		155231D2544B284689F74112 /* RefreshTokenStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshTokenStoreTests.swift; sourceTree = "<group>"; };
 		1744F7A36D58F04CDBF4BBAA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1FC2CE95CAD8F08E22AF06AD /* AuthExpiryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthExpiryTests.swift; sourceTree = "<group>"; };
 		20A684BE7DC4C0A7A1994228 /* AuthConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfigTests.swift; sourceTree = "<group>"; };
@@ -37,11 +40,12 @@
 		C265BC0CA479C9218220059A /* QuickstartTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = QuickstartTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3638772FD7C86BAE9407283 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DA446688188347A26A612A4D /* IDTokenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDTokenTests.swift; sourceTree = "<group>"; };
+		E94E718E6FC83EA5513BB4FB /* RefreshTokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshTokenStore.swift; sourceTree = "<group>"; };
 		F3310C6FEEFA210766C55E81 /* IDToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDToken.swift; sourceTree = "<group>"; };
 		F76342B15C804E11BAE6051A /* AuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthClient.swift; sourceTree = "<group>"; };
 		FC442DD6C63867CA7CDF6B42 /* AuthExpiry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthExpiry.swift; sourceTree = "<group>"; };
 		FF862174C6DBDE8356033575 /* Config.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.example.xcconfig; sourceTree = "<group>"; };
-		"TEMP_4E798FEA-7E52-42CC-B8D0-AA30CA005102" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		"TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +69,7 @@
 				F3310C6FEEFA210766C55E81 /* IDToken.swift */,
 				C3638772FD7C86BAE9407283 /* Info.plist */,
 				5C86C06A0A63882D5FBFCEAC /* QuickstartApp.swift */,
+				E94E718E6FC83EA5513BB4FB /* RefreshTokenStore.swift */,
 			);
 			path = Quickstart;
 			sourceTree = "<group>";
@@ -94,16 +99,17 @@
 				20A684BE7DC4C0A7A1994228 /* AuthConfigTests.swift */,
 				1FC2CE95CAD8F08E22AF06AD /* AuthExpiryTests.swift */,
 				DA446688188347A26A612A4D /* IDTokenTests.swift */,
+				155231D2544B284689F74112 /* RefreshTokenStoreTests.swift */,
 			);
 			path = QuickstartTests;
 			sourceTree = "<group>";
 		};
-		"TEMP_C550C51F-4AD9-4A9C-90AC-CB14653EBF12" /* login-pkce */ = {
+		"TEMP_647D934F-E9EA-4025-9A97-044A3A22AA15" /* token-refresh */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_4E798FEA-7E52-42CC-B8D0-AA30CA005102" /* Config.xcconfig */,
+				"TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */,
 			);
-			path = "login-pkce";
+			path = "token-refresh";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -155,6 +161,12 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					93B4319055D0EDC8AB189E8F = {
+						ProvisioningStyle = Manual;
+					};
+					9DB36AB87C0643032212D6D8 = {
+						ProvisioningStyle = Manual;
+					};
 				};
 			};
 			buildConfigurationList = 997267E6502B7ACECDE9D581 /* Build configuration list for PBXProject "Quickstart" */;
@@ -190,6 +202,7 @@
 				7EE404DD6D651D7715370166 /* ContentView.swift in Sources */,
 				80EB4FFD5EE06E8019520987 /* IDToken.swift in Sources */,
 				A7DCF89BBA57D3B256B736C0 /* QuickstartApp.swift in Sources */,
+				AFB8EF2CA3CC92FFE8A4E45C /* RefreshTokenStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,6 +213,7 @@
 				879E5CFF294A4B61C68CA55A /* AuthConfigTests.swift in Sources */,
 				362AF3040CEEDA3C4168167C /* AuthExpiryTests.swift in Sources */,
 				082E20C2D1C6A57BA8A46585 /* IDTokenTests.swift in Sources */,
+				ECBDB5F5DB80A73E2F1C17C1 /* RefreshTokenStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,12 +232,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.login.QuickstartTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.refresh.QuickstartTests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -233,7 +251,7 @@
 		};
 		36EAA512DC23D068A23E984E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4E798FEA-7E52-42CC-B8D0-AA30CA005102" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -292,14 +310,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = Quickstart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.login;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.refresh;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -310,12 +330,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.login.QuickstartTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.refresh.QuickstartTests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -327,14 +351,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = Quickstart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.login;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secureauth.quickstart.ios.refresh;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -343,7 +369,7 @@
 		};
 		C0849BB623D67D543C053764 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_4E798FEA-7E52-42CC-B8D0-AA30CA005102" /* Config.xcconfig */;
+			baseConfigurationReference = "TEMP_08000CAC-365B-4BF5-A30E-E2D725511B9B" /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
