@@ -268,6 +268,48 @@ function getLibVersion(
     // no Gradle file — fall through
   }
 
+  // Android — Gradle version catalog (gradle/libs.versions.toml).
+  // When build.gradle.kts uses `libs.<alias>` instead of inline coordinates,
+  // the version is in the TOML catalog. Strategy: find an alias whose `module`
+  // matches the lib coordinate, then resolve its `version.ref` in [versions].
+  try {
+    const tomlPath = path.join(scenarioDir, "gradle", "libs.versions.toml");
+    const tomlContent = readFileSync(tomlPath, "utf-8");
+    // Parse [versions] section: key = "value"
+    const versionsMatch = tomlContent.match(/\[versions\]([\s\S]*?)(?=\[|$)/);
+    const librariesMatch = tomlContent.match(/\[libraries\]([\s\S]*?)(?=\[|$)/);
+    if (versionsMatch && librariesMatch) {
+      const versionsBlock = versionsMatch[1];
+      const librariesBlock = librariesMatch[1];
+      const libLower = lib.toLowerCase();
+      // Find alias whose module matches the lib coordinate
+      const libLineRegex =
+        /^\s*[\w-]+\s*=\s*\{[^}]*module\s*=\s*["']([^"']+)["'][^}]*\}/gm;
+      let libMatch;
+      while ((libMatch = libLineRegex.exec(librariesBlock)) !== null) {
+        const module = libMatch[1].toLowerCase();
+        if (module === libLower) {
+          // Extract version.ref or version from this entry
+          const entry = libMatch[0];
+          const versionRefMatch = entry.match(/version\.ref\s*=\s*["']([^"']+)["']/);
+          if (versionRefMatch) {
+            const ref = versionRefMatch[1];
+            const versionLineRegex = new RegExp(
+              `^\\s*${ref}\\s*=\\s*["']([^"']+)["']`,
+              "m",
+            );
+            const vMatch = versionsBlock.match(versionLineRegex);
+            if (vMatch) return vMatch[1];
+          }
+          const versionMatch = entry.match(/version\s*=\s*["']([0-9][^"']+)["']/);
+          if (versionMatch) return versionMatch[1];
+        }
+      }
+    }
+  } catch {
+    // no TOML catalog — fall through
+  }
+
   return "unknown";
 }
 
