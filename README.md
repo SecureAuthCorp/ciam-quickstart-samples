@@ -25,3 +25,7 @@ scripts/                # Extraction and validation tools
 3. Add a `manifest.yaml` in `samples/<framework>/`
 4. Run `cd scripts && yarn all` to validate
 5. Open a PR — CI will test the app and validate extraction
+
+## CI
+
+Per-framework test workflows live in [.github/workflows/](.github/workflows/) (`test-android.yml`, `test-ios.yml`, `test-dotnet.yml`, `test-java.yml`, `test-js.yml`). Each is path-filtered to its framework's samples, with a stable `<Framework> tests passed` aggregator job suitable for required-status-check gating.
