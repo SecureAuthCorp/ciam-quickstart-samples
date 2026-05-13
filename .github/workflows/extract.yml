@@ -91,7 +91,6 @@ jobs:
           git push
 
       - name: Notify ciam-core of snippet changes
-        if: steps.diff.outputs.changed == 'true'
         run: |
           gh api repos/SecureAuthCorp/ciam-core/dispatches \
             -f event_type=quickstart-snippets-updated \

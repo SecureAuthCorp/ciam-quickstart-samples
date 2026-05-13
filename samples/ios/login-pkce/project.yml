@@ -15,7 +15,7 @@ fileGroups:
 packages:
   AppAuth:
     url: https://github.com/openid/AppAuth-iOS
-    from: 1.7.6
+    from: 2.0.0
 
 targets:
   Quickstart:
