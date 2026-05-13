@@ -3,21 +3,12 @@ name: Test JS Frameworks
 on:
   push:
     branches: [main]
-    paths:
-      - "samples/react/**"
-      - "samples/angular/**"
-      - "samples/vue/**"
-      - "samples/node/**"
-      - "samples/react-native/**"
-      - ".github/workflows/test-js.yml"
+  # No paths filter on pull_request — required status checks need this workflow to
+  # always trigger so the aggregator can report. find-projects below narrows the
+  # matrix to only projects whose subtree changed, so docs-only / other-framework
+  # PRs produce an empty matrix → test job skipped → aggregator passes via
+  # `result == 'skipped'`.
   pull_request:
-    paths:
-      - "samples/react/**"
-      - "samples/angular/**"
-      - "samples/vue/**"
-      - "samples/node/**"
-      - "samples/react-native/**"
-      - ".github/workflows/test-js.yml"
   schedule:
     - cron: "0 8 * * 1"
   workflow_dispatch:
@@ -32,10 +23,43 @@ jobs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Full history so `git diff` can compute the changed-paths filter below.
+          fetch-depth: 0
       - id: find
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_FILE: .github/workflows/test-js.yml
         run: |
-          DIRS=$(find samples -name "package.json" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          # Exclude `.angular/cache/**/package.json` — Angular's Vite dep cache
+          # writes nested package.json files inside .angular/cache after a build.
+          # On a fresh CI checkout the cache doesn't exist yet, but the exclude
+          # hardens us against any future ordering change that runs a build first.
+          ALL=$(find samples -name "package.json" -not -path "*/node_modules/*" -not -path "*/.angular/*" -exec dirname {} \; 2>/dev/null | sort)
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "")
+            # If the workflow file itself changed, run the full matrix so we
+            # exercise the workflow against every sample.
+            if printf '%s\n' "$CHANGED" | grep -qFx "$WORKFLOW_FILE"; then
+              FILTERED="$ALL"
+            else
+              FILTERED=$(while IFS= read -r proj; do
+                [ -z "$proj" ] && continue
+                if printf '%s\n' "$CHANGED" | grep -q "^${proj}/"; then
+                  echo "$proj"
+                fi
+              done <<< "$ALL")
+            fi
+          else
+            FILTERED="$ALL"
+          fi
+
+          MATRIX=$(printf '%s\n' "$FILTERED" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   test:
     needs: find-projects
