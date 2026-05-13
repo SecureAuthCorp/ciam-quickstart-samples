@@ -15,6 +15,8 @@ on:
 
 permissions:
   contents: read
+  # Needed by find-projects' `gh api .../pulls/N/files` call.
+  pull-requests: read
 
 jobs:
   find-projects:
@@ -23,15 +25,14 @@ jobs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
-        with:
-          # Full history so `git diff` can compute the changed-paths filter below.
-          fetch-depth: 0
+        # Default shallow checkout — we only need the working tree for `find`
+        # below, not git history. The PR's changed files come from gh api.
       - id: find
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           WORKFLOW_FILE: .github/workflows/test-js.yml
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # Exclude `.angular/cache/**/package.json` — Angular's Vite dep cache
@@ -41,7 +42,7 @@ jobs:
           ALL=$(find samples -name "package.json" -not -path "*/node_modules/*" -not -path "*/.angular/*" -exec dirname {} \; 2>/dev/null | sort)
 
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "")
+            CHANGED=$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --jq '.[].filename' 2>/dev/null || echo "")
             # If the workflow file itself changed, run the full matrix so we
             # exercise the workflow against every sample.
             if printf '%s\n' "$CHANGED" | grep -qFx "$WORKFLOW_FILE"; then

@@ -15,6 +15,8 @@ on:
 
 permissions:
   contents: read
+  # Needed by find-projects' `gh api .../pulls/N/files` call.
+  pull-requests: read
 
 jobs:
   find-projects:
@@ -23,20 +25,20 @@ jobs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+        # Default shallow checkout — we only need the working tree for `find`
+        # below, not git history. The PR's changed files come from gh api.
       - id: find
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           WORKFLOW_FILE: .github/workflows/test-java.yml
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           ALL=$(find samples -name "pom.xml" -not -path "*/target/*" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort)
 
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "")
+            CHANGED=$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --jq '.[].filename' 2>/dev/null || echo "")
             if printf '%s\n' "$CHANGED" | grep -qFx "$WORKFLOW_FILE"; then
               FILTERED="$ALL"
             else
