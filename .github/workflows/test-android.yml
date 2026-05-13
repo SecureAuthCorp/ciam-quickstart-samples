@@ -2,6 +2,7 @@ name: Test Android Builds
 
 on:
   push:
+    branches: [main]
     paths:
       - "samples/react-native/**"
       - "samples/android/**"
@@ -51,9 +52,41 @@ jobs:
           java-version: "17"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+        # The community `android-actions/setup-android` action isn't on the org's
+        # third-party action allowlist, so we install Android command-line tools
+        # ourselves. The build number in the cmdline-tools URL is pinned (Google
+        # publishes new ones periodically; bump intentionally rather than chasing).
+        env:
+          ANDROID_HOME: ${{ runner.temp }}/android-sdk
+          CMDLINE_TOOLS_ZIP: commandlinetools-linux-11076708_latest.zip
+          # SHA-256 of the build above as published by Google. Bumping the build
+          # number requires updating this hash; mismatch fails the workflow so we
+          # never silently run a corrupted/poisoned download.
+          CMDLINE_TOOLS_SHA256: 2d2d50857e4eb553af5a6dc3ad507a17adf43d115264b1afc116f95c92e5e258
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          cd "$ANDROID_HOME/cmdline-tools"
+          curl -fsSL "https://dl.google.com/android/repository/$CMDLINE_TOOLS_ZIP" -o tools.zip
+          echo "$CMDLINE_TOOLS_SHA256  tools.zip" | sha256sum -c -
+          unzip -q tools.zip
+          mv cmdline-tools latest
+          rm tools.zip
+
+          # Expose for subsequent steps (Gradle reads ANDROID_HOME).
+          {
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            echo "ANDROID_SDK_ROOT=$ANDROID_HOME"
+          } >> "$GITHUB_ENV"
+          {
+            echo "$ANDROID_HOME/cmdline-tools/latest/bin"
+            echo "$ANDROID_HOME/platform-tools"
+          } >> "$GITHUB_PATH"
+
+          # Accept licenses (sdkmanager errors out otherwise).
+          printf 'y\n%.0s' $(seq 1 50) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       # React Native samples need their JS deps installed first so autolinking
       # can resolve native modules from node_modules. Detect by walking up to
@@ -100,3 +133,14 @@ jobs:
       - name: assembleDebug
         working-directory: ${{ matrix.android_dir }}
         run: ./gradlew assembleDebug --no-daemon
+
+  # Stable aggregator for branch protection.
+  all-tests-passed:
+    name: Android tests passed
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify build matrix succeeded
+        if: needs.build.result != 'success' && needs.build.result != 'skipped'
+        run: exit 1

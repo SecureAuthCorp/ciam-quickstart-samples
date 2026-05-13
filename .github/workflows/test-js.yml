@@ -2,6 +2,7 @@ name: Test JS Frameworks
 
 on:
   push:
+    branches: [main]
     paths:
       - "samples/react/**"
       - "samples/angular/**"
@@ -76,3 +77,14 @@ jobs:
           elif node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
             yarn test
           fi
+
+  # Stable aggregator for branch protection.
+  all-tests-passed:
+    name: JS tests passed
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test matrix succeeded
+        if: needs.test.result != 'success' && needs.test.result != 'skipped'
+        run: exit 1

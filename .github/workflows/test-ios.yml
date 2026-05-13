@@ -1,0 +1,110 @@
+name: Test iOS Builds
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "samples/ios/**"
+      - ".github/workflows/test-ios.yml"
+  pull_request:
+    paths:
+      - "samples/ios/**"
+      - ".github/workflows/test-ios.yml"
+  schedule:
+    - cron: "0 10 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  find-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.find.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: find
+        # Each iOS sample is identified by its project.yml (xcodegen input). We use
+        # that as the marker rather than the generated .xcodeproj because the
+        # project.yml is the authoritative source — generated files come and go.
+        run: |
+          DIRS=$(find samples/ios -mindepth 2 -maxdepth 2 -name "project.yml" -exec dirname {} \; 2>/dev/null | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: find-projects
+    if: ${{ needs.find-projects.outputs.matrix != '[]' }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      # Config.xcconfig is gitignored — copy the example so build settings have
+      # placeholder values. No real CIAM workspace is needed for build + unit tests
+      # (network-touching paths only execute in the running app).
+      - name: Provision example xcconfig
+        working-directory: ${{ matrix.project }}
+        run: cp Config.example.xcconfig Config.xcconfig
+
+      # Pre-fetch Swift Package Manager deps (AppAuth-iOS) so the test step doesn't
+      # also pay the resolution cost — makes failures during dep resolution easier
+      # to spot in logs.
+      - name: Resolve SPM dependencies
+        working-directory: ${{ matrix.project }}
+        run: xcodebuild -resolvePackageDependencies -project Quickstart.xcodeproj -scheme Quickstart
+
+      # GitHub-hosted macOS runners can ship multiple iOS runtimes (especially
+      # during macOS version transitions), each with overlapping device names
+      # like "iPhone 16 Pro". Capture the UDID — globally unique — rather than
+      # the name, and pass `id=` to xcodebuild for an unambiguous destination.
+      # We pick the newest iOS runtime by sorting runtime keys.
+      - name: Pick iOS simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available --json | jq -r '
+            .devices
+            | to_entries
+            | map(select(.key | test("com.apple.CoreSimulator.SimRuntime.iOS")))
+            | sort_by(.key) | last
+            | .value[]
+            | select(.name | startswith("iPhone"))
+            | .udid
+          ' | head -1)
+          if [ -z "$UDID" ]; then
+            echo "No iPhone simulator found"; exit 1
+          fi
+          echo "Selected UDID: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: Build and test
+        working-directory: ${{ matrix.project }}
+        # - Ad-hoc signing (`CODE_SIGN_IDENTITY=-`) gives the app an
+        #   `application-identifier` entitlement so Keychain APIs work on the
+        #   simulator. `CODE_SIGNING_REQUIRED=NO` keeps things permissive.
+        # - `GENERATE_INFOPLIST_FILE=YES` lets xcodebuild auto-generate the
+        #   QuickstartTests target's Info.plist, which the project.yml doesn't
+        #   declare explicitly (Xcode's GUI builds it implicitly, but xcodebuild
+        #   demands one once we ad-hoc sign).
+        run: |
+          xcodebuild test \
+            -project Quickstart.xcodeproj \
+            -scheme Quickstart \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGNING_REQUIRED=NO \
+            GENERATE_INFOPLIST_FILE=YES
+
+  # Stable aggregator for branch protection.
+  all-tests-passed:
+    name: iOS tests passed
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test matrix succeeded
+        if: needs.test.result != 'success' && needs.test.result != 'skipped'
+        run: exit 1

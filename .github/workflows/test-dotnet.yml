@@ -2,6 +2,7 @@ name: Test .NET Frameworks
 
 on:
   push:
+    branches: [main]
     paths:
       - "samples/dotnet/**"
       - ".github/workflows/test-dotnet.yml"
@@ -50,3 +51,14 @@ jobs:
       - name: Test
         working-directory: ${{ matrix.project }}
         run: dotnet test --no-build --configuration Release
+
+  # Stable aggregator for branch protection.
+  all-tests-passed:
+    name: .NET tests passed
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test matrix succeeded
+        if: needs.test.result != 'success' && needs.test.result != 'skipped'
+        run: exit 1
