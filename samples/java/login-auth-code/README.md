@@ -2,6 +2,8 @@
 
 Minimal Spring Boot 3.4 app demonstrating OIDC Authorization Code + PKCE using [`spring-security-oauth2-client`](https://docs.spring.io/spring-security/reference/servlet/oauth2/login/index.html). Declarative client registration in `application.yml`, inline HTML rendering, RP-initiated logout.
 
+> Looking for the token-refresh variant? See [`samples/java/token-refresh/`](../token-refresh/).
+
 ## Prerequisites
 
 - Java 21 SDK (`java -version` → 21.x)

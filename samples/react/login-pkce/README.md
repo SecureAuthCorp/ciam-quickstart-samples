@@ -2,6 +2,8 @@
 
 Minimal React app demonstrating OIDC login using Authorization Code + PKCE via `react-oidc-context`.
 
+> Looking for the token-refresh variant? See [`samples/react/token-refresh/`](../token-refresh/).
+
 ## Setup
 
 1. Copy `.env.example` to `.env` and fill in your SecureAuth values
