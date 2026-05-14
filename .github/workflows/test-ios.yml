@@ -73,7 +73,9 @@ jobs:
     if: ${{ needs.find-projects.outputs.matrix != '[]' }}
     runs-on: macos-latest
     strategy:
-      fail-fast: false
+      # Cancel in-flight matrix entries on first failure — macOS minutes are
+      # ~10× Ubuntu's, so save the cost over seeing every failure at once.
+      fail-fast: true
       matrix:
         project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
     steps:
