@@ -3,11 +3,11 @@ name: Extract Snippets
 on:
   push:
     branches: [main]
+  # No paths filter on pull_request — required status checks need this workflow to
+  # always trigger and report `validate`. The validate job is cheap (~20s) and
+  # idempotent: it just re-runs aggregate + extract + drift-check, which is a
+  # no-op for PRs that don't touch samples/scripts.
   pull_request:
-    paths:
-      - "samples/**"
-      - "scripts/**"
-      - "placeholder-map.yaml"
   workflow_dispatch:
 
 permissions:

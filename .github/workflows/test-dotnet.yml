@@ -3,19 +3,20 @@ name: Test .NET Frameworks
 on:
   push:
     branches: [main]
-    paths:
-      - "samples/dotnet/**"
-      - ".github/workflows/test-dotnet.yml"
+  # No paths filter on pull_request — required status checks need this workflow to
+  # always trigger so the aggregator can report. find-projects below narrows the
+  # matrix to only projects whose subtree changed, so docs-only / other-framework
+  # PRs produce an empty matrix → test job skipped → aggregator passes via
+  # `result == 'skipped'`.
   pull_request:
-    paths:
-      - "samples/dotnet/**"
-      - ".github/workflows/test-dotnet.yml"
   schedule:
     - cron: "0 8 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
+  # Needed by find-projects' `gh api .../pulls/N/files` call.
+  pull-requests: read
 
 jobs:
   find-projects:
@@ -24,10 +25,36 @@ jobs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
+        # Default shallow checkout — we only need the working tree for `find`
+        # below, not git history. The PR's changed files come from gh api.
       - id: find
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          WORKFLOW_FILE: .github/workflows/test-dotnet.yml
+          GH_TOKEN: ${{ github.token }}
         run: |
-          DIRS=$(find samples -name "*.sln" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          ALL=$(find samples -name "*.sln" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort)
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            CHANGED=$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --jq '.[].filename' 2>/dev/null || echo "")
+            if printf '%s\n' "$CHANGED" | grep -qFx "$WORKFLOW_FILE"; then
+              FILTERED="$ALL"
+            else
+              FILTERED=$(while IFS= read -r proj; do
+                [ -z "$proj" ] && continue
+                if printf '%s\n' "$CHANGED" | grep -q "^${proj}/"; then
+                  echo "$proj"
+                fi
+              done <<< "$ALL")
+            fi
+          else
+            FILTERED="$ALL"
+          fi
+
+          MATRIX=$(printf '%s\n' "$FILTERED" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   test:
     needs: find-projects

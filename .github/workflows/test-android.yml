@@ -3,21 +3,20 @@ name: Test Android Builds
 on:
   push:
     branches: [main]
-    paths:
-      - "samples/react-native/**"
-      - "samples/android/**"
-      - ".github/workflows/test-android.yml"
+  # No paths filter on pull_request — required status checks need this workflow to
+  # always trigger so the aggregator can report. find-projects below narrows the
+  # matrix to only projects whose subtree changed, so docs-only / other-framework
+  # PRs produce an empty matrix → build job skipped → aggregator passes via
+  # `result == 'skipped'`.
   pull_request:
-    paths:
-      - "samples/react-native/**"
-      - "samples/android/**"
-      - ".github/workflows/test-android.yml"
   schedule:
     - cron: "0 9 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
+  # Needed by find-projects' `gh api .../pulls/N/files` call.
+  pull-requests: read
 
 jobs:
   find-projects:
@@ -26,13 +25,52 @@ jobs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
+        # Default shallow checkout — we only need the working tree for `find`
+        # below, not git history. The PR's changed files come from gh api.
       - id: find
-        # Discover any sample with an Android Gradle wrapper. Today: react-native
-        # samples; future: native android samples will surface automatically.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          WORKFLOW_FILE: .github/workflows/test-android.yml
+          GH_TOKEN: ${{ github.token }}
         run: |
-          DIRS=$(find samples -name "gradlew" -not -path "*/node_modules/*" -not -path "*/build/*" -exec dirname {} \; 2>/dev/null \
-            | sort | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "matrix=$DIRS" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          # Discover any sample with an Android Gradle wrapper. Today: react-native
+          # samples and native android samples.
+          ALL=$(find samples -name "gradlew" -not -path "*/node_modules/*" -not -path "*/build/*" -exec dirname {} \; 2>/dev/null | sort)
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            CHANGED=$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --jq '.[].filename' 2>/dev/null || echo "")
+            if printf '%s\n' "$CHANGED" | grep -qFx "$WORKFLOW_FILE"; then
+              FILTERED="$ALL"
+            else
+              # For each gradlew dir, walk up to find a package.json. If found (an
+              # RN sample — gradlew sits under <rn-root>/android/), watch the RN
+              # root: JS dep changes upstairs affect Android autolinking. If not
+              # found (a native Android sample), watch the gradlew dir itself.
+              # Mirrors the "Install JS dependencies (RN samples)" step's walk-up.
+              FILTERED=$(while IFS= read -r proj; do
+                [ -z "$proj" ] && continue
+                watch_root="$proj"
+                d="$proj"
+                while [ "$d" != "." ] && [ "$d" != "/" ]; do
+                  if [ -f "$d/package.json" ]; then
+                    watch_root="$d"
+                    break
+                  fi
+                  d=$(dirname "$d")
+                done
+                if printf '%s\n' "$CHANGED" | grep -q "^${watch_root}/"; then
+                  echo "$proj"
+                fi
+              done <<< "$ALL")
+            fi
+          else
+            FILTERED="$ALL"
+          fi
+
+          MATRIX=$(printf '%s\n' "$FILTERED" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   build:
     needs: find-projects
