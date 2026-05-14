@@ -3,11 +3,8 @@ name: Test iOS Builds
 on:
   push:
     branches: [main]
-  # No paths filter on pull_request — required status checks need this workflow to
-  # always trigger so the aggregator can report. find-projects below narrows the
-  # matrix to only projects whose subtree changed, so docs-only / other-framework
-  # PRs produce an empty matrix → test job skipped → aggregator passes via
-  # `result == 'skipped'` (no macOS minutes burned).
+  # No paths filter — required status checks need this workflow to always trigger.
+  # find-projects below narrows the matrix to only changed projects.
   pull_request:
   schedule:
     - cron: "0 10 * * 1"
@@ -25,8 +22,6 @@ jobs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
-        # Default shallow checkout — we only need the working tree for `find`
-        # below, not git history. The PR's changed files come from gh api.
       - id: find
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -35,18 +30,33 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # Each iOS sample is identified by its project.yml (xcodegen input) —
-          # that's the authoritative source; the generated .xcodeproj comes and goes.
-          ALL=$(find samples/ios -mindepth 2 -maxdepth 2 -name "project.yml" -exec dirname {} \; 2>/dev/null | sort)
+          # Native iOS samples have project.yml; RN iOS samples have Podfile.
+          ALL=$(
+            {
+              find samples/ios -mindepth 2 -maxdepth 2 -name "project.yml" -exec dirname {} \; 2>/dev/null
+              find samples/react-native -name "Podfile" -not -path "*/Pods/*" -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null
+            } | sort
+          )
 
           if [ "$EVENT_NAME" = "pull_request" ]; then
             CHANGED=$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --jq '.[].filename' 2>/dev/null || echo "")
             if printf '%s\n' "$CHANGED" | grep -qFx "$WORKFLOW_FILE"; then
               FILTERED="$ALL"
             else
+              # For RN samples the JS-side deps that drive native autolinking
+              # live one level up, so walk up to package.json for watch_root.
               FILTERED=$(while IFS= read -r proj; do
                 [ -z "$proj" ] && continue
-                if printf '%s\n' "$CHANGED" | grep -q "^${proj}/"; then
+                watch_root="$proj"
+                d="$proj"
+                while [ "$d" != "." ] && [ "$d" != "/" ]; do
+                  if [ -f "$d/package.json" ]; then
+                    watch_root="$d"
+                    break
+                  fi
+                  d=$(dirname "$d")
+                done
+                if printf '%s\n' "$CHANGED" | grep -q "^${watch_root}/"; then
                   echo "$proj"
                 fi
               done <<< "$ALL")
@@ -63,31 +73,86 @@ jobs:
     if: ${{ needs.find-projects.outputs.matrix != '[]' }}
     runs-on: macos-latest
     strategy:
-      fail-fast: false
+      # Cancel in-flight matrix entries on first failure — macOS minutes are
+      # ~10× Ubuntu's, so save the cost over seeing every failure at once.
+      fail-fast: true
       matrix:
         project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v6
 
-      # Config.xcconfig is gitignored — copy the example so build settings have
-      # placeholder values. No real CIAM workspace is needed for build + unit tests
-      # (network-touching paths only execute in the running app).
-      - name: Provision example xcconfig
+      - name: Detect project type
+        id: type
+        run: |
+          if [ -f "${{ matrix.project }}/project.yml" ]; then
+            echo "type=native" >> "$GITHUB_OUTPUT"
+          else
+            echo "type=rn" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Native iOS prep ───────────────────────────────────────────────────
+      - name: Provision example xcconfig (native iOS)
+        if: steps.type.outputs.type == 'native'
         working-directory: ${{ matrix.project }}
         run: cp Config.example.xcconfig Config.xcconfig
 
-      # Pre-fetch Swift Package Manager deps (AppAuth-iOS) so the test step doesn't
-      # also pay the resolution cost — makes failures during dep resolution easier
-      # to spot in logs.
-      - name: Resolve SPM dependencies
+      # Cache the SPM source archives so cold resolves stay fast.
+      - name: Cache SwiftPM (native iOS)
+        if: steps.type.outputs.type == 'native'
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles(format('{0}/project.yml', matrix.project)) }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Resolve SPM dependencies (native iOS)
+        if: steps.type.outputs.type == 'native'
         working-directory: ${{ matrix.project }}
         run: xcodebuild -resolvePackageDependencies -project Quickstart.xcodeproj -scheme Quickstart
 
-      # GitHub-hosted macOS runners can ship multiple iOS runtimes (especially
-      # during macOS version transitions), each with overlapping device names
-      # like "iPhone 16 Pro". Capture the UDID — globally unique — rather than
-      # the name, and pass `id=` to xcodebuild for an unambiguous destination.
-      # We pick the newest iOS runtime by sorting runtime keys.
+      # ── RN iOS prep ───────────────────────────────────────────────────────
+      # `pod install` resolves native modules from node_modules, so JS deps
+      # must be installed first.
+      - name: Set up Node (RN iOS)
+        if: steps.type.outputs.type == 'rn'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Enable Corepack (RN iOS)
+        if: steps.type.outputs.type == 'rn'
+        run: corepack enable
+      - name: Install JS dependencies (RN iOS)
+        if: steps.type.outputs.type == 'rn'
+        run: |
+          dir="${{ matrix.project }}"
+          while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+            if [ -f "$dir/package.json" ]; then
+              (cd "$dir" && yarn install --immutable)
+              break
+            fi
+            dir=$(dirname "$dir")
+          done
+      # Cache the global CocoaPods source archives. Not the project's Pods/ dir —
+      # `pod install` is fast when the source cache is warm and still regenerates
+      # the right Pods/ for the matrix entry's Podfile.lock.
+      - name: Cache CocoaPods (RN iOS)
+        if: steps.type.outputs.type == 'rn'
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Caches/CocoaPods
+          key: pods-${{ runner.os }}-${{ hashFiles(format('{0}/Podfile.lock', matrix.project)) }}
+          restore-keys: pods-${{ runner.os }}-
+
+      - name: Install CocoaPods (RN iOS)
+        if: steps.type.outputs.type == 'rn'
+        working-directory: ${{ matrix.project }}
+        run: pod install
+
+      # ── Common: simulator selection ───────────────────────────────────────
+      # Pick UDID rather than name — multiple runtimes can share a device name
+      # like "iPhone 16 Pro" during macOS image transitions.
       - name: Pick iOS simulator
         id: sim
         run: |
@@ -103,18 +168,15 @@ jobs:
           if [ -z "$UDID" ]; then
             echo "No iPhone simulator found"; exit 1
           fi
-          echo "Selected UDID: $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
-      - name: Build and test
+      # ── Native iOS: build + run unit tests ────────────────────────────────
+      # Ad-hoc signing gives the app an application-identifier entitlement so
+      # Keychain APIs work on the simulator. GENERATE_INFOPLIST_FILE=YES
+      # auto-generates QuickstartTests' Info.plist (project.yml doesn't declare one).
+      - name: Test (native iOS)
+        if: steps.type.outputs.type == 'native'
         working-directory: ${{ matrix.project }}
-        # - Ad-hoc signing (`CODE_SIGN_IDENTITY=-`) gives the app an
-        #   `application-identifier` entitlement so Keychain APIs work on the
-        #   simulator. `CODE_SIGNING_REQUIRED=NO` keeps things permissive.
-        # - `GENERATE_INFOPLIST_FILE=YES` lets xcodebuild auto-generate the
-        #   QuickstartTests target's Info.plist, which the project.yml doesn't
-        #   declare explicitly (Xcode's GUI builds it implicitly, but xcodebuild
-        #   demands one once we ad-hoc sign).
         run: |
           xcodebuild test \
             -project Quickstart.xcodeproj \
@@ -123,6 +185,19 @@ jobs:
             CODE_SIGN_IDENTITY=- \
             CODE_SIGNING_REQUIRED=NO \
             GENERATE_INFOPLIST_FILE=YES
+
+      # ── RN iOS: build only ────────────────────────────────────────────────
+      # No XCTests on the RN iOS side; tests live in JS (test-js.yml runs Jest).
+      - name: Build (RN iOS)
+        if: steps.type.outputs.type == 'rn'
+        working-directory: ${{ matrix.project }}
+        run: |
+          xcodebuild build \
+            -workspace Quickstart.xcworkspace \
+            -scheme Quickstart \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGNING_REQUIRED=NO
 
   # Stable aggregator for branch protection.
   all-tests-passed:
