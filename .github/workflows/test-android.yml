@@ -44,9 +44,23 @@ jobs:
             if printf '%s\n' "$CHANGED" | grep -qFx "$WORKFLOW_FILE"; then
               FILTERED="$ALL"
             else
+              # For each gradlew dir, walk up to find a package.json. If found (an
+              # RN sample — gradlew sits under <rn-root>/android/), watch the RN
+              # root: JS dep changes upstairs affect Android autolinking. If not
+              # found (a native Android sample), watch the gradlew dir itself.
+              # Mirrors the "Install JS dependencies (RN samples)" step's walk-up.
               FILTERED=$(while IFS= read -r proj; do
                 [ -z "$proj" ] && continue
-                if printf '%s\n' "$CHANGED" | grep -q "^${proj}/"; then
+                watch_root="$proj"
+                d="$proj"
+                while [ "$d" != "." ] && [ "$d" != "/" ]; do
+                  if [ -f "$d/package.json" ]; then
+                    watch_root="$d"
+                    break
+                  fi
+                  d=$(dirname "$d")
+                done
+                if printf '%s\n' "$CHANGED" | grep -q "^${watch_root}/"; then
                   echo "$proj"
                 fi
               done <<< "$ALL")
