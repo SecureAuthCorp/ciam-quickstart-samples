@@ -94,6 +94,17 @@ jobs:
         working-directory: ${{ matrix.project }}
         run: cp Config.example.xcconfig Config.xcconfig
 
+      # Cache the SPM source archives so cold resolves stay fast.
+      - name: Cache SwiftPM (native iOS)
+        if: steps.type.outputs.type == 'native'
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles(format('{0}/project.yml', matrix.project)) }}
+          restore-keys: spm-${{ runner.os }}-
+
       - name: Resolve SPM dependencies (native iOS)
         if: steps.type.outputs.type == 'native'
         working-directory: ${{ matrix.project }}
@@ -121,6 +132,17 @@ jobs:
             fi
             dir=$(dirname "$dir")
           done
+      # Cache the global CocoaPods source archives. Not the project's Pods/ dir —
+      # `pod install` is fast when the source cache is warm and still regenerates
+      # the right Pods/ for the matrix entry's Podfile.lock.
+      - name: Cache CocoaPods (RN iOS)
+        if: steps.type.outputs.type == 'rn'
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Caches/CocoaPods
+          key: pods-${{ runner.os }}-${{ hashFiles(format('{0}/Podfile.lock', matrix.project)) }}
+          restore-keys: pods-${{ runner.os }}-
+
       - name: Install CocoaPods (RN iOS)
         if: steps.type.outputs.type == 'rn'
         working-directory: ${{ matrix.project }}
