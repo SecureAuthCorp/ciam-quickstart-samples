@@ -75,10 +75,6 @@ updates:
         patterns: ["*"]
         update-types: ["minor", "patch"]
 
-  # React Native — auto-merge workflow excludes /samples/react-native/* by
-  # directory match, so bumps always require human review. Dep bumps can break
-  # native autolinking / API shapes that `tsc --noEmit` doesn't catch. The
-  # "manual-review" label is informational (the workflow filter is dir-based).
   - package-ecosystem: "npm"
     directories:
       - "/samples/react-native/login-pkce"
@@ -86,7 +82,7 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
-    labels: ["dependencies", "manual-review"]
+    labels: ["dependencies"]
     commit-message:
       prefix: "deps"
     groups:
