@@ -864,13 +864,13 @@ __metadata:
     babel-jest: "npm:30.4.1"
     jest: "npm:30.4.2"
     prettier: "npm:3.8.3"
-    react: "npm:19.2.3"
+    react: "npm:19.2.6"
     react-native: "npm:0.85.3"
-    react-native-app-auth: "npm:8.1.0"
+    react-native-app-auth: "npm:8.2.0"
     react-native-config: "npm:1.6.1"
     react-native-keychain: "npm:10.0.0"
     react-native-safe-area-context: "npm:5.7.0"
-    react-test-renderer: "npm:19.2.3"
+    react-test-renderer: "npm:19.2.6"
     typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
@@ -5908,22 +5908,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is-19@npm:react-is@^19.2.5, react-is@npm:^19.2.3":
+"react-is-19@npm:react-is@^19.2.5, react-is@npm:^19.2.6":
   version: 19.2.6
   resolution: "react-is@npm:19.2.6"
   checksum: 10c0/263177f370fc156b279d22570dd6e922a0ad641a4a426a4cb70284b8003b00ef532d59f2beca1d22a1ca0b37f85f9077d7733ca5d344ebecd2942e9bc2a2a3c0
   languageName: node
   linkType: hard
 
-"react-native-app-auth@npm:8.1.0":
-  version: 8.1.0
-  resolution: "react-native-app-auth@npm:8.1.0"
+"react-native-app-auth@npm:8.2.0":
+  version: 8.2.0
+  resolution: "react-native-app-auth@npm:8.2.0"
   dependencies:
     invariant: "npm:2.2.4"
     react-native-base64: "npm:0.0.2"
   peerDependencies:
     react-native: ">=0.63.0"
-  checksum: 10c0/182689876a46252fdde6c89cedbc8ab33208b395c59323785b93727b3f033c225782ad47508eb4a875004fc5964514baa646d955bb992d0aef07914b75232e90
+  checksum: 10c0/3fce30521caf3a1455f305599c224d9ba385ea533f932145f55c4aad37187022bd2774f743a8262eff4f90fff0ac1522e00eb2d4e8c833e6cb01bed4c93bb868
   languageName: node
   linkType: hard
 
@@ -6023,22 +6023,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-test-renderer@npm:19.2.3":
-  version: 19.2.3
-  resolution: "react-test-renderer@npm:19.2.3"
+"react-test-renderer@npm:19.2.6":
+  version: 19.2.6
+  resolution: "react-test-renderer@npm:19.2.6"
   dependencies:
-    react-is: "npm:^19.2.3"
+    react-is: "npm:^19.2.6"
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.3
-  checksum: 10c0/842b82239dbddbc536083a6260c3e1b0507c02a3400bd05879fc19160468fd0f8ab79fec5dceffa6113b131835cc7621212f8415b46ea5156ab66bbfd7e24297
+    react: ^19.2.6
+  checksum: 10c0/c8267de9def8ba2b821ebae1de9becb2d67e95f39d5ec4c63560446e60649f651bd1426f041d31bacbedc0dcb1a0cfae321d6d5ebe3563821c709cc8f4171363
   languageName: node
   linkType: hard
 
-"react@npm:19.2.3":
-  version: 19.2.3
-  resolution: "react@npm:19.2.3"
-  checksum: 10c0/094220b3ba3a76c1b668f972ace1dd15509b157aead1b40391d1c8e657e720c201d9719537375eff08f5e0514748c0319063392a6f000e31303aafc4471f1436
+"react@npm:19.2.6":
+  version: 19.2.6
+  resolution: "react@npm:19.2.6"
+  checksum: 10c0/66afde33b9a9ee87b1e1cae39d8e7e040d1262e719524fd70660c4d4ce79929c532ac19fc3df5a911edaf02768fdf2c49de4ede1ba99bc6aad72796e0e26e798
   languageName: node
   linkType: hard
 
