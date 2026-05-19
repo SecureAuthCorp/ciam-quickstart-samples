@@ -24,9 +24,9 @@ Code snippets from these samples are extracted automatically and embedded in the
 2. Copy `.env.example` (or the framework's equivalent like `local.example.properties` for Android, `Config.example.xcconfig` for iOS) to the real filename and fill in your CIAM workspace's client ID, issuer URL, redirect URI, and scopes.
 3. Follow the sample's own `README.md` for run instructions and any framework-specific setup (Node version, JDK, Xcode, Android SDK, etc.).
 
-## ⚠️ Not production-ready
+## Before you ship
 
-These samples illustrate **one** working approach to integrating each framework with CIAM. They are intentionally minimal — small enough to read end-to-end and copy into a new project — and deliberately skip concerns that any real-world deployment must address, including (but not limited to):
+These samples are intentionally minimal — small enough to read end-to-end — and skip concerns that real deployments need to address, including:
 
 - Hardening against the full OAuth/OIDC and SAML threat models (replay protection, token binding, audience/issuer validation beyond the library defaults, key rotation, etc.)
 - Comprehensive input validation and error handling
@@ -37,7 +37,7 @@ These samples illustrate **one** working approach to integrating each framework 
 - Localization, accessibility, theming, and broader UX
 - Build, packaging, signing, and release pipelines
 
-Treat the code as a starting point for your own implementation. Before deploying anything derived from these samples, review the relevant SecureAuth product documentation and conduct your own security review against the threat model that applies to your application. The samples are provided **AS IS** under the terms of the [LICENSE](LICENSE), without warranty of any kind.
+Treat the code as a starting point. Review the relevant SecureAuth product documentation and run your own security review before shipping. Provided **AS IS** under the [LICENSE](LICENSE).
 
 ## Repository layout
 
@@ -56,22 +56,6 @@ scripts/                # Snippet extraction + manifest validation tools
 ```
 
 Each sample is self-contained — its own build file, no shared library code — so copying a sample into your own project is a single directory move.
-
-## How samples are structured
-
-Source files have `@snippet:stepN:start` and `@snippet:stepN:end` markers around the lines that matter for that step. The extraction script in `scripts/` collects these into `snippets.json` for the dashboard. A per-framework `manifest.yaml` (e.g. `samples/react/manifest.yaml`) declares which scenarios the framework supports and what config rows the dashboard should display.
-
-## Adding a new sample
-
-1. Create `samples/<framework>/<flow>/` with a minimal working app
-2. Tag relevant source lines with `@snippet:stepN:start/end` and `@description` comments
-3. Add an entry under `scenarios:` in the framework's `manifest.yaml`
-4. Run `cd scripts && yarn all` to regenerate `snippets.json` + `snippet-manifest.yaml` and validate the structure
-5. Open a PR — per-framework CI workflows build the sample and confirm extraction stays consistent
-
-## CI
-
-Per-framework test workflows live in [.github/workflows/](.github/workflows/). Each workflow is path-aware: a PR only runs the matrix entries for samples whose subtree actually changed. Each workflow ends with a stable `<Framework> tests passed` aggregator job that's suitable for required-status-check gating.
 
 ## Reporting issues
 
