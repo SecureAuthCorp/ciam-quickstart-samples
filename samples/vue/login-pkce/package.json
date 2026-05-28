@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "oidc-client-ts": "3.5.0",
-    "vue": "3.5.34"
+    "vue": "3.5.35"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
@@ -25,6 +25,6 @@
     "typescript": "6.0.3",
     "vite": "8.0.14",
     "vitest": "4.1.7",
-    "vue-tsc": "3.3.1"
+    "vue-tsc": "3.3.2"
   }
 }
