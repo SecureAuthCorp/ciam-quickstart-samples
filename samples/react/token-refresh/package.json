@@ -13,22 +13,22 @@
   },
   "dependencies": {
     "oidc-client-ts": "3.5.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "react-oidc-context": "3.3.1"
   },
   "devDependencies": {
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
-    "@types/react": "19.2.15",
+    "@types/react": "19.2.16",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-basic-ssl": "2.3.0",
     "@vitejs/plugin-react": "6.0.2",
-    "happy-dom": "20.9.0",
+    "happy-dom": "20.10.1",
     "prettier": "3.8.3",
     "typescript": "6.0.3",
-    "vite": "8.0.14",
-    "vitest": "4.1.7"
+    "vite": "8.0.16",
+    "vitest": "4.1.8"
   }
 }
