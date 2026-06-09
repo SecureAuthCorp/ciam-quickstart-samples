@@ -33,8 +33,8 @@ describe("login-pkce App", () => {
   it("signs in, calls authorize with expected config, and renders welcome", async () => {
     (authorize as jest.Mock).mockResolvedValue(AUTHORIZE_RESULT);
 
-    render(<App />);
-    fireEvent.press(screen.getByText("Sign in"));
+    await render(<App />);
+    await fireEvent.press(screen.getByText("Sign in"));
 
     await waitFor(() => expect(authorize).toHaveBeenCalledTimes(1));
     expect(authorize).toHaveBeenCalledWith(

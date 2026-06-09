@@ -37,8 +37,8 @@ describe("token-refresh App", () => {
   it("signs in, persists refresh token, and renders welcome + refresh button", async () => {
     (authorize as jest.Mock).mockResolvedValue(AUTHORIZE_RESULT);
 
-    render(<App />);
-    fireEvent.press(screen.getByText("Sign in"));
+    await render(<App />);
+    await fireEvent.press(screen.getByText("Sign in"));
 
     await waitFor(() => expect(authorize).toHaveBeenCalledTimes(1));
     expect(authorize).toHaveBeenCalledWith(
