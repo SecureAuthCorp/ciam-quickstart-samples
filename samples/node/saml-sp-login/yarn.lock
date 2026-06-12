@@ -12,14 +12,14 @@ __metadata:
     "@node-saml/passport-saml": "npm:5.1.0"
     "@types/express": "npm:5.0.6"
     "@types/express-session": "npm:1.19.0"
-    "@types/node": "npm:25.9.1"
+    "@types/node": "npm:25.9.3"
     "@types/passport": "npm:1.0.17"
     "@types/supertest": "npm:7.2.0"
     dotenv: "npm:17.4.2"
     express: "npm:5.2.1"
     express-session: "npm:1.19.0"
     passport: "npm:0.7.0"
-    prettier: "npm:3.8.3"
+    prettier: "npm:3.8.4"
     selfsigned: "npm:5.5.0"
     supertest: "npm:7.2.2"
     tsx: "npm:4.22.4"
@@ -759,12 +759,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:25.9.1":
-  version: 25.9.1
-  resolution: "@types/node@npm:25.9.1"
+"@types/node@npm:25.9.3":
+  version: 25.9.3
+  resolution: "@types/node@npm:25.9.3"
   dependencies:
     undici-types: "npm:>=7.24.0 <7.24.7"
-  checksum: 10c0/9a04682842bebbcf21a1779dfeab9aa733d7bd7bbc0a0edb641ab3a9a3d43eac543225acf669c334f458f1956443ebc072bc3c72840c543b8b356cab5c82d456
+  checksum: 10c0/72d3aece9d42c2c641bcd3f3cb2dc2828b4bd384dfcbd910c404b8859a68bd69d50c4769ce7defd4ff5e049768e23e615f09407ea2cbbb5f44b90d75a7c6b8ca
   languageName: node
   linkType: hard
 
@@ -2104,12 +2104,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:3.8.3":
-  version: 3.8.3
-  resolution: "prettier@npm:3.8.3"
+"prettier@npm:3.8.4":
+  version: 3.8.4
+  resolution: "prettier@npm:3.8.4"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10c0/754816fd7593eb80f6376d7476d463e832c38a12f32775a82683adb6e35b772b1f484d65f19401507b983a8c8a7cd5a4a9f12006bd56491e8f35503473f77473
+  checksum: 10c0/b90a0cbe75b88ac0af9c13fe0f359bd19926fabccd88483227b21f71f0c1cc42da056fc1ac3a361e665577c568371d5ccfb2c62c31c8a1186f8d1bd531a063e9
   languageName: node
   linkType: hard
 
