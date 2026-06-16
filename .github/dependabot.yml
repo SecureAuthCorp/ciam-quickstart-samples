@@ -1,16 +1,14 @@
 version: 2
 
-# Each framework groups its login-pkce + token-refresh directories into a
-# single entry via `directories:` (plural) — those samples share package.json
-# contents, so the bumps always travel together. Combined with
-# `groups: minor-and-patch`, this collapses what used to be ~57 open PRs into
-# ~5–7 steady-state.
+# `directories:` (plural) + `minor-and-patch` group collapses each framework's
+# samples into ~5-7 PRs. Major bumps stay individual for changelog review.
 #
-# Major bumps still get individual PRs (groups only covers minor/patch) so a
-# human reads the changelog before merging.
+# The `security` group (`applies-to: security-updates`) groups vuln-alert bumps
+# too — without it they default to one PR each. No `update-types` filter since
+# a fix may need a major bump.
 #
-# NOTE: Dependabot's YAML parser does NOT support aliases / merge keys, so the
-# common settings are duplicated explicitly below.
+# NOTE: Dependabot's YAML parser has no aliases / merge keys, so settings are
+# duplicated explicitly below.
 
 updates:
   # ── npm samples ─────────────────────────────────────────────────────────
@@ -26,8 +24,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   - package-ecosystem: "npm"
     directories:
@@ -41,8 +43,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   - package-ecosystem: "npm"
     directories:
@@ -56,8 +62,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   - package-ecosystem: "npm"
     directories:
@@ -72,8 +82,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   - package-ecosystem: "npm"
     directories:
@@ -87,8 +101,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   - package-ecosystem: "npm"
     directory: "/scripts"
@@ -100,8 +118,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   # ── Maven (Java) ────────────────────────────────────────────────────────
   # Monthly cadence: Spring Boot + plugin updates move slower than npm.
@@ -118,8 +140,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   # ── NuGet (.NET) ────────────────────────────────────────────────────────
   # Monthly cadence: Microsoft.* packages bunch around SDK release cycles.
@@ -136,8 +162,12 @@ updates:
       prefix: "deps"
     groups:
       minor-and-patch:
+        applies-to: version-updates
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
   # ── GitHub Actions ──────────────────────────────────────────────────────
   - package-ecosystem: "github-actions"
@@ -145,3 +175,7 @@ updates:
     schedule:
       interval: "weekly"
     labels: ["dependencies"]
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
