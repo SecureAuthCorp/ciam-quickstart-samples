@@ -21,7 +21,7 @@ jobs:
     outputs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: find
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -79,7 +79,7 @@ jobs:
       matrix:
         project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Detect project type
         id: type

@@ -24,7 +24,7 @@ jobs:
     outputs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # Default shallow checkout — we only need the working tree for `find`
         # below, not git history. The PR's changed files come from gh api.
       - id: find
@@ -65,7 +65,7 @@ jobs:
       matrix:
         project: ${{ fromJson(needs.find-projects.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"

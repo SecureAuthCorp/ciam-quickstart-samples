@@ -24,7 +24,7 @@ jobs:
     outputs:
       matrix: ${{ steps.find.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # Default shallow checkout — we only need the working tree for `find`
         # below, not git history. The PR's changed files come from gh api.
       - id: find
@@ -81,7 +81,7 @@ jobs:
       matrix:
         android_dir: ${{ fromJson(needs.find-projects.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
