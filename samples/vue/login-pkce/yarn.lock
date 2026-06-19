@@ -108,7 +108,7 @@ __metadata:
     "@testing-library/vue": "npm:8.1.0"
     "@vitejs/plugin-basic-ssl": "npm:2.3.0"
     "@vitejs/plugin-vue": "npm:6.0.7"
-    happy-dom: "npm:20.10.5"
+    happy-dom: "npm:20.10.6"
     oidc-client-ts: "npm:3.5.0"
     prettier: "npm:3.8.4"
     typescript: "npm:6.0.3"
@@ -1437,9 +1437,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:20.10.5":
-  version: 20.10.5
-  resolution: "happy-dom@npm:20.10.5"
+"happy-dom@npm:20.10.6":
+  version: 20.10.6
+  resolution: "happy-dom@npm:20.10.6"
   dependencies:
     "@types/node": "npm:>=20.0.0"
     "@types/whatwg-mimetype": "npm:^3.0.2"
@@ -1448,7 +1448,7 @@ __metadata:
     entities: "npm:^7.0.1"
     whatwg-mimetype: "npm:^3.0.0"
     ws: "npm:^8.21.0"
-  checksum: 10c0/7682dbaa2d53b924664e7fe5819441137cfd8d10fee4d5836523997e571c1f021696e95c1f579e5c5eccdb4788a0906b5d70202ae86bd51233d8c2e7ee0f8683
+  checksum: 10c0/3cf22def886b0876b00bb04b9fbaab6c05c041fbcf0869978b6fba9eddccc45a5fc6dab14e369502be9019da43eda44ad1bee3019029ef71bb0c7db3351f4a42
   languageName: node
   linkType: hard
 
