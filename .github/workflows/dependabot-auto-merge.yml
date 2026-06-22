@@ -11,11 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Fetch Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Approve PR
         # Auto-approve all updates (patch/minor/major) across all samples.
         run: gh pr review --approve "$PR_URL"
