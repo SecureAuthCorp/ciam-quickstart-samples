@@ -99,7 +99,7 @@ jobs:
       # Cache the SPM source archives so cold resolves stay fast.
       - name: Cache SwiftPM (native iOS)
         if: steps.type.outputs.type == 'native'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
         with:
           path: |
             ~/Library/Caches/org.swift.swiftpm
@@ -139,7 +139,7 @@ jobs:
       # the right Pods/ for the matrix entry's Podfile.lock.
       - name: Cache CocoaPods (RN iOS)
         if: steps.type.outputs.type == 'rn'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
         with:
           path: ~/Library/Caches/CocoaPods
           key: pods-${{ runner.os }}-${{ hashFiles(format('{0}/Podfile.lock', matrix.project)) }}
