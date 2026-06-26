@@ -9,7 +9,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ciam-quickstart/scripts@workspace:."
   dependencies:
-    "@types/js-yaml": "npm:4.0.9"
     "@types/node": "npm:26.0.1"
     glob: "npm:13.0.6"
     js-yaml: "npm:5.1.0"
@@ -242,13 +241,6 @@ __metadata:
   version: 4.0.0
   resolution: "@npmcli/redact@npm:4.0.0"
   checksum: 10c0/a1e9ba9c70a6b40e175bda2c3dd8cfdaf096e6b7f7a132c855c083c8dfe545c3237cd56702e2e6627a580b1d63373599d49a1192c4078a85bf47bbde824df31c
-  languageName: node
-  linkType: hard
-
-"@types/js-yaml@npm:4.0.9":
-  version: 4.0.9
-  resolution: "@types/js-yaml@npm:4.0.9"
-  checksum: 10c0/24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
   languageName: node
   linkType: hard
 
