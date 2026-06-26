@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, writeFileSync } from "fs";
 import { glob } from "glob";
-import yaml from "js-yaml";
+import { load } from "js-yaml";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -62,7 +62,7 @@ function getPlaceholderMap(): PlaceholderMap {
     path.join(ROOT, "placeholder-map.yaml"),
     "utf-8",
   );
-  return yaml.load(content) as PlaceholderMap;
+  return load(content) as PlaceholderMap;
 }
 
 function applyPlaceholders(
@@ -84,7 +84,7 @@ function getLibVersion(
   manifestDir: string,
   libOverride?: string,
 ): string {
-  const manifest = yaml.load(
+  const manifest = load(
     readFileSync(path.join(manifestDir, "manifest.yaml"), "utf-8"),
   ) as FrameworkManifest;
   const lib = libOverride ?? manifest.lib;
@@ -135,7 +135,7 @@ function getLibVersion(
 
   // Flutter — pubspec.yaml dependencies
   try {
-    const pubspec = yaml.load(
+    const pubspec = load(
       readFileSync(path.join(scenarioDir, "pubspec.yaml"), "utf-8"),
     ) as { dependencies?: Record<string, unknown> };
     const dep = pubspec?.dependencies?.[lib];
@@ -223,9 +223,11 @@ function getLibVersion(
   // lives inside *.xcworkspace/, which is typically gitignored, so CI checkouts
   // can't see it; project.yml is the committed source of truth for SPM pins.
   try {
-    const projectYml = yaml.load(
+    const projectYml = load(
       readFileSync(path.join(scenarioDir, "project.yml"), "utf-8"),
-    ) as { packages?: Record<string, { url?: string; from?: string | number }> };
+    ) as {
+      packages?: Record<string, { url?: string; from?: string | number }>;
+    };
     const libLower = lib.toLowerCase();
     for (const [name, pkg] of Object.entries(projectYml?.packages ?? {})) {
       const url = (pkg?.url || "").toLowerCase();
@@ -291,7 +293,9 @@ function getLibVersion(
         if (module === libLower) {
           // Extract version.ref or version from this entry
           const entry = libMatch[0];
-          const versionRefMatch = entry.match(/version\.ref\s*=\s*["']([^"']+)["']/);
+          const versionRefMatch = entry.match(
+            /version\.ref\s*=\s*["']([^"']+)["']/,
+          );
           if (versionRefMatch) {
             const ref = versionRefMatch[1];
             const versionLineRegex = new RegExp(
@@ -301,7 +305,9 @@ function getLibVersion(
             const vMatch = versionsBlock.match(versionLineRegex);
             if (vMatch) return vMatch[1];
           }
-          const versionMatch = entry.match(/version\s*=\s*["']([0-9][^"']+)["']/);
+          const versionMatch = entry.match(
+            /version\s*=\s*["']([0-9][^"']+)["']/,
+          );
           if (versionMatch) return versionMatch[1];
         }
       }
@@ -439,7 +445,7 @@ async function main() {
   for (const manifestFile of manifestFiles.sort()) {
     const frameworkDir = path.join(SAMPLES, path.dirname(manifestFile));
     const content = readFileSync(path.join(SAMPLES, manifestFile), "utf-8");
-    const manifest = yaml.load(content) as FrameworkManifest;
+    const manifest = load(content) as FrameworkManifest;
     const fw = manifest.framework;
     const lang = manifest.lang;
 
