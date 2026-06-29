@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { glob } from "glob";
-import yaml from "js-yaml";
+import { load } from "js-yaml";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -41,7 +41,7 @@ async function main() {
   for (const manifestFile of manifestFiles) {
     const frameworkDir = path.join(SAMPLES, path.dirname(manifestFile));
     const content = readFileSync(path.join(SAMPLES, manifestFile), "utf-8");
-    const manifest = yaml.load(content) as FrameworkManifest;
+    const manifest = load(content) as FrameworkManifest;
 
     for (const scenarioId of Object.keys(manifest.scenarios)) {
       const dirName = scenarioId.replace(/^[^_]+_/, "").replaceAll("_", "-");

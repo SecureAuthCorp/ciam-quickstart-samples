@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs";
 import { glob } from "glob";
-import yaml from "js-yaml";
+import { load, dump } from "js-yaml";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -64,7 +64,7 @@ async function main() {
   for (const file of manifestFiles.sort()) {
     const fullPath = path.join(SAMPLES, file);
     const content = readFileSync(fullPath, "utf-8");
-    const manifest = yaml.load(content) as FrameworkManifest;
+    const manifest = load(content) as FrameworkManifest;
 
     frameworks[manifest.framework] = {
       label: manifest.label,
@@ -110,10 +110,10 @@ async function main() {
   );
 
   const output = { frameworks: orderedFrameworks, scenarios };
-  const yamlStr = yaml.dump(output, {
+  const yamlStr = dump(output, {
     lineWidth: 120,
     noRefs: true,
-    quotingType: '"',
+    quoteStyle: "double",
   });
   const outputPath = path.join(ROOT, "snippet-manifest.yaml");
   writeFileSync(
