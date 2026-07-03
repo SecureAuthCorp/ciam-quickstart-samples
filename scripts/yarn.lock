@@ -9,10 +9,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ciam-quickstart/scripts@workspace:."
   dependencies:
-    "@types/node": "npm:26.0.1"
+    "@types/node": "npm:26.1.0"
     glob: "npm:13.0.6"
-    js-yaml: "npm:5.1.0"
-    tsx: "npm:4.22.4"
+    js-yaml: "npm:5.2.1"
+    tsx: "npm:4.22.5"
     typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
@@ -244,12 +244,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:26.0.1":
-  version: 26.0.1
-  resolution: "@types/node@npm:26.0.1"
+"@types/node@npm:26.1.0":
+  version: 26.1.0
+  resolution: "@types/node@npm:26.1.0"
   dependencies:
     undici-types: "npm:~8.3.0"
-  checksum: 10c0/31d204333c70124da6bcac7d1f27d8980149fe3f95a8419bfcd19c3e5823705c0e370d71ac34399352e1263b2d5fc41c87af964ec81e5a05a32224d65d8d224e
+  checksum: 10c0/61c22ad1ef215e24138cb8b7368fb68bab9de4c123b3f23d411749b015ba1b7d22f878ad54add26a0b69068d7e07c04af665069d8571b6c6c3b9b2fb73b7bd91
   languageName: node
   linkType: hard
 
@@ -538,14 +538,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:5.1.0":
-  version: 5.1.0
-  resolution: "js-yaml@npm:5.1.0"
+"js-yaml@npm:5.2.1":
+  version: 5.2.1
+  resolution: "js-yaml@npm:5.2.1"
   dependencies:
     argparse: "npm:^2.0.1"
   bin:
     js-yaml: bin/js-yaml.mjs
-  checksum: 10c0/a21c3817fb736ab3215c9d1ffb0a94823d02ecb51b481e88ab4bf0f9522baccbe9168bdf265bc315124d5087e2261de93e56176c2a7cd589d8275a18d7b3316e
+  checksum: 10c0/8eadf08efc738a656c2838f6617b0cc508944f66f568eb4d435e858261b889a6806d98f44fb6ffdba21a0c68e4bdff1ac35516724882e1dab8fc2cc59150c881
   languageName: node
   linkType: hard
 
@@ -813,9 +813,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:4.22.4":
-  version: 4.22.4
-  resolution: "tsx@npm:4.22.4"
+"tsx@npm:4.22.5":
+  version: 4.22.5
+  resolution: "tsx@npm:4.22.5"
   dependencies:
     esbuild: "npm:~0.28.0"
     fsevents: "npm:~2.3.3"
@@ -824,7 +824,7 @@ __metadata:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 10c0/3df31eb4929ff501b40b122163705b201ea57a492581e14312ae95d21eb015b33ded46a3fd564f9c89a0e8083186987fc4f10dd38182c4ad6241605974f6c927
+  checksum: 10c0/aab2bb66462b1dd03eb1ef1f0c02159c55e0c945bfa20c901e037036d024190c543c3b02f2554f5345912fb60e9f1d3148e3291beca935cedf82dee0cfda1a02
   languageName: node
   linkType: hard
 
