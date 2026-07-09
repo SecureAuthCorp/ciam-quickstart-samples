@@ -12,10 +12,10 @@
   "dependencies": {
     "glob": "13.0.6",
     "js-yaml": "5.2.1",
-    "tsx": "4.22.5"
+    "tsx": "4.23.0"
   },
   "devDependencies": {
-    "@types/node": "26.1.0",
+    "@types/node": "26.1.1",
     "typescript": "6.0.3"
   }
 }
