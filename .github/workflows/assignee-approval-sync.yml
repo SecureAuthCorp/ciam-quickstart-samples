@@ -15,12 +15,13 @@ jobs:
     steps:
       - name: Mirror assignee approval as a second (bot) approval
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           BOT: "github-actions[bot]"
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
+          set -euo pipefail
           assignees=$(gh pr view "$PR" -R "$REPO" --json assignees -q '.assignees[].login')
           reviews=$(gh api "/repos/$REPO/pulls/$PR/reviews" --paginate --jq '.[]' | jq -s '.')
 
