@@ -1,0 +1,13 @@
+name: Dependabot auto-approve
+
+on: pull_request
+
+jobs:
+  auto-approve:
+    permissions:
+      pull-requests: write
+      checks: read
+      statuses: read
+      actions: read
+      contents: read
+    uses: SecureAuthCorp/github-actions/.github/workflows/dependabot-auto-approve.yaml@3891a1c4e9fca203588d0b9906b3b0b1fa862bb5
