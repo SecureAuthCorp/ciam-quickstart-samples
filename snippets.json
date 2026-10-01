@@ -937,7 +937,7 @@
       ],
       "framework": "node",
       "lib": "@node-saml/passport-saml",
-      "lib_version": "5.1.0",
+      "lib_version": "5.1.1",
       "docs_url": "https://github.com/node-saml/passport-saml",
       "install": "@node-saml/passport-saml passport",
       "repo_path": "samples/node/saml-sp-login",
