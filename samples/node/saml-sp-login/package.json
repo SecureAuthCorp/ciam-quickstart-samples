@@ -13,8 +13,8 @@
     "format:check": "prettier --check --ignore-path=../../../.gitignore ."
   },
   "dependencies": {
-    "@node-saml/passport-saml": "5.1.0",
-    "dotenv": "18.0.2",
+    "@node-saml/passport-saml": "5.1.1",
+    "dotenv": "18.0.4",
     "express": "5.2.1",
     "express-session": "1.19.0",
     "passport": "0.7.0",
@@ -23,14 +23,14 @@
   "devDependencies": {
     "@types/express": "5.0.6",
     "@types/express-session": "1.19.0",
-    "@types/node": "26.6.2",
+    "@types/node": "26.6.3",
     "@types/passport": "1.0.17",
     "@types/supertest": "7.2.1",
-    "prettier": "3.9.8",
-    "supertest": "7.2.2",
+    "prettier": "3.9.9",
+    "supertest": "7.3.0",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
-    "vite": "8.3.0",
-    "vitest": "5.0.1"
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
   }
 }
