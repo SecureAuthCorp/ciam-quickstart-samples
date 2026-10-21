@@ -265,17 +265,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/router@npm:22.2.0":
-  version: 22.2.0
-  resolution: "@angular/router@npm:22.2.0"
+"@angular/router@npm:22.2.1":
+  version: 22.2.1
+  resolution: "@angular/router@npm:22.2.1"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 22.2.0
-    "@angular/core": 22.2.0
-    "@angular/platform-browser": 22.2.0
+    "@angular/common": 22.2.1
+    "@angular/core": 22.2.1
+    "@angular/platform-browser": 22.2.1
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/6b31cd16a6c28682073def1c1acc36c180f789a417ef3ead1593c29d488b6d2428fd3f133ed3a7c4f62e93dd1a8dffdfe14fd2c62714246738253dad91c71dbf
+  checksum: 10c0/54a78d666d18766d49b15544ffc531ed435fe1c431af50f2a1e380ba524cf8941bf23b1557e6d67752e4fffe8ef337080f436268bea169d296e268212db9328c
   languageName: node
   linkType: hard
 
@@ -614,7 +614,7 @@ __metadata:
     "@angular/core": "npm:22.1.7"
     "@angular/forms": "npm:22.1.7"
     "@angular/platform-browser": "npm:22.1.7"
-    "@angular/router": "npm:22.2.0"
+    "@angular/router": "npm:22.2.1"
     angular-auth-oidc-client: "npm:22.0.1"
     jsdom: "npm:30.1.0"
     prettier: "npm:3.9.8"
