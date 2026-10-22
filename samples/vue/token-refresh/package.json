@@ -13,18 +13,18 @@
   },
   "dependencies": {
     "oidc-client-ts": "3.5.0",
-    "vue": "3.5.43"
+    "vue": "3.5.44"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/vue": "8.1.0",
     "@vitejs/plugin-basic-ssl": "2.3.0",
     "@vitejs/plugin-vue": "6.0.10",
-    "happy-dom": "21.0.1",
+    "happy-dom": "21.0.3",
     "prettier": "3.9.10",
     "typescript": "6.0.3",
     "vite": "8.3.4",
-    "vitest": "5.0.4",
+    "vitest": "5.0.5",
     "vue-tsc": "3.3.13"
   },
   "resolutions": {
