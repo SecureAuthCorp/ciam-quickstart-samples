@@ -10,12 +10,12 @@
     "all": "yarn aggregate && yarn extract && yarn validate"
   },
   "dependencies": {
-    "glob": "14.0.2",
+    "glob": "14.0.3",
     "js-yaml": "5.5.0",
     "tsx": "4.23.15"
   },
   "devDependencies": {
-    "@types/node": "26.6.5",
+    "@types/node": "26.6.6",
     "typescript": "6.0.3"
   }
 }
