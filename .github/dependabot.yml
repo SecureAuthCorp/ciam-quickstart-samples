@@ -7,6 +7,9 @@ version: 2
 # too — without it they default to one PR each. No `update-types` filter since
 # a fix may need a major bump.
 #
+# `cooldown` waits 7 days after a release before proposing it, so compromised
+# versions get yanked before auto-merge lands them. Security updates are exempt.
+#
 # NOTE: Dependabot's YAML parser has no aliases / merge keys, so settings are
 # duplicated explicitly below.
 
@@ -18,6 +21,8 @@ updates:
       - "/samples/react/token-refresh"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -37,6 +42,8 @@ updates:
       - "/samples/angular/token-refresh"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -56,6 +63,8 @@ updates:
       - "/samples/vue/token-refresh"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -76,6 +85,8 @@ updates:
       - "/samples/node/token-refresh"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -95,6 +106,8 @@ updates:
       - "/samples/react-native/token-refresh"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -112,6 +125,8 @@ updates:
     directory: "/scripts"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -134,6 +149,8 @@ updates:
       - "/samples/java/token-refresh"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -156,6 +173,8 @@ updates:
       - "/samples/dotnet/token-refresh"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     labels: ["dependencies"]
     commit-message:
@@ -174,6 +193,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     labels: ["dependencies"]
     groups:
       security:
